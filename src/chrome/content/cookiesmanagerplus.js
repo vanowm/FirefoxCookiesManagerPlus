@@ -36,7 +36,6 @@ var coomanPlus = {
 	inited: false,
 	app: null,
 	focused: null,
-	prefBranch: Ci.nsIPrefBranch2,
 	prefAutoUpdate: false,
 	prefAutoFilter: false,
 	prefTopmost: false,
@@ -124,83 +123,29 @@ var coomanPlus = {
 		isContainerEmpty: function(index) {},
 		toggleOpenState: function(index) {},
 		cycleHeader: function(aColId, aElt) {},
-		getRowProperties: function(row,column, props)
-		{
-			let old = typeof(props) != "undefined";
-			if (old)
-				aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-			else
-				props = "";
-
-			if (coomanPlus._cookies[row]['deleted'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleted"));
-				else
-					props = "deleted";
-
-			if (coomanPlus._cookies[row]['deleting'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleting"));
-				else
-					props += " deleting";
-
-			return props;
-		},
-		getColumnProperties: function(column,columnElement,props)
+		getRowProperties: function(row,column){},
+		getColumnProperties: function(column,columnElement,prop)
 		{
 		},
 		getCellProperties: function(row,col,props)
 		{
-			let old = typeof(props) != "undefined";
-			if (old)
-				aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-			else
-				props = "";
-
 			if (coomanPlus._cookies[row]['isProtected'] && coomanPlus.cookieCuller.enabled && coomanPlus.prefCookieCuller && !coomanPlus.prefCookieCullerDelete)
-				if (old)
-					props.AppendElement(aserv.getAtom("protected"));
-				else
-					props = "protected";
-
-			if (coomanPlus._cookies[row]['deleted'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleted"));
-				else
-					props += " deleted";
-
-			if (coomanPlus._cookies[row]['deleting'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleting"));
-				else
-					props += " deleting";
-
-			if (!coomanPlus._cookies[row]['expires'])
-				if (old)
-					props.AppendElement(aserv.getAtom("session"));
-				else
-					props += " session";
-
-			if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
-				if (old)
-					props.AppendElement(aserv.getAtom("expired"));
-				else
-					props += " expired";
-
+			{
+				var aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+				props.AppendElement(aserv.getAtom("protected"));
+			}
 			if (col.type == col.TYPE_CHECKBOX && this.selection.isSelected(row))
-				if (old)
-					props.AppendElement(aserv.getAtom("checked"));
-				else
-					props += " checked";
-
+			{
+				var aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+				props.AppendElement(aserv.getAtom("checked"));
+			}
 /*
 			if (coomanPlus._cookies[row]['updated'] && coomanPlus._cookies[row]['updated'] + 60000 < (new Date()).getTime())
-				if (old)
-					props.AppendElement(aserv.getAtom("updated"));
-				else
-					props += " updated";
+			{
+				var aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+				props.AppendElement(aserv.getAtom("updated"));
+			}
 */
-			return props;
 		},
 		isEditable: function(row, col){ return col.editable; },
 		setCellValue: function(row, col, val)
@@ -420,10 +365,7 @@ var coomanPlus = {
 		this.onPrefChange.do();
 		this.loadCookies();
 		this.selectLastCookie(true);
-		if ("addObserver" in this.prefs.QueryInterface(Ci.nsIPrefBranch))
-			this.prefBranch = Ci.nsIPrefBranch;
-
-		this.prefs.QueryInterface(this.prefBranch).addObserver('', this.onPrefChange, false);
+		this.prefs.QueryInterface(Ci.nsIPrefBranch2).addObserver('', this.onPrefChange, false);
 		this.onPrefChange.inited = true;
 		this._cookiesTree.focus();
 		switch (Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch("ui.key.").getIntPref("accelKey"))
@@ -476,7 +418,7 @@ var coomanPlus = {
 		}catch(e){}
 		try
 		{
-			this.prefs.QueryInterface(this.prefBranch).removeObserver('', this.onPrefChange, false);
+			this.prefs.QueryInterface(Ci.nsIPrefBranch2).removeObserver('', this.onPrefChange, false);
 		}catch(e){}
 		try
 		{
@@ -1658,10 +1600,10 @@ var coomanPlus = {
 					.getService(Ci.mozIJSSubScriptLoader)
 					.loadSubScript("chrome://cookieculler/content/CookieCullerViewer.js", this.obj);
 
-				this.obj.cookieculler_prefs.QueryInterface(this.prefBranch).addObserver('', this, false);
+				this.obj.cookieculler_prefs.QueryInterface(Ci.nsIPrefBranch2).addObserver('', this, false);
 				window.addEventListener("unload", function()
 				{
-					coomanPlus.cookieCuller.obj.cookieculler_prefs.QueryInterface(this.prefBranch).removeObserver('', coomanPlus.cookieCuller, false);
+					coomanPlus.cookieCuller.obj.cookieculler_prefs.QueryInterface(Ci.nsIPrefBranch2).removeObserver('', coomanPlus.cookieCuller, false);
 				}, true);
 			}
 			catch(e){this.enabled = false; coomanPlusCommon.isCookieCuller = false};
