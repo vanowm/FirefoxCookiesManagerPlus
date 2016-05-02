@@ -1,2 +1,6 @@
-<!ENTITY coockiesManagerPlus						"Cookies Manager+">
-<!ENTITY coockiesManagerPlus.accesskey	"M">
+<!ENTITY coomanPlus										"Cookies Manager+">
+<!ENTITY coomanPlus.open							"Open Cookies Manager+">
+<!ENTITY coomanPlus.open.accesskey		"M">
+<!ENTITY synchronize									"Synchronize mode">
+<!ENTITY synchronize.accesskey				"S">
+<!ENTITY synchronize.info							"Selecting cookies in this window will automatically select them in opened Cookies Manager+ window.">

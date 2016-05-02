@@ -29,7 +29,7 @@ Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
 coomanPlusCore.lastKeyDown = [];
 
 var coomanPlus = {
-	_aWindow: null,
+	_cmpWindow: null,
 	_params: null,
 
 	load: function()
@@ -40,8 +40,8 @@ var coomanPlus = {
 	init: function()
 	{
 		this._params = window.arguments[0];
-		this._aWindow = coomanPlusCore.aWindow;
-		coomanPlusCore.aWindow = window;
+		this._cmpWindow = coomanPlusCore.cmpWindow;
+		coomanPlusCore.cmpWindow = window;
 
 		var cookieBundle = document.getElementById("cookieBundle");
 		document.title = cookieBundle.getString("promptDelete.window.title");
@@ -72,7 +72,7 @@ var coomanPlus = {
 
 	action: function(b)
 	{
-		coomanPlusCore.aWindow = this._aWindow;
+		coomanPlusCore.cmpWindow = this._cmpWindow;
 
 		this._params.button = b;
 

@@ -1,0 +1,29 @@
+#cmp
+{
+	list-style-image: url("images/coomanPlus16.png");
+	-moz-image-region: rect(0 16px 16px 0);
+	-moz-appearance: button;
+	padding-top:0;
+	padding-bottom:0;
+}
+#cmp > toolbarbutton
+{
+	padding-top:0;
+	padding-bottom:0;
+}
+#cmp > .toolbarbutton-menubutton-dropmarker
+{
+	padding-top:0;
+	padding-bottom:0;
+	margin:0;
+}
+#cmp * .toolbarbutton-icon[label]:not([label=""]),
+#cmp * .toolbarbutton-icon[type="menu"] {
+	-moz-margin-end: 0;
+}
+
+
+#cmp * .toolbarbutton-text
+{
+	display: none;
+}

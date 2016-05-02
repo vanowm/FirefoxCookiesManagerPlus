@@ -5,9 +5,9 @@
 	 xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	 xmlns:xbl="http://www.mozilla.org/xbl">
 
-	<binding id="checkbox" extends="chrome://cookiesmanagerplus/skin/checkboxright.xml#checkbox-baseline">
+	<binding id="checkbox" extends="checkboxright.xml#checkbox-baseline">
 		<resources>
-			<stylesheet src="chrome://cookiesmanagerplus/skin/checkboxright.css"/>
+			<stylesheet src="checkboxright.css"/>
 		</resources>
 	</binding>
 	<binding id="checkbox-baseline"

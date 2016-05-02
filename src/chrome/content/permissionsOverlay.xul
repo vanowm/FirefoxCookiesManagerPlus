@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+	<!ENTITY % coomanPlusDTD SYSTEM "chrome://cookiesmanagerplus/locale/coomanPlusMain.dtd"> %coomanPlusDTD;
+	<!ENTITY % permissions SYSTEM "chrome://cookiesmanagerplus/locale/permissionsOverlay.dtd"> %permissions;
+	<!ENTITY % cookies SYSTEM "chrome://cookiesmanagerplus/locale/cookiesOverlay.dtd"> %cookies;
+]>
+
+<overlay id="permissionsOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<window id="PermissionsDialog">
+		<script type="application/javascript" src="chrome://global/content/strres.js"/>
+		<script type="application/javascript" src="common.js"/>
+		<script type="application/javascript" src="permissionsOverlay.js"/>
+		<script type="application/javascript" src="libOut.js"/>
+		<script type="application/javascript" src="commonFunc.js"/>
+		<script type="application/javascript" src="export.js"/>
+		<script type="application/javascript" src="base64.js"/>
+		<script type="application/javascript">
+			coomanPlus.strings = {
+				restore_file_open:								"&restore.file.open;",
+				password_incorrect:								"&password.incorrect;",
+				backup_corrupted:									"&backup.corrupted;",
+				export_success:										"&export.success;",
+				export_openfolder:								"&export.openfolder;",
+				permissions_restored:							"&permissions.restored;",
+				restore_complete:									"&restore.complete;",
+				restore_warning:									"&restore.warning;",
+				restore_warning_text:							"&restore.warning.text;",
+				backup_protected:									"&backup.protected;",
+			};
+		</script>
+		<vbox class="ub" flex="0" id="coomanPlusButton">
+			<button image="chrome://cookiesmanagerplus/skin/images/coomanPlus16.png"
+							tooltiptext="&backup-restore;"
+							accesskey="&backup-restore.accesskey;"
+							type="menu"
+							style="min-width: 18px;"
+			>
+				<menupopup>
+					<menuitem id="backup"
+										label="&backup;"
+										accesskey="&backup.accesskey;"
+										oncommand="coomanPlus.backup();"
+					/>
+					<menuitem id="backupsel"
+										label="&backup.selected;"
+										accesskey="&backup.selected.accesskey;"
+										oncommand="coomanPlus.backup(1);"
+					/>
+					<menuitem id="restore"
+										label="&restore;"
+										accesskey="&restore.accesskey;"
+										oncommand="coomanPlus.restore();"
+					/>
+					<menuseparator/>
+					<menuitem id="cmp"
+										label="&coomanPlus;"
+										accesskey="&coomanPlus.open.accesskey;"
+										oncommand="coomanPlus.openCMP();"
+					/>
+				</menupopup>
+			</button>
+		</vbox>
+	</window>
+</overlay>

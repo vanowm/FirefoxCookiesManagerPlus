@@ -23,17 +23,22 @@
 
 #coomanPlus_button
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec24.png");
+	list-style-image: url("images/coomanPlus24.png");
 	-moz-image-region: rect(0 24px 24px 0);
 }
 
 toolbar[iconsize="small"] #coomanPlus_button
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec16.png");
+	list-style-image: url("images/coomanPlus16.png");
 	-moz-image-region: rect(0 16px 16px 0);
 }
-#coomanPlus_menuitem,
-#coomanPlus_appmenu
+#coomanPlus_appmenu_menu,
+#coomanPlus_tools_menu
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec16.png");
+	list-style-image: url("images/coomanPlus16.png");
+}
+.popup-notification-icon[popupid="coomanPlus-update"] {
+  list-style-image: url("images/coomanPlus64.png");
+	width: 64px !important;
+	height: 64px !important;
 }

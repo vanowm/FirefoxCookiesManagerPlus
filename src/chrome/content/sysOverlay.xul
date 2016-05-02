@@ -2,38 +2,81 @@
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://cookiesmanagerplus/locale/anecOverlay.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://cookiesmanagerplus/locale/sysOverlay.dtd">
 <overlay	id="coomanPlusOverlay"
 					xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 >
-	<script src="chrome://cookiesmanagerplus/content/anecOverlay.js"/>
-
+	<script type="application/javascript" src="sysOverlay.js"/>
+	<script type="application/javascript" src="update.js"/>
+	<script type="application/javascript">
+		coomanPlus.strings = {
+			site:							"&cookiesmanagerplus.site;",
+			updated:					"&cookiesmanagerplus.updated;",
+			changesLog:				"&cookiesmanagerplus.changesLog;",
+			changesLog_key:		"&cookiesmanagerplus.changesLog_key;",
+			menu_options:			"&cookiesmanagerplus.menu_options;",
+			menu_options_key:	"&cookiesmanagerplus.menu_options_key;",
+		};
+	</script>
+	<commandset>
+		<command id="openCookieEditor" oncommand="coomanPlus.openCookieEditor();"/>
+		<command id="openCookieEditorCurrent" oncommand="coomanPlus.openCookieEditor({gBrowser: gBrowser});"/>
+	</commandset>
 	<!-- FireFox -->
 	<toolbarpalette id="BrowserToolbarPalette">
-		<toolbarbutton id="coomanPlus_button"
-									oncommand="coomanPlus.openCookieEditor();"
-									class="toolbarbutton-1"
-									label="&cookiesmanagerplus.label;"
-									tooltiptext="&cookiesmanagerplus.label;"
-		/>
+		<toolbarbutton	id="coomanPlus_button"
+										command="openCookieEditor"
+										class="toolbarbutton-1"
+										label="&cookiesmanagerplus.label;"
+										tooltiptext="&cookiesmanagerplus.label;"
+										type="menu-button"
+		>
+			<menupopup onpopupshowing="return coomanPlus.menu();">
+				<menuitem id="coomanPlus_button_menu"
+									command="openCookieEditorCurrent"
+									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+				/>
+			</menupopup>
+		</toolbarbutton>
 	</toolbarpalette>
-	<!-- Menu in Firefox 4.0+ App Menu -->
-	<vbox id="appmenu_webDeveloper_popup"> 
-		<menuitem id="coomanPlus_appmenu"
-							label="&cookiesmanagerplus.label;"
-							accesskey="&cookiesmanagerplus.accesskey;"
-							oncommand="coomanPlus.openCookieEditor();"
-							class="menuitem-iconic"
-							insertafter="appmenu_errorConsole"
-		/>
-	</vbox>
+	<!-- Tools Menu -->
 	<menupopup id="menu_ToolsPopup">
-		<menuitem id="coomanPlus_menuitem"
+		<menu	id="coomanPlus_tools_menu"
+					insertafter="menu_pageInfo"
+					label="&cookiesmanagerplus.label;"
+					accesskey="&cookiesmanagerplus.accesskey;"
+					class="menu-iconic"
+					onclick="if(event.originalTarget.id != 'coomanPlus_tools_menu') return false;this.parentNode.hidePopup();coomanPlus.openCookieEditor();"
+		>
+			<menupopup onpopupshowing="return coomanPlus.menu(event);">
+				<menuitem label="&cookiesmanagerplus.label;"
+									accesskey="&cookiesmanagerplus.accesskey;"
+									command="openCookieEditor"
+				/>
+				<menuitem id="coomanPlus_tools_menuitem"
+									command="openCookieEditorCurrent"
+									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+									accesskey="&cookiesmanagerplus.accesskey;"
+				/>
+			</menupopup>
+		</menu>
+	</menupopup>
+	<!-- Menu in Firefox 4.0+ App Menu -->
+	<vbox id="appmenu_webDeveloper_popup">
+		<splitmenu id="coomanPlus_appmenu_menu"
 							label="&cookiesmanagerplus.label;"
 							accesskey="&cookiesmanagerplus.accesskey;"
-							oncommand="coomanPlus.openCookieEditor();"
-							class="menuitem-iconic"
-							insertafter="menu_pageInfo"
-		/>
-	</menupopup>
+							command="openCookieEditor"
+							iconic="true"
+							insertafter="appmenu_errorConsole"
+		>
+			<menupopup onpopupshowing="return coomanPlus.menu();">
+				<menuitem id="coomanPlus_appmenu_menuitem"
+									command="openCookieEditorCurrent"
+									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+									accesskey="&cookiesmanagerplus.accesskey;"
+				/>
+			</menupopup>
+		</splitmenu>
+	</vbox>
 </overlay>

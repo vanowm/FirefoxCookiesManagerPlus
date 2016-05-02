@@ -23,36 +23,42 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*----------------------
- Contains some of the code is from Mozilla original Cookie Editor
+ Contains some of the code from Mozilla original Cookie Editor
  ----------------------*/
 
 
 /*##################################################################################### */
-
-Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
+function $(id)
+{
+	return document.getElementById(id);
+}
+var self = this;
 var coomanPlus = {
-	_aWindow: null,
+	_cmpWindow: null,
+	core: coomanPlusCore,
 	winid: new Date(),
 	inited: false,
 	app: null,
 	focused: null,
+	args: {},
+	backup: {},
+	website: false,
+	websiteHost: null,
+	websiteHostStripped: null,
 	prefBranch: Ci.nsIPrefBranch2,
-	prefAutoUpdate: false,
-	prefAutoFilter: false,
-	prefTopmost: false,
-	prefShowExtra: false,
-	prefDateFormat: "",
 	prefFiltersearchname: true,
 	prefFiltersearchhost: true,
+	prefFiltersearchhosttype: 0,
 	prefFiltersearchcontent: true,
 	prefFiltersearchcase: false,
+	prefFiltersearchtype: 0,
+	prefFiltersearchtype1: false,
+	prefFiltersearchtype2: false,
 	prefSimpleHost: false,
 	prefExpireProgress: false,
 	prefExpireCountdown: true,
-	prefCookieCuller: false,
-	prefCookieCullerDelete: false,
 	prefViewOrder: "",
-	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|isProtected",
+	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|type|isProtected",
 
 	accel: "CONTROL",
 	keysList: null,
@@ -60,7 +66,6 @@ var coomanPlus = {
 	strings: {},
 	_noObserve: false,
 	_selected: [],
-	_cb2: null,
 	_cookies: [],
 	_cookiesAll: [],
 	_cb: null,
@@ -69,111 +74,169 @@ var coomanPlus = {
 	contextDelay: 0,
 	isXP: false,
 
-	prefs: coomanPlusCommon.prefs,
+	prefs: coomanPlusCore.prefs,
+	pref: coomanPlusCore.pref,
 
 	dragCancel: true,
 	dragoverObj: null,
 	infoRowsFirst: null,
 	infoRowsLast: null,
 	infoRowsChanged: false,
+	storageFile: "cookiesManagerPlus.json",
+	showedExpires: -1,
 
 	_cookiesTreeView: {
 		rowCount : 0,
 		tree: null,
-		canDrop: function(){ return false },
-		setTree : function(tree){ this.tree = tree },
-		getImageSrc : function(row,column) {},
-		getProgressMode : function(row,column) {},
-		getCellValue : function(row,column){return coomanPlus._cookies[row][column.id]; },
-		setCellText : function(row,column,val) {},
-		getCellText : function(row,column)
+		canDrop: function canDrop(row, orientation, dataTransfer){return false},
+		drop: function drop(row, orientation, dataTransfer)
 		{
-			if (coomanPlus.supress_getCellText || column.id == "sel")
-				return "";
+			coomanPlus.filesDragDrop(dataTransfer);
+		},
+		cycleHeader: function cycleHeader(aColId, aElt) {},
+		cycleCell: function cycleCell(row, col){},
+		setTree: function setTree(tree){ this.tree = tree },
+		getImageSrc: function getImageSrc(){},
+		getProgressMode: function getProgressMode(row,column)
+		{
+			if (!coomanPlus._cookies[row])
+				return;
+
+			return coomanPlus._cookies[row]["expires"] ? 1 : 3;
+		},
+		getCellText: function getCellText(row,column)
+		{
+			if (coomanPlus.supress_getCellText || column.id == "sel" || !coomanPlus._cookies[row])
+			{
+				return;
+			}
+
 			switch(column.id)
 			{
+				case "type":
+					return "";
+
+				case "rawHost":
+				 return coomanPlus._cookies[row][coomanPlus.pref("showrealhost") ? "host" : "rawHost"];
+
 				case "expires":
 					return coomanPlus.getExpiresString(coomanPlus._cookies[row]["expires"]);
+
 				case "creationTimeString":
-						if (!coomanPlus._cookies[row].extra)
-							coomanPlus._cookies[row] = coomanPlus._cookieGetExtraInfo(coomanPlus._cookies[row].aCookie);
+						if (coomanPlus._cookies[row].type != coomanPlusCore.COOKIE_NORMAL)
+							return "--";
+
 					return coomanPlus.getExpiresString(Math.round(coomanPlus._cookies[row]["creationTime"]/1000000));
+
 				case "lastAccessedString":
-						if (!coomanPlus._cookies[row].extra)
-							coomanPlus._cookies[row] = new coomanPlus.cookieObject(coomanPlus._cookies[row].aCookie.QueryInterface(Ci.nsICookie2), coomanPlus._cookies[row].sel, coomanPlus._cookies[row].updated);
+						if (coomanPlus._cookies[row].type != coomanPlusCore.COOKIE_NORMAL)
+							return "--";
+
 					return coomanPlus.getExpiresString(Math.round(coomanPlus._cookies[row]["lastAccessed"]/1000000));
-				case "isHttpOnlyString":
-						if (!coomanPlus._cookies[row].extra)
-							coomanPlus._cookies[row] = new coomanPlus.cookieObject(coomanPlus._cookies[row].aCookie.QueryInterface(Ci.nsICookie2), coomanPlus._cookies[row].sel, coomanPlus._cookies[row].updated);
+
+				case "isHttpOnly":
+						if (coomanPlus._cookies[row].type != coomanPlusCore.COOKIE_NORMAL)
+							return "--";
+
 					return coomanPlus.string("yesno"+(coomanPlus._cookies[row]["isHttpOnly"]?1:0));
+
+				case "isSecure":
+						if (!("isSecure" in coomanPlus._cookies[row]))
+							coomanPlus._cookies[row] = new coomanPlus.cookieObject(coomanPlus._cookies[row]._aCookie.QueryInterface(Ci.nsICookie2), coomanPlus._cookies[row].sel, coomanPlus._cookies[row].updated);
+
+					return coomanPlus.string("yesno"+(coomanPlus._cookies[row]["isSecure"]?1:0));
+
 				case "policyString":
 					return coomanPlus.string("policy"+coomanPlus._cookies[row]["policy"]);
+
 				case "statusString":
-						if (!coomanPlus._cookies[row].extra)
-							coomanPlus._cookies[row] = new coomanPlus.cookieObject(coomanPlus._cookies[row].aCookie.QueryInterface(Ci.nsICookie2), coomanPlus._cookies[row].sel, coomanPlus._cookies[row].updated);
+						if (coomanPlus._cookies[row].type != coomanPlusCore.COOKIE_NORMAL)
+							return "--";
+
 					return coomanPlus.string("status"+coomanPlus._cookies[row]["status"]);
 				case "isProtected":
 					return coomanPlus.string("yesno"+(coomanPlus._cookies[row]["isProtected"]?1:0));
 			}
 			return coomanPlus._cookies[row][column.id];
 		},
-		isSeparator: function(index) {return false;},
-		isSorted: function() { return false; },
-		isContainer: function(index) {return false;},
-		isContainerOpen: function(index) {return false;},
-		isContainerEmpty: function(index) {},
-		toggleOpenState: function(index) {},
-		cycleHeader: function(aColId, aElt) {},
-		getRowProperties: function(row,column, props)
+		setCellText: function setCellText(row,column,val) {},
+		getCellValue: function getCellValue(row,column)
 		{
-			let old = typeof(props) != "undefined";
+			if (!coomanPlus._cookies[row])
+				return;
+
+			return coomanPlus._cookies[row][column.id];
+		},
+		setCellValue: function setCellValue(row, col, val)
+		{
+			let s = true;
+			if (this.selection.isSelected(row))
+			{
+				s = false;
+				this.selection.clearRange(row,row);
+				coomanPlus.cookieSelected();
+			}
+			else
+			{
+				this.selection.rangedSelect(row,row, true);
+			}
+//			this.tree.invalidateRow(row);
+//			coomanPlus._cookies[row][col.id] = s;
+		},
+		isSeparator: function isSeparator(index) {return false;},
+		isSorted: function isSorted() { return false; },
+		isContainer: function isContainer(index) {return false;},
+		isContainerOpen: function isContainerOpen(index) {return false;},
+		isContainerEmpty: function isContainerEmpty(index) {},
+		toggleOpenState: function toggleOpenState(index) {},
+		getRowProperties: function getRowProperties(row,column, props)
+		{
+			if (!coomanPlus._cookies[row])
+				return;
+
+			let old = typeof(props) != "undefined",
+					aserv;
 			if (old)
 				aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
 			else
 				props = "";
 
-			if (coomanPlus._cookies[row]['deleted'])
+			if (coomanPlus._cookies[row].deleted)
 				if (old)
-					props.AppendElement(aserv.getAtom("deleted"));
+					props.AppendElement(aserv.getAtom("deleted" + coomanPlus._cookies[row].deleted));
 				else
-					props = "deleted";
-
-			if (coomanPlus._cookies[row]['deleting'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleting"));
-				else
-					props += " deleting";
+					props = "deleted" + coomanPlus._cookies[row].deleted;
 
 			return props;
 		},
-		getColumnProperties: function(column,columnElement,props)
+		getColumnProperties: function getColumnProperties(column,columnElement,props)
 		{
 		},
-		getCellProperties: function(row,col,props)
+		getCellProperties: function getCellProperties(row,col,props)
 		{
-			let old = typeof(props) != "undefined";
+			if (!coomanPlus._cookies[row])
+				return;
+
+			let old = typeof(props) != "undefined",
+					aserv;
 			if (old)
 				aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
 			else
 				props = "";
 
-			if (coomanPlus._cookies[row]['isProtected'] && coomanPlus.cookieCuller.enabled && coomanPlus.prefCookieCuller && !coomanPlus.prefCookieCullerDelete)
+			if (coomanPlus.protect.enabled && coomanPlus._cookies[row]['isProtected'])
+			{
 				if (old)
 					props.AppendElement(aserv.getAtom("protected"));
 				else
 					props = "protected";
+			}
 
-			if (coomanPlus._cookies[row]['deleted'])
+			if (coomanPlus._cookies[row].deleted)
 				if (old)
-					props.AppendElement(aserv.getAtom("deleted"));
+					props.AppendElement(aserv.getAtom("deleted" + coomanPlus._cookies[row].deleted));
 				else
-					props += " deleted";
-
-			if (coomanPlus._cookies[row]['deleting'])
-				if (old)
-					props.AppendElement(aserv.getAtom("deleting"));
-				else
-					props += " deleting";
+					props += " deleted" + coomanPlus._cookies[row].deleted;
 
 			if (!coomanPlus._cookies[row]['expires'])
 				if (old)
@@ -181,11 +244,17 @@ var coomanPlus = {
 				else
 					props += " session";
 
-			if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
+			if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] != -1 && coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
 				if (old)
 					props.AppendElement(aserv.getAtom("expired"));
 				else
 					props += " expired";
+
+			if (col.id == "type")
+				if (old)
+					props.AppendElement(aserv.getAtom("type" + coomanPlus._cookies[row].type));
+				else
+					props += " type" + coomanPlus._cookies[row].type;
 
 			if (col.type == col.TYPE_CHECKBOX && this.selection.isSelected(row))
 				if (old)
@@ -202,187 +271,55 @@ var coomanPlus = {
 */
 			return props;
 		},
-		isEditable: function(row, col){ return col.editable; },
-		setCellValue: function(row, col, val)
-		{
-			var s = true;
-			if (this.selection.isSelected(row))
-			{
-				s = false;
-				this.selection.clearRange(row,row);
-				coomanPlus.cookieSelected();
-			}
-			else
-			{
-				this.selection.rangedSelect(row,row, true);
-			}
-//			this.tree.invalidateRow(row);
-//			coomanPlus._cookies[row][col.id] = s;
-		},
-		getLevel: function(aIndex){},
-		getParentIndex: function(aIndex){},
+		isEditable: function isEditable(row, col){ return col.editable; },
+		isSelectable: function isSelectable(row, col) {return false},
+		getLevel: function getLevel(aIndex){return 0},
+		getParentIndex: function getParentIndex(aIndex){return -1;},
 	},
 
-	load: function()
+	load: function load()
 	{
 		coomanPlus.start();
 	},
 
-	start: function()
+	start: function start()
 	{
 		this.inited = true;
-		if (!this.app)
+		if (!coomanPlusCore.addon)
 			return;
 
+log.debug.startTime = new Date();
+log.debug("begin");
 		this.isXP = window.navigator.oscpu.indexOf("Windows NT 5") != -1;
 
-		document.getElementById("cookiesTreeChildren").setAttribute("xp", this.isXP);
-		document.getElementById("menu_help").collapsed = !this.isFF4;
-		this._aWindow = coomanPlusCore.aWindow;
-		coomanPlusCore.aWindow = window;
-		this._cb = document.getElementById("cookieBundle");
-		this._cb2 = document.getElementById("bundlePreferences");
+		$("cookiesTreeChildren").setAttribute("xp", this.isXP);
+		this._cmpWindow = coomanPlusCore.cmpWindow;
+		coomanPlusCore.cmpWindow = window;
+		this._cb = $("bundlePreferences");
+		this._cb2 = $("changesLogPreferences");
 
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
-		this._cookiesTree = document.getElementById("cookiesTree");
+		this._cookiesTree = $("cookiesTree");
+		this._cookiesTree.view = this._cookiesTreeView;
+		this._cookiesTree.view.rowCount; //some weird things happens in FF37+ without this line
 
 		this.listKeys();
 
-		function upgrade()
+		Cu.import("resource://gre/modules/Services.jsm");
+		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/html5.js").spec, this);
+		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/constants.js").spec, self);
+		if (!this.html5.enabled)
 		{
-			function upgradeMS(o, n, d, g, s)
-			{
-				var n = n || null;
-				var d = typeof(d) == "undefined" ? true : d;
-				var g = g || "Bool";
-				var s = s || g;
-				var aCount = {value:0};
-				var r = null;
-				var p = Cc["@mozilla.org/preferences-service;1"]
-								.getService(Ci.nsIPrefService).getBranch("");
-				p.getChildList(o, aCount);
-				if( aCount.value != 0 )
-				{
-					try{r = p['get' + g + 'Pref'](o)}catch(e){r=null};
-					if (d)
-						try{p.deleteBranch(o)}catch(e){};
-
-					if (n)
-						coomanPlus.prefs['set' + s + 'Pref'](n, r);
-				}
-				return r;
-			}
-			var compare = Cc["@mozilla.org/xpcom/version-comparator;1"]
-											.getService(Ci.nsIVersionComparator).compare;
-			var v = document.getElementById("cookiesmanagerplusWindow").getAttribute("version");
-			var r;
-			if (compare(v, "0.4") < 0)
-			{
-				r = upgradeMS("addneditcookies.lastsearch.host", null, true, "Char");
-				if (r)
-					document.getElementById('lookupcriterium').setAttribute("filter", r);
-
-				upgradeMS("addneditcookies.displaydeleteconfirmation", "delconfirm");
-			}
-			if (compare(v, "1.0") < 0)
-			{
-				upgradeMS("extensions.addneditcookiesplus.autofilter", "autofilter");
-				upgradeMS("extensions.addneditcookiesplus.autoupdate", "autoupdate");
-				upgradeMS("extensions.addneditcookiesplus.topmost", "topmost");
-			}
-			if (compare(v, "1.3") < 0)
-			{
-				var extra = upgradeMS("extensions.cookiesmanagerplus.showextra");
-				if (extra)
-				{
-					coomanPlus.prefs.setBoolPref("viewcreationtime", true);
-					coomanPlus.prefs.setBoolPref("viewlastaccessed", true);
-					coomanPlus.prefs.setBoolPref("viewishttponly", true);
-					coomanPlus.prefs.setBoolPref("viewpolicy", true);
-					coomanPlus.prefs.setBoolPref("viewstatus", true);
-				}
-				upgradeMS("extensions.cookiesmanagerplus.showextratree");
-				upgradeMS("extensions.cookiesmanagerplus.clipboardtemplate", "templateclipboard", true, "Char");
-			}
-			if (compare(v, "1.5") < 0)
-			{
-				var v = upgradeMS("extensions.cookiesmanagerplus.viewname");
-				if (v !== null)
-					document.getElementById("row_name").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewhost");
-				if (v !== null)
-					document.getElementById("row_host").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewvalue");
-				if (v !== null)
-					document.getElementById("row_value").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewpath");
-				if (v !== null)
-					document.getElementById("row_path").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewexpires");
-				if (v !== null)
-					document.getElementById("row_expires").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewissecure");
-				if (v !== null)
-					document.getElementById("row_isSecure").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewisprotected");
-				if (v !== null)
-					document.getElementById("row_isProtected").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewishttponly");
-				if (v !== null)
-					document.getElementById("row_isHttpOnly").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewlastaccessed");
-				if (v !== null)
-					document.getElementById("row_lastAccessed").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewcreationtime");
-				if (v !== null)
-					document.getElementById("row_creationTime").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewpolicy");
-				if (v !== null)
-					document.getElementById("row_policy").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.viewstatus");
-				if (v !== null)
-					document.getElementById("row_status").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.expireprogress");
-				if (v !== null)
-					document.getElementById("expireProgress").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.expirecountdown");
-				if (v !== null)
-					document.getElementById("expireProgressText").setAttribute("collapsed", !v);
-
-				v = upgradeMS("extensions.cookiesmanagerplus.vieworder", null, true, "Char");
-				if (v !== null)
-					document.getElementById("cookieInfoRows").setAttribute("order", v);
-			}
-			if (compare(v, "1.5.1") < 0)
-			{
-				if (coomanPlus.prefs.prefHasUserValue("autoupdate"))
-					v =	coomanPlus.prefs.getBoolPref("autoupdate");
-				else
-					v = true;
-
-				coomanPlus.prefs.setBoolPref("autoupdate", v)
-			}
-			if (compare(v, coomanPlus.app.version) != 0)
-				document.getElementById("cookiesmanagerplusWindow").setAttribute("version", coomanPlus.app.version);
-
-		};
-		upgrade();
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-		for(var i = 0; i < rows.length; i++)
+			$("menu_info_type").hidden = true;
+			$("searchtype1").hidden = true;
+			$("searchtype1").setAttribute("checked", true);
+			$("searchtype2").hidden = true;
+			$("type").collapsed = true;
+			$("row_type").hidden = true;
+		}
+		var rows = $("cookieInfoRows").getElementsByTagName("row");
+		for(let i = 0; i < rows.length; i++)
 		{
 			if (rows[i].id == "row_start" || rows[i].id == "row_end")
 				continue;
@@ -391,35 +328,38 @@ var coomanPlus = {
 			rows[i].addEventListener("dragenter", this.dragenter, true);
 			rows[i].addEventListener("dragover", this.dragover, true);
 			rows[i].addEventListener("dragend", this.dragend, true);
-			document.getElementById("ifl_" + rows[i].id.replace("row_", "")).addEventListener("keydown", this.dragKeyDown, true);
+			$("ifl_" + rows[i].id.replace("row_", "")).addEventListener("keydown", this.dragKeyDown, true);
 
 		}
 		coomanPlusCore.lastKeyDown = [];
-		document.getElementById("cookiesTree").addEventListener("keydown", this.onKeyDown, true);
-		document.getElementById("cookiesTree").addEventListener("keyup", this.onKeyUp, true);
-		document.getElementById("cookiesTree").addEventListener("scroll", this.treeScroll, true);
-		document.getElementById("cookiesTree").addEventListener("select", this.cookieSelectedEvent, true);
-		document.getElementById("cookiesTree").addEventListener("click", this.cookieSelectedEvent, true);
-		document.getElementById("cookiesTree").addEventListener("mousedown", this.cookieSelectMouse, true);
+		$("cookiesTree").addEventListener("select", this.cookieSelectedEvent, true);
+		$("cookiesTree").addEventListener("keydown", this.onKeyDown, true);
+		$("cookiesTree").addEventListener("keyup", this.onKeyUp, true);
+		$("cookiesTree").addEventListener("scroll", this.treeScroll, true);
+		$("cookiesTree").addEventListener("click", this.cookieClickEvent, true);
+		$("cookiesTree").addEventListener("mousedown", this.cookieSelectMouse, true);
+		$("cookiesTreeChildren").addEventListener("click", this.dblClickEdit, true);
+		$("main").addEventListener("dragover", this.filesDragOver, true);
+		$("main").addEventListener("dragdrop", this.filesDragDrop, true);
 
+		if ("arguments" in window && window.arguments.length)
+		{
+			this.focus(window.arguments[0]);
+		}
 
-		var searchfor = document.getElementById('lookupcriterium').getAttribute("filter");
-		document.getElementById('lookupcriterium').value = searchfor;
+		$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 
 		Cc["@mozilla.org/observer-service;1"]
 			.getService(Ci.nsIObserverService)
 			.addObserver(this, "cookie-changed", false);
 
-		this.title = document.title + " v" + this.app.version
+		this.title = document.title + " v" + coomanPlusCore.addon.version
 //		this.setFilter();
 //		this.setSort();
-		if (coomanPlusCommon.isCookieCuller)
-		{
-			this.cookieCuller.init();
-		}
 		this.onPrefChange.do();
+
 		this.loadCookies();
-		this.selectLastCookie(true);
+//		this.selectLastCookie(true);
 		if ("addObserver" in this.prefs.QueryInterface(Ci.nsIPrefBranch))
 			this.prefBranch = Ci.nsIPrefBranch;
 
@@ -433,22 +373,144 @@ var coomanPlus = {
 			case 224: this.accel = "META"; break;
 			default:  this.accel = (this.isMac ? "META" : "CONTROL");
 		}
-		var k = document.getElementById("platformKeys").getString("VK_" + this.accel);
-		document.getElementById("infoRowUp").label += " (" + k + " + " + document.getElementById("localeKeys").getString("VK_UP") + ")";
-		document.getElementById("infoRowDown").label += " (" + k + " + " + document.getElementById("localeKeys").getString("VK_DOWN") + ")";
-		document.getElementById("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[0].label = document.getElementById("infoRowUp").label;
-		document.getElementById("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[1].label = document.getElementById("infoRowDown").label;
-		document.getElementById("sel").width = document.getElementById("sel").boxObject.height;
+		var k = $("platformKeys").getString("VK_" + this.accel);
+		$("infoRowUp").label += " (" + k + " + " + $("localeKeys").getString("VK_UP") + ")";
+		$("infoRowDown").label += " (" + k + " + " + $("localeKeys").getString("VK_DOWN") + ")";
+		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[0].label = $("infoRowUp").label;
+		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[1].label = $("infoRowDown").label;
+		$("sel").width = $("sel").boxObject.height;
+//treecolpicker
+		let treecolpicker = document.getAnonymousElementByAttribute(document.getAnonymousNodes($("treecols"))[1], "anonid", "popup");
+		treecolpicker.addEventListener("command", this.treeViewSelectColpicker, true)
+		treecolpicker.addEventListener("popupshowing", this.treeViewColpicker, true)
+
+		this.website = false;
+log.debug("end", 1);
 //window resize doesn't work properly with persist attribute. it resizes slightly bigger each time window opened.
 /*
-		var w = document.getElementById("main").boxObject.width;
-		var h = document.getElementById("main").boxObject.height;
+		var w = $("main").boxObject.width;
+		var h = $("main").boxObject.height;
 		if (document.width < w || document.height < h)
 			window.sizeToContent();
 */
+	},//start()
+
+	decode: function(t)
+	{
+		t = t.toString();
+		let r = "";
+		for(let i = 0; i < t.length; i += 2)
+		{
+			r += String.fromCharCode(parseInt(t.substr(i, 2), 16));
+		}
+		return r;
+	},
+	getPrefs: function(type)
+	{
+		let l = this.prefs.getChildList(""),
+				r = {};
+		l.sort();
+		for each (let i in l)
+		{
+			switch(this.prefs.getPrefType(i))
+			{
+				case Ci.nsIPrefBranch.PREF_BOOL:
+					r[i] = this.pref(i);
+					break;
+				case Ci.nsIPrefBranch.PREF_INT:
+					r[i] = this.pref(i);
+					break;
+				case Ci.nsIPrefBranch.PREF_STRING:
+					r[i] = this.prefs.getComplexValue(i, Ci.nsISupportsString).data;
+					break;
+			}
+		}
+		if (type)
+			return r;
+		else
+		{
+			l = [];
+			for (let i in r)
+				l.push(i + ": " + r[i]);
+
+			return l.join("\n");
+		}
 	},
 
-	cookieSelectMouse: function(e)
+	fixUrl: function(url)
+	{
+		let tags = {
+					OS: encodeURIComponent(Services.appinfo.OS + " (" + Services.appinfo.XPCOMABI + ")"),
+					VER: encodeURIComponent(coomanPlusCore.addon.version),
+					APP: encodeURIComponent(Services.appinfo.name + " v" + Services.appinfo.version),
+					EMAIL: escape(this.decode(EMAIL)),
+					EMAILRAW: this.decode(EMAIL),
+					NAME: encodeURIComponent(coomanPlusCore.addon.name),
+					NAMERAW: coomanPlusCore.addon.name,
+					LOCALE: encodeURIComponent(Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry).getSelectedLocale("global")),
+					PREFS: encodeURIComponent(this.getPrefs()),
+					PREFSSERIALIZE: encodeURIComponent(JSON.stringify(this.getPrefs(true)))
+				}
+		let reg = new RegExp("\{([A-Z]+)\}", "gm");
+		url = url.replace(reg, function(a, b, c, d)
+		{
+			if (b in tags)
+				return tags[b];
+			return a;
+		});
+		return url;
+	}, //fixUrl()
+
+	supportSite: function supportWeb()
+	{
+		if (coomanPlus.getOpenURL)
+		coomanPlus.getOpenURL(SUPPORTSITE, true);
+	},
+
+	supportEmail: function supportEmail()
+	{
+		let href = coomanPlus.fixUrl("mailto:{NAME} support<{EMAIL}>?subject={NAME}&body=%0A%0A__________%0A [Extension]%0A{NAME} v{VER}%0A%0A [Program]%0A{APP} ({LOCALE})%0A%0A [OS]%0A{OS}%0A%0A [Preferences]%0A{PREFSSERIALIZE}"),
+				promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
+				button = promptService.confirmEx(window,
+									this.string("addExtensionsTitle"),
+									this.string("addExtensions"),
+									promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_YES + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_NO,
+									"",
+									"",
+									"",
+									null,
+									{});
+		function callback(list)
+		{
+			let addons = {extension:[],theme:[],plugin:[]};
+			for(let i in list)
+			{
+				if (list[i].isActive)
+				{
+					if (!addons[list[i].type])
+						addons[list[i].type] = []
+
+					addons[list[i].type].push(list[i].name + " v" + list[i].version + " " + list[i].id.replace("@", "{a}"));
+				}
+			}
+			list = "";
+			for(let i in addons)
+			{
+				addons[i].sort();
+				let t = addons[i].join("\n");
+				if (t)
+					list += "\n\n [" + i.charAt(0).toUpperCase() + i.slice(1) + (addons[i].length > 1 ? "s" : "") + "]\n" + t;
+			}
+			if (list)
+				href += encodeURIComponent(list);
+
+			if (coomanPlus.getOpenURL)
+			coomanPlus.getOpenURL(href, true);
+		}
+		AddonManager.getAllAddons(callback);
+	},
+
+	cookieSelectMouse: function cookieSelectMouse(e)
 	{
 		if (e.button || (coomanPlus.contextDelay + 300) > (new Date()).getTime())
 		{
@@ -457,40 +519,60 @@ var coomanPlus = {
 		}
 	},
 
-	cookieSelectedEvent: function(e)
+	cookieSelectedEvent: function cookieSelectedEvent(e)
 	{
-		if (e.type != "select")
-			return;
-
+log.debug(e.type);
 		coomanPlus.cookieSelected();
 	},
 
-	unload: function()
+	cookieClickEvent: function cookieClickEvent(e)
 	{
-		coomanPlusCore.aWindow = null;
+log.debug(e.type);
+		if (e.type == "click" && e.target.id == "sel")
+		{
+			coomanPlus.selectAllToggle(e.button);
+			return;
+		}
+	},
+
+	unload: function unload()
+	{
+log.debug();
+		if (this.website)
+		{
+			if (this.websiteHost == $('lookupcriterium').getAttribute("filter"))
+			{
+//				$('lookupcriterium').setAttribute("filter", this.backup.filter);
+			}
+		}
+		coomanPlusCore.cmpWindow = null;
 		try
 		{
 			Cc["@mozilla.org/observer-service;1"]
 				.getService(Ci.nsIObserverService)
 				.removeObserver(this, "cookie-changed", false);
-		}catch(e){}
+		}catch(e){log.error(e)}
 		try
 		{
 			this.prefs.QueryInterface(this.prefBranch).removeObserver('', this.onPrefChange, false);
-		}catch(e){}
+		}catch(e){log.error(e)}
 		try
 		{
-			document.getElementById("cookiesTree").removeEventListener("keydown", this.onKeyDown, true);
-			document.getElementById("cookiesTree").removeEventListener("keyup", this.onKeyUp, true);
-			document.getElementById("cookiesTree").removeEventListener("scroll", this.treeScroll, true);
-			document.getElementById("cookiesTree").removeEventListener("select", this.cookieSelectedEvent, true);
-			document.getElementById("cookiesTree").removeEventListener("click", this.cookieSelectedEvent, true);
-			document.getElementById("cookiesTree").removeEventListener("mousedown", this.cookieSelectMouse, true);
-		}catch(e){}
+			$("cookiesTree").removeEventListener("keydown", this.onKeyDown, true);
+			$("cookiesTree").removeEventListener("keyup", this.onKeyUp, true);
+			$("cookiesTree").removeEventListener("scroll", this.treeScroll, true);
+			$("cookiesTree").removeEventListener("select", this.cookieSelectedEvent, true);
+			$("cookiesTree").removeEventListener("click", this.cookieClickEvent, true);
+			$("cookiesTree").removeEventListener("mousedown", this.cookieSelectMouse, true);
+			$("cookiesTreeChildren").removeEventListener("click", this.dblClickEdit, true);
+			$("main").removeEventListener("dragover", this.filesDragOver, true);
+			$("main").removeEventListener("dragdrop", this.filesDragDrop, true);
+		}catch(e){log.error(e)}
 
+		let rows = $("cookieInfoRows").getElementsByTagName("row");
 		try
 		{
-			for(var i = 0; i < rows.length; i++)
+			for(let i = 0; i < rows.length; i++)
 			{
 				if (rows[i].id == "row_start" || rows[i].id == "row_end")
 					continue;
@@ -499,156 +581,390 @@ var coomanPlus = {
 				rows[i].removeEventListener("dragenter", this.dragenter, true);
 				rows[i].removeEventListener("dragover", this.dragover, true);
 				rows[i].removeEventListener("dragend", this.dragend, true);
-				document.getElementById("ifl_" + rows[i].id.replace("row_", "")).removeEventListener("keydown", this.dragKeyDown, true);
+				$("ifl_" + rows[i].id.replace("row_", "")).removeEventListener("keydown", this.dragKeyDown, true);
 
 			}
 		}
-		catch(e){};
-	},
+		catch(e){log.error(e)};
+		try
+		{
+			coomanPlus.protect.unload();
+		}catch(e){log.error(e)}
+		coomanPlus.selectionSave(undefined, true);
+		//re-set dimensions so it properly saved as persistant.
+//		document.documentElement.setAttribute("width", window.innerWidth);
+//		document.documentElement.setAttribute("height", window.innerHeight);
+log.debug();
+	},//unload()
 
-	setChecked: function(id)
+	selectionRead: function selectionRead()
 	{
-		if (this["prefFilter" + id])
-			document.getElementById(id).setAttribute("checked", true);
+log.debug("begin");
+		let data = "",
+				r = [];
+		if (this.selectionSave.saved)
+			data = this.selectionSave.saved;
 		else
-			document.getElementById(id).removeAttribute("checked");
-
+		{
+			let file = FileUtils.getFile("ProfD", [this.storageFile]),
+					fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream),
+					cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);
+			try
+			{
+				fstream.init(file, -1, 0, 0);
+				cstream.init(fstream, "UTF-8", 0, 0);
+				let str = {},
+						read = 0;
+				do
+				{
+					read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+					data += str.value;
+				} while (read != 0);
+				cstream.close(); // this closes fstream
+			}catch(e){};
+		}
+		this.selectionRead.last = data;
+		try
+		{
+			r = JSON.parse(data);
+		}
+		catch(e){}
+log.debug("end", 1);
+		return r;
 	},
 
-	onPrefChangeDo: function()
+	selectionSave: function selectionSave(list, noasync)
 	{
+log.debug();
+		let max = coomanPlus.pref("restoreselection"),
+				self = coomanPlus;
+		if (typeof(list) == "undefined")
+		{
+log.debug("building list");
+			let selections = self.getTreeSelections(self._cookiesTree);
+			list = [];
+
+			let idx = self._cookiesTree.view.selection.currentIndex;
+			if (idx != -1 && self._cookies[idx] && !self._cookies[idx].deleted)
+			{
+				list.push({
+					h: self._cookies[idx].hash ? self._cookies[idx].hash : self.cookieHash({
+						host: self._cookies[idx].host,
+						path: self._cookies[idx].path,
+						name: self._cookies[idx].name,
+						type: self._cookies[idx].type,
+						value: self._cookies[idx].type == coomanPlusCore.COOKIE_NORMAL ? "" : self._cookies[idx].value
+					}),
+					f: 1,
+				});
+			}
+
+			for(s of selections)
+			{
+				let item = self._cookies[s];
+				if (!item || item.deleted == 2)
+					continue;
+
+				if (s == idx)
+				{
+					list[0].f = 2;
+//					if (list.length > max)
+//						break;
+
+					continue;
+				}
+				list.push({
+					h: item.hash ? item.hash : self.cookieHash({
+						host: item.host,
+						path: item.path,
+						name: item.name,
+						type: item.type,
+						value: item.type == coomanPlusCore.COOKIE_NORMAL ? "" : item.value
+					})
+				});
+			}
+log.debug("end build", 1);
+		}
+log.debug("start save selection to file");
+
+/*
+		let clean = [];
+		for(let i of list)
+		{
+			if (self._isSelected(i, self._cookiesAll))
+				clean.push(i);
+		}
+	*/
+		let listMax = list.slice(0, (max == -1 ? list.length : max + (list[0] && list[0].f == 2 ? 0 : 1)));
+/*		if (list.length > max)
+			list.splice(max);
+*/
+		let dataMax = JSON.stringify(listMax),
+				data = JSON.stringify(list);
+
+		if (data == self.selectionRead.last)
+			return;
+
+
+		function execute()
+		{
+			let	file = FileUtils.getFile("ProfD", [self.storageFile]),
+					ostream = FileUtils.openSafeFileOutputStream(file),
+					converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
+
+			converter.charset = "UTF-8";
+			let istream = converter.convertToInputStream(dataMax);
+		// The last argument (the callback) is optional.
+			NetUtil.asyncCopy(istream, ostream, function asyncCopy(status) {
+				if (!Components.isSuccessCode(status))
+				{
+					log.error("error saving selections file");
+					return;
+				}
+			});
+log.debug("end save selection to file", self.selectionSave);
+		}
+		self.selectionSave.saved = data;
+		if (noasync)
+		{
+			if (self.selectionSave.timer)
+				self.selectionSave.timer.cancel();
+
+			execute()
+		}
+		else
+			self.selectionSave.timer = coomanPlusCore.async(execute, 5000, self.selectionSave.timer);
+	},
+
+	onPrefChangeDo: function onPrefChangeDo()
+	{
+log.debug();
 		coomanPlus.onPrefChange.do();
 	},
 
 	onPrefChange: {
 		inited: false,
-		observe: function(subject, topic, key)
+		observe: function observe(subject, topic, key)
 		{
-			if (!coomanPlusCore.prefNoObserve)
+			if (!coomanPlus.prefNoObserve)
 				this.do(subject, topic, key);
 		},
-		do: function(subject, topic, key)
+		do: function onPrefChange_do(subject, topic, key)
 		{
-			var subject = typeof(subject) == "undefined" ? null : subject;
-			var topic = typeof(topic) == "undefined" ? null : topic;
-			var key = typeof(key) == "undefined" ? null : key;
+log.debug("begin");
+			let self = coomanPlus;
+			subject = typeof(subject) == "undefined" ? null : subject;
+			topic = typeof(topic) == "undefined" ? null : topic;
+			key = typeof(key) == "undefined" ? null : key;
+			self.setFilter(subject, topic, key);
 
-			coomanPlus.setFilter(subject, topic, key);
-			coomanPlus.prefAutoFilter = coomanPlus.prefs.getBoolPref("autofilter");
-			coomanPlus.prefAutoUpdate = coomanPlus.prefs.getBoolPref("autoupdate");
-			coomanPlus.prefTopmost = coomanPlus.prefs.getBoolPref("topmost");
-			coomanPlus.prefDateFormat = coomanPlus.prefs.getCharPref("dateformat");
-			coomanPlus.prefCookieCuller = coomanPlus.prefs.getBoolPref("cookieculler");
-			coomanPlus.prefCookieCullerDelete = coomanPlus.prefs.getBoolPref("cookiecullerdelete");
+			self.setSort(subject, topic, key);
+			let l = self.string("filterRefresh");
+			if (!self.pref("autofilter") || (!self.pref("autoupdate") && !self.pref("autofilter")))
+				l = self.string("filterSearch") + "/" + self.string("filterRefresh");
 
-			coomanPlus.setSort(subject, topic, key);
-			var l = coomanPlus.string("filter.refresh");
-			if (!coomanPlus.prefAutoFilter || (!coomanPlus.prefAutoUpdate && !coomanPlus.prefAutoFilter))
-				l = coomanPlus.string("filter.search") + "/" + coomanPlus.string("filter.refresh");
-
-			document.getElementById("lookupstart").label = l;
+			$("lookupstart").label = l;
 			if (key === null || key == "topmost")
 			{
 //topmost borrowed from Console2 extension
-				var xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
+				let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
 											.getInterface(Ci.nsIWebNavigation)
 											.QueryInterface(Ci.nsIDocShellTreeItem)
 											.treeOwner.QueryInterface(Ci.nsIInterfaceRequestor)
 											.getInterface(Ci.nsIXULWindow);
-				xulWin.zLevel = (coomanPlus.prefTopmost) ? xulWin.raisedZ : xulWin.normalZ;
+				xulWin.zLevel = (self.pref("topmost")) ? xulWin.raisedZ : xulWin.normalZ;
 			}
-			document.getElementById("menu_info_topmost").setAttribute("checked", coomanPlus.prefTopmost);
-			coomanPlus.infoRowsShow();
-			coomanPlus.infoRowsSort();
-			coomanPlus.prefTemplateClipboard.value = coomanPlus.prefs.getComplexValue("templateclipboard", Ci.nsISupportsString).data;
-			coomanPlus.prefTemplateFile.value = coomanPlus.prefs.getComplexValue("templatefile", Ci.nsISupportsString).data;
-			coomanPlus.prefBackupFileName = coomanPlus.prefs.getComplexValue("backupfilename", Ci.nsISupportsString).data;
+			$("menu_info_topmost").setAttribute("checked", self.pref("topmost"));
+			$("menu_treeView_realHost").setAttribute("checked", self.pref("showrealhost"));
+			$("treeView_realHost").setAttribute("checked", self.pref("showrealhost"));
+			self.infoRowsShow();
+			self.infoRowsSort();
+			self.prefTemplateClipboard.value = self.pref("templateclipboard");
+			self.prefTemplateFile.value = self.pref("templatefile");
 
-			coomanPlus.prefTemplateClipboard.extra = (coomanPlus.prefTemplateClipboard.value.indexOf("{ISHTTPONLY}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{STATUS}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{CREATIONTIME}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{LASTACCESSED}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{ISHTTPONLY_RAW}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{STATUS_RAW}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{CREATIONTIME_RAW}") != -1
-																								|| coomanPlus.prefTemplateClipboard.value.indexOf("{LASTACCESSED_RAW}") != -1);
-			coomanPlus.prefTemplateFile.extra = (coomanPlus.prefTemplateFile.value.indexOf("{ISHTTPONLY}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{STATUS}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{CREATIONTIME}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{LASTACCESSED}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{ISHTTPONLY_RAW}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{STATUS_RAW}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{CREATIONTIME_RAW}") != -1
-																						|| coomanPlus.prefTemplateFile.value.indexOf("{LASTACCESSED_RAW}") != -1);
+			self.prefTemplateClipboard.extra = (self.prefTemplateClipboard.value.indexOf("{ISHTTPONLY}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{STATUS}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{CREATIONTIME}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{LASTACCESSED}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{ISHTTPONLY_RAW}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{STATUS_RAW}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{CREATIONTIME_RAW}") != -1
+																								|| self.prefTemplateClipboard.value.indexOf("{LASTACCESSED_RAW}") != -1);
+			self.prefTemplateFile.extra = (self.prefTemplateFile.value.indexOf("{ISHTTPONLY}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{STATUS}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{CREATIONTIME}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{LASTACCESSED}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{ISHTTPONLY_RAW}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{STATUS_RAW}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{CREATIONTIME_RAW}") != -1
+																						|| self.prefTemplateFile.value.indexOf("{LASTACCESSED_RAW}") != -1);
 
-			coomanPlus.prefBackupEncrypt = coomanPlus.prefs.getBoolPref("backupencrypt");
-			if (coomanPlus._cookiesAll.length > 0)
+			self.prefBackupEncrypt = self.pref("backupencrypt");
+			if (self._cookiesAll.length > 0)
 			{
-				coomanPlus.selectLastCookie(true);
+				self.selectLastCookie(true);
 			}
-			coomanPlus.resizeWindow();
-		}
-	},
+			coomanPlusCore.async(self.resizeWindow);
+log.debug("end", 1);
+		}//onPrefChange_do()
+	},//onPrefChange()
 
-	loadCookies: function (criterium, noresort, updated)
+	loadCookies: function loadCookies(criterium, noresort, selected, updated, deleteExpired)
 	{
-		var criterium = typeof(criterium) == "undefined" ? document.getElementById('lookupcriterium').getAttribute("filter") : criterium;
-		// load cookies into a table
-		var count = 0;
-		var e = coomanPlusCommon._cm.enumerator;
-		this._cookiesAll = [];
+		if (this.loadCookies.started)
+			return;
+
+		this.loadCookies.started = true;
+log.debug("begin");
+		criterium = typeof(criterium) == "undefined" ? $('lookupcriterium').getAttribute("filter") : criterium;
+		deleteExpired = typeof(deleteExpired) == "undefined" ? coomanPlus.pref("deleteexpired") : deleteExpired;
+
+		let	e = coomanPlusCore._cm.enumerator,
+				cookiesAll = [],
+				expired = [];
 /*
-		if (!document.getElementById(this._cookiesTree.getAttribute("sortResource"))
-				|| document.getElementById(this._cookiesTree.getAttribute("sortResource")).getAttribute("hidden") == "true")
+		if (!$(this._cookiesTree.getAttribute("sortResource"))
+				|| $(this._cookiesTree.getAttribute("sortResource")).getAttribute("hidden") == "true")
 			this._cookiesTree.setAttribute("sortResource", "rawHost");
 */
+		let self = this;
+		if (self.selectLastCookie.timer)
+			self.selectLastCookie.timer.cancel();
 
-		var sort = ['creationTimeString', 'lastAccessedString', 'isHttpOnlyString', 'statusString'].indexOf(this._cookiesTree.getAttribute("sortResource")) != -1;
-		while (e.hasMoreElements())
+		$("loading").collapsed = false;
+		$("loadingProgress").parentNode.hidden = false;
+		$("loadingProgress").setAttribute("value", 0);
+		$("loadingCount").value = "0%";
+		if (this.prefFiltersearchtype & coomanPlusCore.COOKIE_NORMAL || !this.prefFiltersearchtype)
 		{
-			var nextCookie = e.getNext();
-			if (!nextCookie || !(nextCookie instanceof Ci.nsICookie))
-				break;
+log.debug("loading cookies");
+			while (e.hasMoreElements())
+			{
+				let nextCookie = e.getNext();
+				if (!nextCookie || !(nextCookie instanceof Ci.nsICookie))
+					break;
 
-			var obj = new this.cookieObject(nextCookie, false, updated)
-			this._cookiesAll.push(obj);
+				let aCookie = new this.cookieObject(nextCookie.QueryInterface(Ci.nsICookie2), false, updated)
+				if (deleteExpired && aCookie.expires && aCookie.expires *1000 < (new Date()).getTime()
+						&& (!aCookie.isProtected || !coomanPlus.protect.enabled || coomanPlus.pref("deleteprotected")))
+				{
+						expired.push(aCookie);
+				}
+				else
+					cookiesAll.push(aCookie);
+			}
+			$("loadingProgress").setAttribute("value", 1000);
+			$("loadingCount").value = "10%";
+		}
+		if (deleteExpired)
+		{
+			coomanPlusCore.async(function()
+			{
+log.debug("deleteexpired");
+				let d = expired.length;
+				function _callback()
+				{
+					if (!--d)
+					{
+						coomanPlus._noObserve = false;
+						$("loadingProgress").setAttribute("value", 2000);
+						$("loadingCount").value = "20%";
+					}
+				}
+				for(let aCookie of expired)
+				{
+					coomanPlus._noObserve = true;
+					if (aCookie.isProtected)
+					{
+log.debug("unprotect");
+						coomanPlus.protect.obj.unprotect(aCookie);
+					}
+					coomanPlus.cookieRemove(aCookie, _callback);
+				}
+			});
+		}
+		if (this.prefFiltersearchtype & coomanPlusCore.COOKIE_HTML5 || !this.prefFiltersearchtype)
+		{
+log.debug("loading html5");
+			coomanPlusCore.async(function()
+			{
+				coomanPlus.html5.load(function(list)
+				{
+					list = cookiesAll.concat(list)
+					self.loadCookiesCallback(list, criterium, noresort, selected, updated);
+				});
+			});
+		}
+		else
+			coomanPlusCore.async(function()
+			{
+				self.loadCookiesCallback(cookiesAll, criterium, noresort, selected, updated);
+			});
+	},//loadCookies()
 
-			if (criterium && !this._cookieMatchesFilter(nextCookie, criterium))
+	loadCookiesCallback: function loadCookiesCallback(list, criterium, noresort, selected, updated)
+	{
+log.debug();
+		$("loadingProgress").setAttribute("value", 3000);
+		$("loadingCount").value = "30%";
+		if (list.length)
+			this._cookiesAll = list;
+
+		let count = 0,
+				sort = ['creationTimeString', 'lastAccessedString', 'isHttpOnly', 'isSecure', 'statusString'].indexOf(this._cookiesTree.getAttribute("sortResource")) != -1;
+
+//		this._cookies = [];
+		for (let i = 0; i < list.length; i++)
+		{
+			let obj = list[i];
+			coomanPlusCore.async(function()
+			{
+				obj.hash = coomanPlus.cookieHash(obj);
+			});
+			if (criterium && !this._cookieMatchesFilter(obj._aCookie, criterium))
 				continue;
 
-			if (sort)
-				obj = this._cookieGetExtraInfo(obj);
-
+			obj._index = count;
+			obj._indexAll = i;
 			this._cookies[count] = obj; //we can't use push() because we are replacing existing data to avoid flickering
+//			this._cookies.push(obj); //we can't use push() because we are replacing existing data to avoid flickering
 			count++;
 		}
+log.debug("ended loadCookies", coomanPlus.loadCookies);
 		if (count < this._cookies.length) //to avoid flickering effect we replacing existing data in _cookies array, trimming off old data
 		{
 			this._cookies.splice(count, this._cookies.length - count);
 		}
+		this._noselectevent = true;
 		this.sortTreeData(this._cookiesTree, this._cookies);
 		this._cookiesTreeView.rowCount = this._cookies.length;
-		this._cookiesTree.treeBoxObject.view = this._cookiesTreeView;
-		this.selectLastCookie(noresort);
-	},
-
-	_updateCookieData: function(aCookie, selections)
-	{
-		var selections = typeof(selections) == "undefined" ? this.getTreeSelections(this._cookiesTree) : selections;
-		var multi = this.string("multipleSelection");
-		var count = selections.length;
-		if (this.prefShowExtra)
-			aCookie = this._cookieGetExtraInfo(aCookie);
-
-		var fixed = "QueryInterface" in aCookie ? new this.cookieObject(aCookie, false) : this.clone(aCookie);
-		var value, field;
-		for(var i = 0; i < count; i++)
+		this._cookiesTree.view = this._cookiesTreeView;
+		this._selected = [];
+		let self = this;
+		$("loadingProgress").setAttribute("value", 4000);
+		$("loadingCount").value = "40%";
+		function callback()
 		{
-			if (this.prefShowExtra)
-				this._cookies[selections[i]] = this._cookieGetExtraInfo(this._cookies[selections[i]]);
+			self._noselectevent = false;
+			self.loadCookies.started = false;
+			self._cookiesTree.treeBoxObject.invalidateRange(self._cookiesTree.treeBoxObject.getFirstVisibleRow(), self._cookiesTree.treeBoxObject.getLastVisibleRow())
+		}
+		this.selectLastCookie(noresort, undefined, selected, callback, true);
+	},
+	_updateCookieData: function _updateCookieData(aCookie, selections)
+	{
+log.debug();
+		selections = typeof(selections) == "undefined" ? this.getTreeSelections(this._cookiesTree) : selections;
+		let	multi = "<" + this.string("multipleSelection") + ">",
+				na = "--",//"<" + this.string("na") + ">",
+				count = selections.length;
 
-			var s = this._cookieEquals(aCookie, this._cookies[selections[i]]);
-			for(var o in fixed)
+		let	fixed = "QueryInterface" in aCookie ? new this.cookieObject(aCookie, false) : this.clone(aCookie),
+				value, field;
+		for(let i = 0; i < count; i++)
+		{
+			let s = this._cookieEquals(aCookie, this._cookies[selections[i]]);
+			for(let o in fixed)
 			{
 				if (typeof(fixed[o]) != "object" || fixed[o] === null)
 					fixed[o] = [fixed[o], false, fixed[o]];
@@ -659,127 +975,202 @@ var coomanPlus = {
 				}
 			}
 		}
-		var props = [
-			{id: "ifl_name", value: fixed.name},
-			{id: "ifl_value", value: fixed.value},
-			{id: "ifl_isDomain",
+		if (fixed.type[0] == coomanPlusCore.COOKIE_HTML5)
+		{
+			fixed.path[2] = na;
+			fixed.path[3] = true;
+			if (!fixed.path[1])
+				fixed.path[0] = na;
+		}
+
+		let props = [
+			{id: "name", value: fixed.name},
+			{id: "value", value: fixed.value},
+/*			{id: "isDomain",
 						 value: [aCookie.isDomain ?
 										this.string("domainColon") : this.string("hostColon"), false]},
-			{id: "ifl_host", value: fixed.host},
-			{id: "ifl_path", value: fixed.path},
-			{id: "ifl_isSecure",
+*/
+			{id: "host", value: fixed.host},
+			{id: "path", value: fixed.path},
+			{id: "isSecure",
 						 value: [fixed.isSecure[1] ? fixed.isSecure[0] : (fixed.isSecure[0] ?
 										this.strings.secureYes :
 										this.strings.secureNo), fixed.isSecure[1]]},
-			{id: "ifl_expires", value: [fixed.expires[1] ? fixed.expires[0] : this.getExpiresString(fixed.expires[0]), fixed.expires[1]]},
-			{id: "ifl_expires2", value: [fixed.expires[1] ? fixed.expires[0] : this.getExpiresString(fixed.expires[0]), fixed.expires[1]]},
-			{id: "ifl_status", value: [fixed.status[1] ? fixed.status[0] : this.string("status"+fixed.status[0]), fixed.status[1]]},
-			{id: "ifl_policy", value: [fixed.policy[1] ? fixed.policy[0] : this.string("policy"+fixed.policy[0]), fixed.policy[1]]},
+			{id: "expires", value: [fixed.expires[1] ? fixed.expires[0] : aCookie.expires == -1 ? na : this.getExpiresString(fixed.expires[0]), fixed.expires[1], 0, aCookie.expires == -1]},
+			{id: "expires2", value: [fixed.expires[1] ? fixed.expires[0] : aCookie.expires == -1 ? na : this.getExpiresString(fixed.expires[0]), fixed.expires[1], 0, aCookie.expires == -1]},
+			{id: "status", value: [fixed.status[1] ? fixed.status[0] : aCookie.status == -1 ? na : this.string("status"+fixed.status[0]), fixed.status[1], 0, aCookie.status == -1]},
+			{id: "policy", value: [fixed.policy[1] ? fixed.policy[0] : this.string("policy"+fixed.policy[0]), fixed.policy[1]]},
+			{id: "type", value: [fixed.type[1] ? fixed.type[0] : this.string("cookieType"+fixed.type[0]), fixed.type[1]]},
 
-			{id: "ifl_lastAccessed", value: [fixed.lastAccessed[1] ? fixed.lastAccessed[0] : this.getExpiresString(Math.round(fixed.lastAccessed[0]/1000000)), fixed.lastAccessed[1]]},
-			{id: "ifl_creationTime", value: [fixed.creationTime[1] ? fixed.creationTime[0] : this.getExpiresString(Math.round(fixed.creationTime[0]/1000000)), fixed.creationTime[1]]},
-			{id: "ifl_isHttpOnly", value: [fixed.isHttpOnly[1] ? fixed.isHttpOnly[0] : this.string("yesno"+(fixed.isHttpOnly[0]?1:0)), fixed.isHttpOnly[1]]},
-			{id: "ifl_isProtected", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
-			{id: "ifl_isProtected2", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
-
+			{id: "lastAccessed", value: [fixed.lastAccessed[1] ? fixed.lastAccessed[0] : aCookie.lastAccessed == -1 ? na : this.getExpiresString(fixed.lastAccessed[0] == -1 ? -1 : Math.round(fixed.lastAccessed[0]/1000000)), fixed.lastAccessed[1], 0, aCookie.lastAccessed == -1]},
+			{id: "creationTime", value: [fixed.creationTime[1] ? fixed.creationTime[0] : aCookie.creationTime == -1 ? na : this.getExpiresString(fixed.creationTime[0] == -1 ? -1 : Math.round(fixed.creationTime[0]/1000000)), fixed.creationTime[1], 0, aCookie.creationTime == -1]},
+			{id: "isHttpOnly", value: [fixed.isHttpOnly[1] ? fixed.isHttpOnly[0] : this.string("yesno"+(fixed.isHttpOnly[0]?1:0)), fixed.isHttpOnly[1]]},
+			{id: "isProtected", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
+			{id: "isProtected2", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
 		];
-		this.showedExpires = fixed.expires[0] * 1000;
+		this.showedExpires = aCookie.expires == -1 ? -1 : fixed.expires[0] * 1000;
 		this.showedCreationTime = fixed.creationTime[0] / 1000;
-		if (fixed.expires[1] || (!this.prefExpireProgress && !this.prefExpireCountdown))
+		let expired = aCookie.expires != -1 && aCookie.expires && aCookie.expires*1000 < (new Date()).getTime();
+		$("ifl_expires").setAttribute("expired", expired);
+//		if (fixed.expires[1] || !this.prefView_expires || (!this.prefExpireProgress && !this.prefExpireCountdown) || aCookie.expires == -1)
+		if (fixed.expires[1] || !this.prefView_expires || aCookie.expires == -1)
 		{
-			document.getElementById("expireProgressText").setAttribute("collapsed", true);
-			document.getElementById("expireProgress").setAttribute("collapsed", true);
-			this.expiresProgress.cancel();
+			$("expireProgressText").hidden = true;
+			$("expireProgress").hidden = true;
+			if ($("expireProgressText").hidden && $("expireProgress").hidden)
+				this.expiresProgress.cancel(1);
 		}
 		else
 		{
-			document.getElementById("expireProgressText").setAttribute("collapsed", !this.prefExpireCountdown);
-			document.getElementById("expireProgressText").setAttribute("progress", this.prefExpireProgress);
+			$("expireProgressText").hidden = !this.prefExpireCountdown;
+			$("expireProgressText").setAttribute("progress", this.prefExpireProgress);
 			if (!fixed.expires[1] && fixed.expires[0] && !fixed.creationTime[1] && fixed.creationTime[0]/1000000 < fixed.expires[0])
 			{
-				document.getElementById("expireProgress").setAttribute("collapsed", !this.prefExpireProgress);
-				document.getElementById("expireProgress").setAttribute("text", this.prefExpireCountdown);
+				$("expireProgress").hidden = !this.prefExpireProgress;
+				$("expireProgress").setAttribute("text", this.prefExpireCountdown);
 			}
 			else
 			{
 				if (!fixed.expires[0])
-					document.getElementById("expireProgressText").setAttribute("collapsed", true);
+					$("expireProgressText").hidden = true;
 
-				document.getElementById("expireProgress").setAttribute("collapsed", true);
-				this.expiresProgress.cancel();
+				$("expireProgress").hidden = true;
 			}
-			this.expiresProgress.init();
 		}
-		for( var i = 0; i < props.length; i++ )
+		for(let i = 0; i < props.length; i++)
 		{
-			field = document.getElementById(props[i].id);
+			let	row = $("row_" + props[i].id),
+					field = $("ifl_" + props[i].id);
+			if (row)
+			{
+				row.setAttribute("multi", props[i].value[1]);
+				row.setAttribute("empty", !props[i].value[0].length);
+				row.setAttribute("na", props[i].value[3] || "");
+			}
 			field.setAttribute("multi", props[i].value[1]);
 			field.setAttribute("empty", !props[i].value[0].length);
-			field.value = props[i].value[0].length ? props[i].value[0] : this.string("empty");
+			field.setAttribute("na", props[i].value[3]);
+			if (!props[i].value[0].length)
+			{
+				field.value = "";
+				field.setAttribute("placeholder", "<" + this.string("empty") + ">");
+			}
+			else if(props[i].value[1])
+			{
+				field.value = "";
+				field.setAttribute("placeholder", multi);
+			}
+			else if(props[i].value[3])
+			{
+				field.value = "";
+				field.setAttribute("placeholder", props[i].value[0]);
+			}
+			else
+			{
+				field.value = props[i].value[0];
+			}
+			field.setAttribute("value", field.value);
 			field.realValue = props[i].value[2];
 		}
 
 		if (!fixed.value[1] && fixed.value[0].length > 0)
 		{
-			document.getElementById("ifl_value").setAttribute("tooltip", "tooltipValue");
-			document.getElementById("tooltipValue").label = document.getElementById("ifl_value").value;
+			$("ifl_value").setAttribute("tooltip", "tooltipValue");
+			$("tooltipValue").label = $("ifl_value").value;
 		}
 		else
 		{
-			document.getElementById("ifl_value").removeAttribute("tooltip");
+			$("ifl_value").removeAttribute("tooltip");
 		}
+		if (!fixed.type[1])
+			$("img_type").setAttribute("type", fixed.type[0]);
+
 		this.secure((fixed.isSecure[0] && !fixed.isSecure[1]));
-		document.getElementById("ifl_expires").setAttribute("expired", (aCookie.expires && aCookie.expires*1000 < (new Date()).getTime()));
-		if (this.cookieCuller.enabled && this.prefCookieCuller)
+//		$("ifl_expires").setAttribute("expired", (aCookie.expires && aCookie.expires*1000 < (new Date()).getTime()));
+		if (this.protect.enabled)
 		{
 			if (fixed.isProtected[1])
 			{
-				document.getElementById("protect_btn").collapsed = false;
-				document.getElementById("unprotect_btn").collapsed = false;
-				document.getElementById("menu_protect").collapsed = false;
-				document.getElementById("menu_unprotect").collapsed = false;
+				$("protect_btn").collapsed = false;
+				$("unprotect_btn").collapsed = false;
+				$("menu_protect").collapsed = false;
+				$("menu_unprotect").collapsed = false;
+				$("tree_menu_protect").collapsed = false;
+				$("tree_menu_unprotect").collapsed = false;
 			}
 			else
 			{
-				document.getElementById("protect_btn").collapsed = fixed.isProtected[0];
-				document.getElementById("unprotect_btn").collapsed = !fixed.isProtected[0];
-				document.getElementById("menu_protect").collapsed = fixed.isProtected[0];
-				document.getElementById("menu_unprotect").collapsed = !fixed.isProtected[0];
+				$("protect_btn").collapsed = fixed.isProtected[0];
+				$("unprotect_btn").collapsed = !fixed.isProtected[0];
+				$("menu_protect").collapsed = fixed.isProtected[0];
+				$("menu_unprotect").collapsed = !fixed.isProtected[0];
+				$("tree_menu_protect").collapsed = fixed.isProtected[0];
+				$("tree_menu_unprotect").collapsed = !fixed.isProtected[0];
 			}
-			document.getElementById("cookieCullerMenuSeparator").collapsed = false;
+			$("protectMenuSeparator").collapsed = false;
+			$("tree_protectMenuSeparator").collapsed = false;
 		}
-		document.getElementById("menu_exportclipboard").disabled = false;
-		document.getElementById("menu_exportfile").disabled = false;
-		document.getElementById("menu_backupselected").disabled = false;
-		document.getElementById("menu_restoreselected").disabled = false;
-		document.getElementById("menuBackupSelected").disabled = false;
-		document.getElementById("menuRestoreSelected").disabled = false;
-	},
+		$("menu_exportclipboard").disabled = false;
+		$("menu_exportfile").disabled = false;
+		$("menu_backupselected").disabled = false;
+		$("menu_restoreselected").disabled = false;
+		$("menuBackupSelected").disabled = false;
+		$("menuRestoreSelected").disabled = false;
+		if (!expired && aCookie.expires > 0
+				&& this.prefView_expires)
+//				&& this.prefView_expires && (this.prefExpireProgress || this.prefExpireCountdown))
+		{
+log.debug();
+			this.expiresProgress.init();
+		}
+		else if (expired || aCookie.expires < 1)
+		{
+			this.expiresProgress.cancel(1);
+		}
+	},//_updateCookieData()
 
 	expiresProgress: {
 		timer: Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer),
 		started: false,
-		init: function(f)
+		inited: false,
+		init: function expiresProgress_init(f)
 		{
+log.debug();
 			if (f || !this.started)
 			{
 				this.cancel();
 				this.timer.init(this, 1000, this.timer.TYPE_REPEATING_SLACK);
-				window.addEventListener("unload", this.cancel, false);
+				if (!this.inited)
+				{
+					window.addEventListener("unload", this.unload, false);
+					this.inited = true;
+				}
 				this.started = true;
 			}
 			this.observe(f);
 		},
-		cancel: function(f)
+		unload: function expiresProgress_unload()
+		{
+			coomanPlus.expiresProgress.cancel();
+		},
+		cancel: function expiresProgress_cancel(f)
 		{
 			coomanPlus.expiresProgress.timer.cancel();
 			this.started = false;
+			if (f)
+				this.observe();
 		},
-		observe: function(f)
+		observe: function expiresProgress_observe(f)
 		{
-			if (!coomanPlus.showedExpires)
+			if (!$("expireProgress").hidden || !$("expireProgressText").hidden)
 			{
-				this.cancel(true);
+				coomanPlus._cookiesTree.treeBoxObject.invalidateRange(coomanPlus._cookiesTree.treeBoxObject.getFirstVisibleRow(), coomanPlus._cookiesTree.treeBoxObject.getLastVisibleRow())
+				if (isNaN(coomanPlus.showedExpires) || coomanPlus.showedExpires < 1)
+					return;
+			}
+			if (coomanPlus.showedExpires < 1 && $("expireProgress").hidden && $("expireProgressText").hidden)
+			{
+				this.cancel();
 				return;
 			}
 			var d = new Date();
@@ -806,7 +1197,7 @@ var coomanPlus = {
 			var e = coomanPlus.showedExpires < d.getTime();
 
 			var tt = coomanPlus.strings.cookieexpired;
-			if (e && !f)
+			if (e && !f && $("expireProgress").hidden && $("expireProgressText").hidden)
 				this.cancel();
 			else
 			{
@@ -837,164 +1228,97 @@ var coomanPlus = {
 				else
 				{
 					n = 0;
-					e = true;
+					e = false;
 				}
 			}
-			document.getElementById("expireProgress").setAttribute("max", m);
-			document.getElementById("expireProgress").value = n;
-			document.getElementById("ifl_expires").setAttribute("expired", e);
-			document.getElementById("expireProgressText").setAttribute("expired", e);
-			document.getElementById("expiresProgressTooltip").setAttribute("label", tt);
-			document.getElementById("expireProgressText").setAttribute("label", tt);
-			document.getElementById("expireProgressText").value = tt;
+			$("expireProgress").setAttribute("max", m);
+			$("expireProgress").value = n;
+			$("expireProgress").setAttribute("expired", !e);
+			$("ifl_expires").setAttribute("expired", !e);
+			$("expireProgressText").setAttribute("expired", !e);
+			$("expiresProgressTooltip").setAttribute("label", tt);
+			$("expireProgressText").setAttribute("label", tt);
+			$("expireProgressText").value = tt;
 		}
 	},
 
-	clearCookieProperties: function(l, d)
+	clearCookieProperties: function clearCookieProperties(l, d)
 	{
-		var properties =
-			["ifl_name","ifl_value","ifl_host","ifl_path","ifl_isSecure",
-				"ifl_expires", "ifl_expires2","ifl_policy", "ifl_isHttpOnly",
-				"ifl_lastAccessed", "ifl_creationTime", "ifl_status",
-				"ifl_isProtected", "ifl_isProtected2"];
-		var l = typeof(l) == "undefined" ? 0 : l;
+log.debug();
+		let properties = ["name","value","host","path","isSecure",
+											"expires", "expires2","policy", "isHttpOnly",
+											"lastAccessed", "creationTime", "status",
+											"isProtected", "isProtected2", "type"];
+		l = typeof(l) == "undefined" ? 0 : l;
 		l = (l == 0) ? this.string("noCookieSelected") : "";
-		var field;
-		for (var prop=0; prop<properties.length; prop++)
+		for (let prop = 0; prop < properties.length; prop++)
 		{
-			field = document.getElementById(properties[prop]);
-			field.value = l;
-			field.setAttribute("multi", true);
+			let field = $("ifl_" + properties[prop]),
+					row = $("row_" + properties[prop]);
+			field.setAttribute("value", l);
+			field.value = "";
+			field.setAttribute("placeholder", l);
+			field.removeAttribute("multi");
+			field.setAttribute("empty", true);
+			if (row)
+			{
+				row.removeAttribute("multi");
+				row.setAttribute("empty", true);
+			}
 		}
 		this.secure(false);
 		if (d)
 		{
-			var b = 	this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed;
-			this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed = true;
-			this._cookiesTree.treeBoxObject.view.selection.clearSelection();
-			this._cookiesTree.treeBoxObject.view.selection.currentIndex = null;
-			this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed = b;
+			var b = this._cookiesTree.view.selection.selectEventsSuppressed;
+			this._cookiesTree.view.selection.selectEventsSuppressed = true;
+			this._noselectevent = true;
+			this._cookiesTree.view.selection.clearSelection();
+			this._cookiesTree.view.selection.currentIndex = null;
+			this._cookiesTree.view.selection.selectEventsSuppressed = b;
+			this._noselectevent = false;
 		}
-		document.getElementById("protect_btn").collapsed = true;
-		document.getElementById("unprotect_btn").collapsed = true;
-		document.getElementById("menu_protect").collapsed = true;
-		document.getElementById("menu_unprotect").collapsed = true;
-		document.getElementById("cookieCullerMenuSeparator").collapsed = true;
-		document.getElementById("expireProgress").collapsed = true;
-		document.getElementById("expireProgressText").collapsed = true;
-		document.getElementById("menu_exportclipboard").disabled = true;
-		document.getElementById("menu_exportfile").disabled = true;
-		document.getElementById("menu_backupselected").disabled = true;
-		document.getElementById("menu_restoreselected").disabled = true;
-		document.getElementById("menuBackupSelected").disabled = true;
-		document.getElementById("menuRestoreSelected").disabled = true;
+		$("protect_btn").collapsed = true;
+		$("unprotect_btn").collapsed = true;
+		$("menu_protect").collapsed = true;
+		$("menu_unprotect").collapsed = true;
+		$("tree_menu_protect").collapsed = true;
+		$("tree_menu_unprotect").collapsed = true;
+		$("protectMenuSeparator").collapsed = true;
+		$("tree_protectMenuSeparator").collapsed = true;
+		$("expireProgress").hidden = true;
+		$("expireProgressText").hidden = true;
+		$("menu_exportclipboard").disabled = true;
+		$("menu_exportfile").disabled = true;
+		$("menu_backupselected").disabled = true;
+		$("menu_restoreselected").disabled = true;
+		$("menuBackupSelected").disabled = true;
+		$("menuRestoreSelected").disabled = true;
 		this._selected = [];
 		this.UI_EnableCookieBtns(false, false);
+		if ($("expireProgress").hidden	 && $("expireProgressText").hidden)
+			this.expiresProgress.cancel(1);
 	},
 
-	clearFilter: function ()
+	clearFilter: function clearFilter()
 	{
-		document.getElementById('lookupcriterium').value = "";
-		document.getElementById('lookupcriterium').setAttribute("filter", "");
+log.debug();
+		$('lookupcriterium').value = "";
+		$('lookupcriterium').setAttribute("filter", "");
 		this.loadCookies();
 	},
 
-	infoRowAction: function(e)
+	checkFilter: function checkFilter()
 	{
-		var o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
-		if (o.getAttribute("empty") == "true" || o.getAttribute("multi") == "true")
-			return false;
-
-		if (!e.button)
-			o.select();
-
-		if (!e.button && e.detail > 1)
-			this.infoRowCopyToClipboard(e);
+log.debug();
+		return $("lookupcriterium").value != $("lookupcriterium").getAttribute("filter");
 	},
 
-	infoRowCopyToClipboard: function(e)
+	observe: function observe(aCookie, aTopic, aData)
 	{
-		if (e.button)
-			return false;
-
-		var o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
-		o.select();
-		Cc["@mozilla.org/widget/clipboardhelper;1"]
-		.getService(Ci.nsIClipboardHelper)
-		.copyString(o.value);
-	},
-
-	infoRowContextCheck: function(e)
-	{
-		var obj = document.popupNode.getAttribute("onclick") != "" ? document.popupNode : document.popupNode.parentNode;
-		var o = obj.parentNode.getElementsByTagName("textbox")[0]
-		document.getElementById("infoRowCopy").disabled = (o.getAttribute("empty") == "true" || o.getAttribute("multi") == "true");
-		document.getElementById("infoRowUp").disabled = obj.parentNode.id == coomanPlus.infoRowsFirst.id;
-		document.getElementById("infoRowDown").disabled = obj.parentNode.id == coomanPlus.infoRowsLast.id;
-		obj.click();
-	},
-
-	infoRowContextExec: function(e)
-	{
-		var obj = document.popupNode;
-		var o = obj;
-		while(o)
-		{
-			if (o.tagName == "row")
-				break;
-
-			o = o.parentNode;
-		}
-		if (o)
-			obj = o.firstChild;
-
-		switch(e.target.value)
-		{
-			case "select":
-					obj.click();
-				break;
-			case "copy":
-					var evt = document.createEvent("MouseEvents");
-					evt.initMouseEvent("click", true, true, window, 2, 0, 0, 0, 0, false, false, false, false, 0, null);
-					obj.dispatchEvent(evt);
-				break;
-			case "up":
-					var o = obj.parentNode;
-					while(o)
-					{
-						if (o.tagName == "row")
-							break;
-
-						o = o.parentNode.parentNode;
-					}
-					if (o)
-						coomanPlus.dragMoveUp(o);
-				break;
-			case "down":
-					var o = obj.parentNode.parentNode;
-					while(o)
-					{
-						if (o.tagName == "row")
-							break;
-
-						o = o.parentNode;
-					}
-					if (o)
-					coomanPlus.dragMoveDown(o);
-		}
-		return true;
-	},
-
-	checkFilter: function ()
-	{
-		return document.getElementById("lookupcriterium").value != document.getElementById("lookupcriterium").getAttribute("filter");
-	},
-
-	observe: function (aCookie, aTopic, aData)
-	{
-		if (this._noObserve || !this.prefAutoUpdate || aTopic != "cookie-changed")
+		if (this._noObserve || !this.pref("autoupdate") || aTopic != "cookie-changed")
 			return;
 
+log.debug();
 		if (aCookie instanceof Ci.nsICookie)
 		{
 			if (aData == "changed")
@@ -1010,8 +1334,8 @@ var coomanPlus = {
 			var oldRowCount = this._cookiesTreeView.rowCount;
 			this._cookiesTreeView.rowCount = 0;
 			this._cookiesTree.treeBoxObject.rowCountChanged(0, -oldRowCount);
-			this._cookiesTree.treeBoxObject.view.selection.clearSelection();
-			this._cookiesTree.treeBoxObject.view.selection.currentIndex = -1;
+			this._cookiesTree.view.selection.clearSelection();
+			this._cookiesTree.view.selection.currentIndex = -1;
 			this._selected = [];
 			this.loadCookies();
 		}
@@ -1026,47 +1350,54 @@ var coomanPlus = {
 
 	},
 
-	_handleCookieAdded: function(aCookie)
+	_handleCookieAdded: function _handleCookieAdded(aCookie)
 	{
-		this.loadCookies(document.getElementById('lookupcriterium').getAttribute("filter"), false, (new Date()).getTime());
-	},
-
-	_handleCookieDeleted: function(aCookie)
-	{
-		this.loadCookies();
-	},
-
-	_handleCookieChanged: function(aCookie)
-	{
-		for(var i = 0; i < this._cookies.length; i++)
+log.debug();
+		this.observe.timer = coomanPlusCore.async(function()
 		{
-			if (this._cookieEquals(this._cookies[i], aCookie))
+			coomanPlus.loadCookies($('lookupcriterium').getAttribute("filter"), false, (new Date()).getTime());
+		}, 1000, this.observe.timer);
+	},
+
+	_handleCookieDeleted: function _handleCookieDeleted(aCookie)
+	{
+log.debug();
+		this.observe.timer = coomanPlusCore.async(function()
+		{
+			coomanPlus.loadCookies();
+		}, 1000, this.observe.timer);
+	},
+
+	_handleCookieChanged: function _handleCookieChanged(aCookie)
+	{
+log.debug();
+		let self = this;
+		this.observe.timer = coomanPlusCore.async(function()
+		{
+			
+			for(let i = 0; i < self._cookies.length; i++)
 			{
-				this._cookies[i] = new this.cookieObject(aCookie, false, (new Date()).getTime());
-				if (this._isSelected(aCookie))
+				if (self._cookieEquals(self._cookies[i], aCookie))
 				{
-					this._updateCookieData(aCookie);
+					self._cookies[i] = new self.cookieObject(aCookie, false, (new Date()).getTime());
+					if (self._isSelected(aCookie))
+					{
+						self._updateCookieData(aCookie);
+					}
 				}
 			}
-		}
-//		this.dump(this._cookiesTree.treeBoxObject.getFirstVisibleRow() + " | "  +  this._cookiesTree.treeBoxObject.getLastVisibleRow());
-		this._cookiesTree.treeBoxObject.invalidateRange(this._cookiesTree.treeBoxObject.getFirstVisibleRow(), this._cookiesTree.treeBoxObject.getLastVisibleRow());
-//		this._cookiesTree.treeBoxObject.invalidate();
+	//		log(self._cookiesTree.treeBoxObject.getFirstVisibleRow() + " | "  +  self._cookiesTree.treeBoxObject.getLastVisibleRow());
+			self._cookiesTree.treeBoxObject.invalidateRange(self._cookiesTree.treeBoxObject.getFirstVisibleRow(), self._cookiesTree.treeBoxObject.getLastVisibleRow());
+	//		self._cookiesTree.treeBoxObject.invalidate();
+		}, 1000, this.observe.timer);
 	},
 
-	_cookieEquals: function (aCookieA, aCookieB)
+	secure: function secure(type)
 	{
-		return aCookieA.host == aCookieB.host &&
-					 aCookieA.name == aCookieB.name &&
-					 aCookieA.path == aCookieB.path;
+		$("secure").hidden = type ? false : true;
 	},
 
-	secure: function(type)
-	{
-		document.getElementById("secure").hidden = type ? false : true;
-	},
-
-	onKeyDown: function(e)
+	onKeyDown: function onKeyDown(e)
 	{
 		var keys = coomanPlus.getKeys(e);
 		if (coomanPlus.matchKeys(coomanPlusCore.lastKeyDown, keys[0], keys[0].length) || !("className" in e.target) || e.target.className == "hotkey") //prevent repeats
@@ -1088,189 +1419,349 @@ var coomanPlus = {
 		}
 		else if (coomanPlus.matchKeys(keys[0], ["F5"], 1))
 		{
-			coomanPlus.loadCookies(document.getElementById('lookupcriterium').getAttribute("filter"), true);
+			coomanPlus.loadCookies($('lookupcriterium').getAttribute("filter"), true);
 		}
 		else if (coomanPlus.matchKeys(keys[0], ["ACCEL", "A"], 2))
 		{
 			coomanPlus.selectAllShown();
 		}
-		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.strings.cookieculler_protect_accesskey], 2))
+		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.strings.protect_protect_accesskey], 2))
 		{
 			e.preventDefault();
 			e.stopPropagation();
-			coomanPlus.cookieCuller.protect();
+			coomanPlus.protect.obj.protect();
 			return false;
 		}
-		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.strings.cookieculler_unprotect_accesskey], 2))
+		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.strings.protect_unprotect_accesskey], 2))
 		{
 			e.preventDefault();
 			e.stopPropagation();
-			coomanPlus.cookieCuller.unprotect();
+			coomanPlus.protect.obj.unprotect();
 			return false;
 		}
 		return true;
 	},
 
-	onKeyUp: function(e)
+	onKeyUp: function onKeyUp(e)
 	{
 		coomanPlusCore.lastKeyDown = [];
 		coomanPlus.lastKeyTime = (new Date()).getTime();
-		var keys = coomanPlus.getKeys(e);
+		let keys = coomanPlus.getKeys(e);
 		if (coomanPlus.matchKeys(keys[0], ["CONTEXT_MENU"], 1) || coomanPlus.matchKeys(keys[0], ["SHIFT", "F10"], 2))
 		{
-			document.getElementById("coomanPlus_tree_menu").openPopup(e.target, "overlap", 3, 0, false, false);
+			$("coomanPlus_tree_menu").openPopup(e.target, "overlap", 3, 0, false, false);
 			e.preventDefault();
 			e.stopPropagation();
 		}
 	},
 
-	matchKeys: function(k, l, len)
-	{
-		if (k.length != l.length || (len && k.length < len))
-			return false;
-
-		for(var i = 0; i < l.length; i++)
-		{
-			if (k.indexOf(this.getAccel(l[i])) == -1)
-			{
-				return false;
-			}
-		}
-		return true;
-	},
-
-	getKeys: function(e)
-	{
-		var keys = [];
-		var keycode = this.getAccel(this.keysList[e.keyCode]);
-		if(e.ctrlKey) keys.push(this.getAccel("CONTROL"));
-		if(e.altKey) keys.push(this.getAccel("ALT"));
-		if(e.metaKey) keys.push(this.getAccel("META"));
-		if(e.shiftKey) keys.push(this.getAccel("SHIFT"));
-
-		var modifiers = keys.slice();
-		if (keys.indexOf(keycode) == -1)
-			keys.push(keycode);
-		return [keys, [modifiers, keycode]];
-	},
-
-	getAccel: function(a)
-	{
-		return this.accel == a ? "ACCEL" : a;
-	},
-
-	listKeys: function()
-	{
-		if (this.keysList !== null)
-			return;
-
-		this.keysList = [];
-		for (var property in KeyEvent)
-			this.keysList[KeyEvent[property]] = property.replace("DOM_VK_","");
-
-	},
-
-	_isSelected: function(aCookie, list, r)
-	{
-		var list = list || this._selected;
-		var r = r || [];
-		for(var i = 0; i < list.length; i++)
-		{
-			if (this._cookieEquals(list[i], aCookie))
-			{
-				r[0] = i;
-				return true;
-			}
-		}
-		return false;
-	},
-
-	treeScroll: function()
+	treeScroll: function treeScroll()
 	{
 		coomanPlus._cookiesTree.setAttribute("scrollPos", coomanPlus._cookiesTree.treeBoxObject.getFirstVisibleRow());
 	},
 
-	selectLastCookie: function(noresort)
-	{
-		var s = this._cookiesTree.getAttribute("scrollPos");
-		if (this._cookies.length - this._cookiesTree.treeBoxObject.getPageLength() >= s)
-			this._cookiesTree.treeBoxObject.scrollToRow(s);
 
-		if (this._selected.length == 0)
+	_currentIndexObj: null,
+	get _currentIndex()
+	{
+		if (!this._currentIndexObj)
+			this._currentIndex = this._cookiesTree.view.selection.currentIndex;
+
+		if (!this._currentIndexObj)
+			return -1;
+
+		let l = this._cookies,
+				c = this._currentIndexObj;
+		for(let i = 0; i < l.length; i++)
+			if (this._cookieEquals(l[i], c))
+				return i;
+
+		return -1
+	},
+
+	set _currentIndex(index)
+	{
+		if (this._cookies[index])
+			this._currentIndexObj = this._cookies[index];
+
+	},
+
+	selectLastCookie: function selectLastCookie(noresort, changed, list, callback, isLoadCookies)
+	{
+		let self = this;
+		if (self.selectLastCookie.started || (self.loadCookies.started && !isLoadCookies))
+			return;
+
+		self.selectLastCookie.started = true;
+log.debug();
+		let b = self._cookiesTree.view.selection.selectEventsSuppressed;
+		self._cookiesTree.view.selection.selectEventsSuppressed = true;
+		self._noselectevent = true;
+
+		let	stored = false,
+				index = null,
+				indexSelect = true;
+
+		if (!self._selected.length)
 		{
-			this._selected = [{
-				host: this._cookiesTree.getAttribute("selectedHost"),
-				path: this._cookiesTree.getAttribute("selectedPath"),
-				name: this._cookiesTree.getAttribute("selectedName")
-			}];
-		}
-		var s = 0;
-		if (this._selected.length)
-		{
-			var b = this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed;
-			this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed = true;
-			for( var i = 0; i < this._cookies.length; i++ )
+			stored = true;
+			list = typeof(list) == "undefined" ? [] : list;
+			if (!list.length)
 			{
-				if(this._isSelected(this._cookies[i]))
+				try
 				{
-					try
+					list = self.selectionRead();
+				}
+				catch(e){log.error(e)}
+			}
+			self._selected = [];
+			for(let i = 0; i < list.length; i++)
+			{
+/*				let cookie = {
+					host: list[i][0],
+					path: list[i][1],
+					name: list[i][2],
+					type: list[i][3],
+					value: list[i][5]
+				};
+	*/
+				let idx = [];
+				self._isSelected({hash: list[i].h}, self._cookiesAll, idx);
+				if (!idx.length)
+					continue;
+
+				let aCookie = self._cookiesAll[idx[0]];
+				let cookie = 
+				{
+					hash: aCookie.hash ? aCookie.hash : self.cookieHash({
+						host: aCookie.host,
+						path: aCookie.path,
+						name: aCookie.name,
+						type: aCookie.type,
+						value: aCookie.value
+					})
+				};
+//				if (!index && list[i][4])
+				if (!index && list[i].f)
+				{
+					let c = cookie;
+					index = c;
+//					index.selected = list[i][4] == 2;
+					index.selected = list[i].f == 2;
+					index.i = i;
+					if (index.selected)
+						self._selected.push(cookie);
+
+				}
+				self._selected.push(cookie);
+			}
+		}
+		let s = self._cookiesTree.getAttribute("scrollPos");
+		if (!noresort && self._cookies.length - self._cookiesTree.treeBoxObject.getPageLength() >= s)
+			self._cookiesTree.treeBoxObject.scrollToRow(s);
+		s = 0;
+		let	idx,
+				first = null,
+				last = null,
+				selectedIndex = [],
+				currentIndex = self._currentIndex,
+				newIndex = null;
+log.debug("selection read finished", coomanPlus.selectLastCookie);
+log.debug("selection parse start");
+		if (self._selected.length)
+		{
+//			$("loading").collapsed = false;
+			let max = (self._selected.length * 10000).toFixed();
+			let range = [];
+			function loop(i)
+			{
+				let counter = 30;
+				while (counter--)
+				{
+					if (i >= self._cookies.length)
 					{
-						this._cookiesTree.treeBoxObject.view.selection.rangedSelect(i, i , s ? true : false);
-						if (!noresort && !s)
-							this._cookiesTree.treeBoxObject.ensureRowIsVisible(i);
+						selectLastCookieContinue();
+						return;
 					}
-					catch(e){};
-					s++;
-					if (s > this._selected.length)
+					let r = [],
+							aCookie = self._cookies[i];
+					if(self._isSelected(aCookie, null, r))
 					{
-						break;
+						idx = false;
+						if (first === null)
+							first = i;
+
+						if (index)
+						{
+							idx = self._cookieEquals(aCookie, index);
+							if (idx && currentIndex == i)
+								newIndex = i;
+
+							if (idx && newIndex === null)
+								newIndex = i
+						}
+						if (indexSelect || (!indexSelect && !idx))
+						{
+							last = i;
+						}
+						if (!idx || (idx && (!index || index.selected)))
+						{
+							selectedIndex.push(i);
+//							self._cookiesTree.view.selection.rangedSelect(i, i , s ? true : false);
+						}
+
+						$("loadingProgress").setAttribute("value", Math.round(s * 60000000 / max) + 4000);
+						$("loadingCount").value = (Math.round(s * 60 / self._selected.length) + 40) + "%";
+						s++
+						if (s >= self._selected.length)
+						{
+							selectLastCookieContinue()
+							return;
+						}
+
+					}
+					i++;
+					if (i >= self._cookies.length)
+					{
+						selectLastCookieContinue();
+						return;
+					}
+				}
+				coomanPlusCore.async(function()
+				{
+					loop(i);
+				});
+			}//loop()
+			loop(0);
+		}
+		else
+			selectLastCookieContinue();
+
+		function selectLastCookieContinue()
+		{
+log.debug("selection parse end", coomanPlus.selectLastCookie);
+log.debug("selection set start");
+			self._cookiesTree.view.selection.selectEventsSuppressed = true;
+			self._noselectevent = true;
+			$("loadingProgress").setAttribute("value", 10000);
+			$("loadingCount").value = "100%";
+			self.selectLastCookie.timer = coomanPlusCore.async(function()
+			{
+				$("loading").collapsed = true;
+				$("loadingProgress").parentNode.hidden = true;
+			}, 250, self.selectLastCookie.timer);
+			if (self._selected.length)
+			{
+				for(let i = 0; i < selectedIndex.length; i++)
+				{
+					self._cookiesTree.view.selection.rangedSelect(selectedIndex[i], selectedIndex[i] , i ? true : false);
+				}
+				if (newIndex !== null || first !== null)
+				{
+	//				currentIndex = newIndex !== null ? newIndex : (self._cookies[currentIndex] && self._isSelected(self._cookies[currentIndex])) ? currentIndex : first;
+					currentIndex = newIndex !== null ? newIndex : self._cookies[currentIndex] ? currentIndex : first;
+					self._cookiesTree.view.selection.currentIndex = currentIndex;
+				}
+				if (!noresort)
+				{
+					let	v = false,
+							f = self._cookiesTree.treeBoxObject.getFirstVisibleRow(),
+							l = self._cookiesTree.treeBoxObject.getLastVisibleRow();
+
+					if (index && selectedIndex[index.i] >= f && selectedIndex[index.i] <= l)
+						v = true;
+
+
+					for(let i = 0; i < selectedIndex.length; i++)
+					{
+						if (v || selectedIndex[i] >= f || selectedIndex <= l)
+						{
+							v = true;
+							break;
+						}
+					}
+					if (!v)
+					{
+						i = currentIndex != -1 ? currentIndex : first
+						if (i !== null)
+							self._cookiesTree.treeBoxObject.ensureRowIsVisible(i);
 					}
 				}
 			}
-			this._cookiesTree.treeBoxObject.view.selection.selectEventsSuppressed = b;
-		}
-		if (!s)
-		{
-			this._cookiesTree.treeBoxObject.view.selection.clearSelection();
-			this._cookiesTree.treeBoxObject.view.selection.currentIndex = -1;
-			this._selected = [];
-		}
-		this.cookieSelected(noresort);
-	},
+			if (!s)
+			{
+				self._cookiesTree.view.selection.clearSelection();
+				self._cookiesTree.view.selection.currentIndex = -1;
+				self._selected = [];
+			}
+			self._cookiesTree.view.selection.selectEventsSuppressed = b;
+			self._noselectevent = b;
+log.debug("selection set end", 1);
+			self.cookieSelected(noresort);
+			self.selectLastCookie.started = false;
+			if (typeof(callback) == "function")
+				callback();
+//log(self._selected, 1);
+		}//selectLastCookieContinue()
+	},//selectLastCookie()
 
-	doLookup: function(e)
+	doLookup: function doLookup(e)
 	{
-		if( (e && e.keyCode == 13) || !e || this.prefAutoFilter)
+log.debug();
+		if (this.loadCookies.started)
+			return false;
+
+		this.website = false;
+		this.setFilter();
+		if( (e && e.keyCode == 13) || !e || this.pref("autofilter"))
 		{
-			var searchfor = document.getElementById('lookupcriterium').value;
-			document.getElementById('lookupcriterium').setAttribute("filter", searchfor);
+			var searchfor = $('lookupcriterium').value;
+			$('lookupcriterium').setAttribute("filter", searchfor);
+//			this.cookieSelected(true);
 			this.loadCookies();
 		}
 	},
 
-	twochar: function(s)
+	twochar: function twochar(s)
 	{
-		var str =   '00' + s;
+		let str = "00" + s;
 		return str.substring( ((str.length)-2) ,str.length);
 	},
 
-	cookieSelected: function (noresort)
+	cookieSelected: function cookieSelected(noresort)
 	{
-		var selections = this.getTreeSelections(this._cookiesTree);
-		document.getElementById("sel").setAttribute("checked", (selections.length == this._cookies.length))
+log.debug("canceling " + this._noselectevent);
+		if (this._noselectevent)
+			return;
+
+		let selections = this.getTreeSelections(this._cookiesTree);
+		$("sel").setAttribute("checked", (selections.length == this._cookies.length))
 
 		document.title = this.title + "  [" + this.string("stats").replace("NN", this._cookies.length).replace("TT", this._cookiesAll.length).replace("SS", selections.length) + "]";
-		if( !selections.length )
+		let index = this._cookiesTree.view.selection.currentIndex;
+		this._currentIndex = index;
+		if(selections.length < 1)
 		{
-			if (this._selected.length > 0)
-			{
-				this.clearCookieProperties(0);
-			}
+			let list = [],
+					aCookie = this._cookies[index];
+			if (aCookie)
+				list.push({
+					h: aCookie.hash ? aCookie.hash : this.cookieHash({
+						host: aCookie.host,
+						path: aCookie.path,
+						name: aCookie.name,
+						type: aCookie.type,
+						value: aCookie.type == coomanPlusCore.COOKIE_NORMAL ? "" : aCookie.value
+					}),
+					f: 1
+				});
+			coomanPlus.selectionSave(list);
+			this.clearCookieProperties(0);
 			return true;
 		}
 
 
-		var idx = selections.indexOf(this._cookiesTree.treeBoxObject.view.selection.currentIndex);
+		let idx = selections.indexOf(index);
 		idx = selections[((idx == -1) ? 0 : idx)];
 		if( idx >= this._cookies.length )
 		{
@@ -1279,118 +1770,214 @@ var coomanPlus = {
 		}
 
 		this._selected = [];
-		for(var i = 0; i < selections.length; i++)
+		let list = [];
+
+		if (this._cookies[index])
 		{
+//			list.push([this._cookies[index].host,this._cookies[index].path,this._cookies[index].name, 1])
+			list.push({
+				h: this._cookies[index].hash ? this._cookies[index].hash : this.cookieHash({
+					host: this._cookies[index].host,
+					path: this._cookies[index].path,
+					name: this._cookies[index].name,
+					type: this._cookies[index].type,
+					value: this._cookies[index].type == coomanPlusCore.COOKIE_NORMAL ? "" : this._cookies[index].value
+				}),
+				f: 1
+			});
 			this._selected.push({
-				host: this._cookies[selections[i]].host,
-				path: this._cookies[selections[i]].path,
-				name: this._cookies[selections[i]].name
+				hash: list[0].h
+			});
+		}
+		for(let s of selections)
+		{
+			let item = this._cookies[s];
+			if (!item)
+				continue;
+
+			if (s == index)
+			{
+				list[0].f = 2;
+				this._selected[0].i = s;
+				continue;
+			}
+
+//			list.push([this._cookies[selections[i]].host,this._cookies[selections[i]].path,this._cookies[selections[i]].name])
+			list.push({
+				h: item.hash ? item.hash : this.cookieHash({
+					host: item.host,
+					path: item.path,
+					name: item.name,
+					type: item.type,
+					value: item.type == coomanPlusCore.COOKIE_NORMAL ? "" : item.value
+				})
+			});
+
+			this._selected.push({
+				hash: list[list.length-1].h,
+/*
+				host: item.host,
+				path: item.path,
+				name: item.name,
+*/
+				i: s
 			});
 		}
 
 		// save last selected name
-		this._cookiesTree.setAttribute("selectedHost", this._cookies[idx].host);
-		this._cookiesTree.setAttribute("selectedPath", this._cookies[idx].path);
-		this._cookiesTree.setAttribute("selectedName", this._cookies[idx].name);
-
+			coomanPlus.selectionSave(list);
+/*
+		coomanPlusCore.async(function()
+		{
+			coomanPlus.selectionSave(list);
+		});
+*/
 		this._updateCookieData(this._cookies[idx], selections);
 		// make the delete button active
-		var del = (document.getElementById("ifl_isProtected").getAttribute("multi") == "true" || !this.cookieCuller.enabled || !this.prefCookieCuller || this.prefCookieCullerDelete || !document.getElementById("ifl_isProtected").realValue)
+		let del = ($("ifl_isProtected").getAttribute("multi") == "true" || !this.protect.enabled || this.pref("deleteprotected") || !$("ifl_isProtected").realValue);
 
 		this.UI_EnableCookieBtns(del, true);
 
-		if (selections.length == 1 && !noresort)
-			this._cookiesTree.treeBoxObject.ensureRowIsVisible(selections[0]);
-
-	//out_d("Cookie Manager::CookieSelected::END");
-
+		if ((index != -1 || selections.length) && !noresort)
+		{
+			let i = index != -1 ? index : selections[0],
+					f = this._cookiesTree.treeBoxObject.getFirstVisibleRow(),
+					l = this._cookiesTree.treeBoxObject.getLastVisibleRow();
+			if (i < f || i > l)
+			{
+				this._cookiesTree.treeBoxObject.ensureRowIsVisible(i);
+			}
+		}
+//log(this._cookies[index], 2);
 		return true;
 	},
 
-	cookieColumnSort: function(column, noresort)
+	cookieColumnSort: function cookieColumnSort(column, noresort)
 	{
+log.debug();
+		this._currentIndex = this._cookiesTree.view.selection.currentIndex;
 		this.sortTree( this._cookiesTree, this._cookies, column);
 		this.selectLastCookie(noresort);
 	},
 
-	UI_EnableCookieBtns: function(flag, flag2)
+	UI_EnableCookieBtns: function UI_EnableCookieBtns(flag, flag2)
 	{
-		document.getElementById('deleteCookie').disabled = !flag;
-		document.getElementById('editCookie').disabled = !flag2;
-		document.getElementById('menu_delete').disabled = !flag;
-		document.getElementById('menu_delete_block').disabled = !flag;
-		document.getElementById('menu_edit').disabled = !flag2;
-		document.getElementById('tree_menu_delete').disabled = !flag;
-		document.getElementById('tree_menu_delete_block').disabled = !flag;
-		document.getElementById('tree_menu_edit').disabled = !flag2;
-		document.getElementById('menuExportFile').disabled = !flag2;
-		document.getElementById('menuExportClipboard').disabled = !flag2;
+log.debug();
+		$('deleteCookie').disabled = !flag;
+		$('editCookie').disabled = !flag2;
+		$('menu_delete').disabled = !flag;
+		$('menu_delete_block').disabled = !flag;
+		$('menu_edit').disabled = !flag2;
+		$('tree_menu_delete').disabled = !flag;
+		$('tree_menu_delete_block').disabled = !flag;
+		$('tree_menu_edit').disabled = !flag2;
+		$('menuExportFile').disabled = !flag2;
+		$('menuExportClipboard').disabled = !flag2;
 	},
 
-	deleteCookies: function(block)
+	deleteCookies: function deleteCookies(block)
 	{
-		var deletedCookies = [];
-
-		this.deleteSelectedItemFromTree(this._cookiesTree, this._cookiesTreeView,
-																	 this._cookies, deletedCookies, block);
+log.debug();
+		let deletedCookies = this.deleteSelectedItemFromTree(this._cookiesTree, this._cookies, block);
+//log(deletedCookies, 1);
 		if (!this._cookies.length)
 			this.clearCookieProperties(0, true);
 
 		this._noObserve = true;
-		var coocul = this.finalizeCookieDeletions( deletedCookies );
-		this._noObserve = false;
-		this.loadCookies();
-		if (coocul)
+		coomanPlusCore.async(function()
 		{
-			this.cookieCuller.obj.cookies = this._cookiesAll;
-			this.cookieCuller.obj.saveProtCookies();
-			this.cookieCuller.loadProtCookies();
-			this.cookieSelected();
-		}
+			coomanPlus.finalizeCookieDeletions( deletedCookies, function deletedCookies_callback()
+			{
+	log.debug()
+				coomanPlus._noObserve = false;
+//				coomanPlus.loadCookies(undefined, true);
+				coomanPlus.loadCookies();
+			});
+		});
 	},
 
-	deleteSelectedItemFromTree: function(tree, view, table, deletedTable, block)
+	deleteExpiredCookies: function deleteExpiredCookies(loadCookies, list, selected)
 	{
-		var block = typeof(block) == "undefined" ? false : block;
-		var DeleteAll = false;
-		var uChoice = {button:0, block:block};
-		var prefDeleteConf = this.prefs.getBoolPref("delconfirm", true);
-		var index = this._cookiesTree.treeBoxObject.view.selection.currentIndex;
+log.debug();
+		selected = typeof(selected) == "undefined" ? [] : selected;
+		list = typeof(list) == "undefined" ? this._cookies : list;
 
+		for(let i = 0; i < list.length; i++)
+		{
+			if (list[i].type == coomanPlusCore.COOKIE_NORMAL && list[i].expires && list[i].expires *1000 < (new Date()).getTime())
+				selected.push(i);
+		}
+		let deletedCookies = this.deleteSelectedItemFromTree(this._cookiesTree, list, false, selected, true);
+		
+//		if (!list.length)
+//			this.clearCookieProperties(0, true);
 
-		const eIconClasses = new Array("question-icon", "alert-icon", "message-icon");
+		this._noObserve = true;
+		this._cookiesTree.view.selection.selectEventsSuppressed = true;
+		coomanPlusCore.async(function()
+		{
+			coomanPlus.finalizeCookieDeletions( deletedCookies, function deleteExpiredCookies_callback()
+			{
+	log.debug()
+				coomanPlus._noObserve = false;
+				coomanPlus._cookiesTree.view.selection.selectEventsSuppressed = false;
+				if (loadCookies)
+					coomanPlus.loadCookies(undefined, true);
+			});
+		});
+	},
 
-
-		var s = this.getTreeSelections(tree, this._cookies);
+	deleteSelectedItemFromTree: function deleteSelectedItemFromTree(tree, table, block, selected, DeleteAll)
+	{
+log.debug();
+		block = typeof(block) == "undefined" ? false : block;
+		let uChoice = {button:0, block:block},
+				prefDeleteConf = this.pref("delconfirm"),
+				index = tree.view.selection.currentIndex,
+				selections = [],
+				deletedTable = [],
+				params = [];
 		// Turn off tree selection notifications during the deletion
-		tree.treeBoxObject.view.selection.selectEventsSuppressed = true;
+		tree.view.selection.selectEventsSuppressed = true;
+		this._noselectevent = true;
 
+		selected = selected || this.getTreeSelections(tree, table);
 		// remove selected items from list (by setting them to null) and place in deleted list
-		if (!this.cookieCuller.enabled || !this.prefCookieCuller || this.prefCookieCullerDelete)
-			selections = s;
+		if (!this.protect.enabled || this.pref("deleteprotected"))
+			selections = selected;
 		else
 		{
-			var selections = [];
-			for(var i = 0; i < s.length; i++)
+			for(let i = 0; i < selected.length; i++)
 			{
-				if (!this._cookies[s[i]].isProtected)
-					selections.push(s[i]);
+				if (!this._cookies[selected[i]].isProtected)
+					selections.push(selected[i]);
 			}
 		}
-		var params = [];
-		for (var s = 0; s < selections.length; s++)
+		for (let s = 0; s < selections.length; s++)
 		{
-			var i = selections[s];
+			let i = selections[s];
 
 				// delete = 1, delete all = 2, do not delete = 4, cancel = 3, close window = 0
 
 			if (prefDeleteConf && !DeleteAll)
 			{
-				uChoice = this.promptDelete([this._cookies[i].name, this._cookies[i].host, selections.length - s], block);
-				if (uChoice.button == 0 || uChoice.button == 4) //don't delete / close window
+				table[i].deleted = 1;
+				tree.treeBoxObject.invalidateRow(i);
+				tree.treeBoxObject.ensureRowIsVisible(i);
+
+				uChoice = this.promptDelete([table[i].name, table[i].host, selections.length - s], block);
+				if (uChoice.button == 4) //don't delete
+				{
+					delete table[i].deleted;
+					tree.treeBoxObject.invalidateRow(i);
 					continue;
-				else if (uChoice.button == 3) //cancel
+				}
+				else if (uChoice.button == 0 || uChoice.button == 3) //cancel / close window
+				{
+					delete table[i].deleted;
+					tree.treeBoxObject.invalidateRow(i);
 					break;
+				}
 				else if (uChoice.button == 2) //delete all
 					DeleteAll = true;
 			}
@@ -1398,122 +1985,192 @@ var coomanPlus = {
 			if ( DeleteAll || !prefDeleteConf || uChoice.button == 1 )
 			{
 				table[i].block = uChoice.block;
-				deletedTable[deletedTable.length] = table[i];
-				table[i] = null;
+				table[i].deleted = 2;
+				deletedTable.push(table[i]);
+				if (!table[i].originAttributes && table[i]._aCookie && table[i]._aCookie.originAttributes)
+				table[i].originAttributes = table[i]._aCookie.originAttributes;
 			}
-
+			tree.treeBoxObject.invalidateRow(i);
+			tree.treeBoxObject.ensureRowIsVisible(i);
 		}
-
-
-//		this.supress_getCellText = true;
-
-		// collapse list by removing all the null entries
-		for (var j=0; j<table.length; j++)
+		if (!table[index] || table[index].deleted)
 		{
-			if (table[j] == null)
+			for (let s = 0; s < selections.length; s++)
 			{
-				var k = j;
-				while (k < table.length && table[k] == null)
+				let i = selections[s];
+				if (!table[i].deleted)
 				{
-					k++;
+					index = i;
+					break;
 				}
-				table.splice(j, k-j);
-				view.rowCount -= k - j;
-				tree.treeBoxObject.rowCountChanged(j, j - k);
 			}
 		}
 
-//		this.supress_getCellText = false;
-		tree.treeBoxObject.view.selection.selectEventsSuppressed = false;
+//		coomanPlus.selectionSave();
+/*
+		coomanPlusCore.async(function()
+		{
+			coomanPlus.selectionSave();
+		});
+*/
+		this.supress_getCellText = true;
+
+		for (let j = 0; j < table.length; j++)
+		{
+			if (table[j].deleted == 2)
+			{
+				table.splice(j, 1);
+				j--;
+			}
+		}
+		tree.view.rowCount = table.length;
+		let newSelected = [];
 		if (table.length)
 		{
-			var newSelected = [];
-			var s = this._selected;
-			for( var i = 0; i < s.length; i++ )
+			let s = this._selected;
+			for(let i = 0; i < s.length; i++ )
 			{
-				var r = [-1];
+				let r = [];
 				if(this._isSelected(s[i], table, r))
-				{
-					newSelected.push(table[r[0]]);
-					try
-					{
-						tree.treeBoxObject.view.selection.rangedSelect(r, r , newSelected.length > 1 ? true : false);
-					}
-					catch(e){};
-				}
+					newSelected.push({h: s[i].hash});
 			}
-			this._selected = newSelected;
-			if (!this._selected.length)
+			if (!newSelected.length)
 			{
-				var nextSelection = (selections[0] < table.length) ? selections[0] : table.length-1;
-//				var nextSelection = (index < table.length) ? index : table.length-1;
-				this._selected.push({
-					host: table[nextSelection].host,
-					path: table[nextSelection].path,
-					name: table[nextSelection].name
+				let nextSelection = (selections[0] < table.length) ? selections[0] : table.length-1;
+				newSelected.push({
+					h: table[nextSelection].hash ? table[nextSelection].hash : this.cookieHash({
+						host: table[nextSelection].host,
+						path: table[nextSelection].path,
+						name: table[nextSelection].name,
+						type: table[nextSelection].type,
+						value: table[nextSelection].type == coomanPlusCore.COOKIE_NORMAL ? "" : table[nextSelection].value
+					})
 				});
 			}
 		}
-	},
+		this.selectionSave(newSelected)
+		tree.view.selection.selectEventsSuppressed = false;
+		this._noselectevent = false;
+//log(newSelected);
+//		this.selectLastCookie(false, undefined, newSelected);
+		this.supress_getCellText = false;
+		return deletedTable;
+	},//deleteSelectedItemFromTree()
 
-	finalizeCookieDeletions: function(deletedCookies)
+	finalizeCookieDeletions: function finalizeCookieDeletions(deletedCookies, callback)
 	{
-		var coocul = false;
-		for (var c=0; c<deletedCookies.length; c++)
+log.debug();
+		let d = deletedCookies.length;
+		for (let c = 0; c < d; c++)
 		{
-			if (this.cookieCuller.enabled && this.prefCookieCuller && this.cookieCuller.obj.checkIfProtected(deletedCookies[c].name, deletedCookies[c].host, deletedCookies[c].path))
-				coocul = true;
+			if (deletedCookies[c].isProtected)
+				coomanPlus.protect.obj.unprotect(deletedCookies[c]);
 
-			coomanPlusCommon._cm.remove(deletedCookies[c].host,
-													 deletedCookies[c].name,
-													 deletedCookies[c].path,
-													 deletedCookies[c].block);
+			this.cookieRemove(deletedCookies[c], function()
+			{
+				if (c >= d-1)
+					callback();
+
+			});
 		}
-		deletedCookies.length = 0;
-		return coocul;
 	},
 
-	selectAllShown: function()
+	selectAllShown: function selectAllShown()
 	{
-		this._cookiesTree.treeBoxObject.view.selection.selectAll();
+		this._cookiesTree.view.selection.selectAll();
 //		this._cookiesTree.focus();
 	},
 
-	selectAllTogle: function()
+	selectAllToggle: function selectAllToggle(button)
 	{
-		var s = this.getTreeSelections(this._cookiesTree);
+		if (button == 2)
+			return this.invertSelection();
+
+		if (button)
+			return;
+
+		let s = this.getTreeSelections(this._cookiesTree),
+				index = this._cookiesTree.view.selection.currentIndex;
+
 		if (s.length == this._cookies.length)
-			this._cookiesTree.treeBoxObject.view.selection.clearSelection();
+			this._cookiesTree.view.selection.clearSelection();
 		else
-			this._cookiesTree.treeBoxObject.view.selection.selectAll();
+		{
+			this._cookiesTree.view.selection.selectEventsSuppressed = true;
+			this._noselectevent = true;
+			for (let i = 0; i < this._cookies.length; i++)
+				this._cookiesTree.view.selection.rangedSelect(i, i, (i));
+
+			this._cookiesTree.view.selection.currentIndex = index;
+			this._cookiesTree.view.selection.selectEventsSuppressed = false;
+			this._noselectevent = false;
+
+			this.cookieSelected();
+//			this._cookiesTree.view.selection.selectAll();
+		}
 
 //		this._cookiesTree.focus();
-	},
+	},//selectAllToggle()
 
-	invertSelection: function()
+	invertSelection: function invertSelection()
 	{
-		var sel = this._cookiesTree.treeBoxObject.view.selection;
-		var cnt = this._cookiesTree.treeBoxObject.view.rowCount ;
+log.debug();
+		let sel = this._cookiesTree.view.selection,
+				cnt = this._cookiesTree.view.rowCount;
+		this._cookiesTree.view.selection.selectEventsSuppressed = true;
+		this._noselectevent = true;
 
-
-		for (var i=0;i<cnt;i++)
+		for (let i = 0; i < cnt; i++)
 			sel.toggleSelect(i);
 
+		this._cookiesTree.view.selection.currentIndex = this._currentIndex;
+		this._cookiesTree.view.selection.selectEventsSuppressed = false;
+		this._noselectevent = false;
+
+		this.cookieSelected();
 //		this._cookiesTree.focus();
 
-	},
+	},//invertSelection()
 
-	setFilter: function(subject, topic, key)
+	setFilter: function setFilter(subject, topic, key)
 	{
-		this.prefFiltersearchcontent = this.prefs.getBoolPref("searchcontent");
-		this.prefFiltersearchhost = this.prefs.getBoolPref("searchhost");
-		this.prefFiltersearchname = this.prefs.getBoolPref("searchname");
-		this.prefFiltersearchcase = this.prefs.getBoolPref("searchcase");
+log.debug();
+		this.prefFiltersearchcontent = this.pref("searchcontent");
+		this.prefFiltersearchhost = this.pref("searchhost");
+		this.prefFiltersearchname = this.pref("searchname");
+		this.prefFiltersearchcase = this.pref("searchcase");
+		this.prefFiltersearchhosttype = this.pref("searchhosttype");
+		this.prefFiltersearchtype = this.pref("searchtype");
+
+		if (!this.prefFiltersearchtype)
+		{
+			this.prefFiltersearchtype = coomanPlusCore.COOKIE_NORMAL + coomanPlusCore.COOKIE_HTML5;
+			coomanPlus.pref("searchtype", this.prefFiltersearchtype);
+		}
+		this.prefFiltersearchtype1 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_NORMAL;
+		this.prefFiltersearchtype2 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_HTML5;
 
 		this.setChecked("searchcontent");
 		this.setChecked("searchhost");
 		this.setChecked("searchname");
 		this.setChecked("searchcase");
+		this.setChecked("searchtype1");
+		this.setChecked("searchtype2");
+//		this.setChecked("searchhosttype");
+		let m = $("searchhosttype").menupopup.children;
+		for (let i of m)
+			i.setAttribute("checked", i.value == this.prefFiltersearchhosttype);
+
+		if (this.website)
+		{
+			this.prefFiltersearchcontent = false;
+			this.prefFiltersearchhost = true;
+			this.prefFiltersearchname = false;
+			this.prefFiltersearchcase = false;
+			this.prefFiltersearchhosttype = 1;
+			this.prefFiltersearchtype = coomanPlusCore.COOKIE_NORMAL + coomanPlusCore.COOKIE_HTML5;
+		}
+		this.website = false;
 		if (!this.prefFiltersearchcontent && !this.prefFiltersearchhost && !this.prefFiltersearchname)
 		{
 			var k = (topic == "nsPref:changed" && "prefFilter" + key in this) ? key : "searchhost";
@@ -1521,43 +2178,103 @@ var coomanPlus = {
 			this.prefs.setBoolPref(k, true);
 			return;
 		}
-		if (document.getElementById('lookupcriterium').getAttribute("filter") != "" && topic == "nsPref:changed" && "prefFilter" + key in this)
+		if ($('lookupcriterium').getAttribute("filter") != "" && topic == "nsPref:changed" && "prefFilter" + key in this)
 		{
 			this.loadCookies();
-			this.selectLastCookie(true);
+//			this.selectLastCookie(true);
 		}
 	},
 
-	changeFilter: function(e)
+	setChecked: function setChecked(id)
 	{
-		var obj = e.originalTarget;
-		this["prefFilter" + obj.id] = obj.hasAttribute("checked");
-		this.prefs.setBoolPref(obj.id, obj.hasAttribute("checked"));
+log.debug();
+		if (this["prefFilter" + id])
+			$(id).setAttribute("checked", true);
+		else
+			$(id).removeAttribute("checked");
+
+//		if (this.website && id != "searchhost")
+		if (this["prefFilter" + id] && this.website && id != "searchhost")
+			$(id).setAttribute("indeterminate", true);
+		else
+			$(id).removeAttribute("indeterminate");
 	},
 
-	_cookieMatchesFilter: function (aCookie, filter)
+	changeFilter: function changeFilter(e)
 	{
-		if (this.prefFiltersearchcase)
-			return (this.prefFiltersearchhost && aCookie.host.indexOf(filter) != -1) ||
-						 (this.prefFiltersearchname && aCookie.name.indexOf(filter) != -1) ||
-						 (this.prefFiltersearchcontent && aCookie.value.indexOf(filter) != -1);
+log.debug();
+		let obj = e.originalTarget;
+		if (obj.hasAttribute("indeterminate"))
+		{
+			this.doLookup();
+			return;
+		}
+		if (obj.getAttribute("type") == "radio")
+		{
+			let name = obj.getAttribute("name");
+			this["prefFilter" + name] = obj.value;
+			this.pref(name, obj.value);
+		}
 		else
 		{
-			filter = filter.toLowerCase();
-			return (this.prefFiltersearchhost && aCookie.host.toLowerCase().indexOf(filter) != -1) ||
-						 (this.prefFiltersearchname && aCookie.name.toLowerCase().indexOf(filter) != -1) ||
-						 (this.prefFiltersearchcontent && aCookie.value.toLowerCase().indexOf(filter) != -1);
+			let id = obj.id;
+			if (id.indexOf("searchtype") != -1)
+			{
+				let prev = coomanPlus.pref("searchtype");
+				if (!$("searchtype1").hasAttribute("checked")
+						&& !$("searchtype2").hasAttribute("checked"))
+					obj.setAttribute("checked", true);
+
+				let val = $("searchtype1").hasAttribute("checked") ? 1 : 0;
+				val += $("searchtype2").hasAttribute("checked") ? 2 : 0;
+				if (!val)
+					val = 1;
+
+				if (val == prev)
+					return;
+
+				this.prefFiltersearchtype = val;
+				this.prefFiltersearchtype1 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_NORMAL;
+				this.prefFiltersearchtype2 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_HTML5;
+
+				id = id.substr(0, id.length - 1);
+				this.pref(id, val);
+
+				this.loadCookies();
+//				this.selectLastCookie();
+				return;
+			}
+			this["prefFilter" + id] = obj.hasAttribute("checked");
+			this.pref(id, obj.hasAttribute("checked"));
 		}
 	},
 
-	setSort: function(subject, topic, key)
+	_cookieMatchesFilter: function _cookieMatchesFilter(aCookie, filter)
 	{
-		this.prefSimpleHost = this.prefs.getIntPref("simplehost");
+		host = aCookie.host;
+		name = aCookie.name;
+		value = aCookie.value;
+		if (!this.prefFiltersearchcase)
+		{
+			host = host.toLowerCase();
+			name = name.toLowerCase();
+			value = value.toLowerCase();
+			filter = filter.toLowerCase();
+		}
+//log([host,filter]);
+		return (this.prefFiltersearchhost && coomanPlus._match(host, filter, undefined, undefined, this.prefFiltersearchhosttype)) ||
+					 (this.prefFiltersearchname && coomanPlus._match(name, filter)) ||
+					 (this.prefFiltersearchcontent && coomanPlus._match(value, filter));
+	},
+
+	setSort: function setSort(subject, topic, key)
+	{
+		this.prefSimpleHost = this.pref("simplehost");
 		if (topic == "nsPref:changed" && key == "simplehost")
 			this.sortTree(this._cookiesTree, this._cookies);
 	},
 
-	openEdit: function()
+	openEdit: function openEdit()
 	{
 		var s = this.getTreeSelections(this._cookiesTree);
 		if (!s.length)
@@ -1565,7 +2282,7 @@ var coomanPlus = {
 			this.openAdd();
 			return;
 		}
-		var selIndex = s.indexOf(this._cookiesTree.treeBoxObject.view.selection.currentIndex);
+		var selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
 		selIndex = s[((selIndex == -1) ? 0 : selIndex)]
 
 		var cookies = [this._cookies[selIndex]];
@@ -1574,26 +2291,21 @@ var coomanPlus = {
 			if (s[i] != selIndex)
 				cookies[cookies.length] = this._cookies[s[i]];
 		}
-		this._openDialog("editCookie.xul", "_blank", "chrome,resizable,centerscreen,modal", {type: "edit", cookies: cookies});
+		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "edit", cookies: cookies});
 	},
 
-	openAdd: function()
+	openAdd: function openAdd()
 	{
-		this._openDialog("editCookie.xul", "_blank", "chrome,resizable,centerscreen,modal", {type: "add", cookies: this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.treeBoxObject.view.selection.currentIndex]] : null});
+		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "new", cookies: this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null});
 	},
 
-	openOptions: function()
+	openCookies: function openCookies()
 	{
-		this._openDialog("options.xul", "", "chrome,resizable=no,centerscreen," + (this.isMac ? "dialog=no" : "modal"));
-	},
+		let cm = "chrome://browser/content/preferences/cookies.xul",
+				wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator),
+				browsers = wm.getZOrderDOMWindowEnumerator('', false),
+				browser;
 
-	openCookies: function()
-	{
-		var cm = "chrome://browser/content/preferences/cookies.xul";
-		var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
-		var browsers = wm.getZOrderDOMWindowEnumerator('', false);
-
-		var browser;
 		while (browser = browsers.getNext())
 		{
 			if (browser.location.href.toString() == cm)
@@ -1602,21 +2314,23 @@ var coomanPlus = {
 				return;
 			}
 		}
-		var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-											 .getService(Components.interfaces.nsIWindowWatcher);
-		var arg = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-		arg.data = "forced";
-		ww.openWindow(null,	cm, "Browser:Cookies", "chrome,resizable,centerscreen", arg).focus();
+		let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher),
+				args = {
+			window: window,
+			type: "forced",
+		};
+		args.wrappedJSObject = args;
+		ww.openWindow(null, cm, "Browser:Cookies", "chrome,resizable,centerscreen", args).focus();
 	},
 
-	promptDelete: function(params, block)
+	promptDelete: function promptDelete(params, block)
 	{
 		var r = {button: 0, params: params, block: block};
-		this._openDialog("promptDelete.xul", "promptDelete", "chrome,resizable=no,centerscreen,modal", r);
+		this._openDialog("promptDelete.xul", "promptDelete", "chrome,resizable=no,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), r);
 		return r;
 	},
 
-	openCookiesPermissions: function()
+	openCookiesPermissions: function openCookiesPermissions()
 	{
 		var cm = "chrome://browser/content/preferences/permissions.xul";
 		var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
@@ -1631,7 +2345,7 @@ var coomanPlus = {
 				return;
 			}
 		}
-		var bundlePreferences = document.getElementById("bundlePreferences");
+		var bundlePreferences = $("bundlePreferences");
 		var params = { blockVisible   : true,
 									 sessionVisible : true,
 									 allowVisible   : true,
@@ -1642,224 +2356,98 @@ var coomanPlus = {
 		this._openDialog(cm, "Browser:Permissions", "chrome,resizable,centerscreen", params);
 	},
 
-	cookieCuller:
+	infoRowsShow: function infoRowsShow(resize)
 	{
-		obj: null,
-		inited: false,
-		enabled: false,
-		cookies: null,
-		init: function()
+log.debug("begin");
+		$("protect_menu").collapsed = !this.protect.enabled;
+		resize = typeof(resize) == "undefined" ? false : resize
+		this.prefExpireCountdown = !$("expireProgressText").collapsed; //this.pref("expirecountdown");
+		this.prefExpireProgress = !$("expireProgress").collapsed;
+		this.prefViewOrder = $("cookieInfoRows").hasAttribute("order") ? $("cookieInfoRows").getAttribute("order") : this.prefViewOrderDefault;
+		this.prefView_name = !$("row_name").collapsed;
+		this.prefView_host = !$("row_host").collapsed;
+		this.prefView_value = !$("row_value").collapsed;
+		this.prefView_path = !$("row_path").collapsed;
+		this.prefView_expires = !$("row_expires").collapsed;
+		this.prefView_isSecure = !$("row_isSecure").collapsed;
+		this.prefView_creationTime = !$("row_creationTime").collapsed;
+		this.prefView_lastAccessed = !$("row_lastAccessed").collapsed;
+		this.prefView_isHttpOnly = !$("row_isHttpOnly").collapsed;
+		this.prefView_policy = !$("row_policy").collapsed;
+		this.prefView_status = !$("row_status").collapsed;
+		this.prefView_type = !$("row_type").collapsed;
+		this.prefView_isProtected = !$("row_isProtected").collapsed;
+		let rows = $("cookieInfoRows").getElementsByTagName("row"),
+				last, id,
+				s = 0;
+		for(let i = 0; i < rows.length; i++)
 		{
-			this.enabled = true;
-			try
+			id = rows[i].id.replace("row_", "");
+			if ('prefView_' + id in this)
 			{
-				this.obj = function(){};
-				Cc["@mozilla.org/moz/jssubscript-loader;1"]
-					.getService(Ci.mozIJSSubScriptLoader)
-					.loadSubScript("chrome://cookieculler/content/CookieCullerViewer.js", this.obj);
-
-				this.obj.cookieculler_prefs.QueryInterface(this.prefBranch).addObserver('', this, false);
-				window.addEventListener("unload", function()
-				{
-					coomanPlus.cookieCuller.obj.cookieculler_prefs.QueryInterface(this.prefBranch).removeObserver('', coomanPlus.cookieCuller, false);
-				}, true);
+//					rows[i].collapsed = !this['prefView_' + id];
+				$("menu_info_" + id).setAttribute("checked", this['prefView_' + id]);
 			}
-			catch(e){this.enabled = false; coomanPlusCommon.isCookieCuller = false};
-			this.inited = true;
-			if (this.enabled)
+			if (!rows[i].collapsed && !rows[i].hidden)
 			{
-				this.cookies = coomanPlus._cookiesAll;
-				this.prefChanged();
-			}
-		},
-
-		observe: function(subject, topic, key)
-		{
-			coomanPlus.cookieCuller.prefChanged(subject, topic, key);
-			coomanPlus.loadCookies();
-		},
-
-		prefChanged: function(subject, topic, key)
-		{
-			this.loadProtCookies();
-		},
-
-		loadProtCookies: function()
-		{
-			this.obj.savedcookies = [];
-			this.obj.loadProtCookies();
-		},
-
-		protect: function(aCookie)
-		{
-			if (!this.enabled)
-				return
-
-			if (!aCookie)
-			{
-				var s = coomanPlus.getTreeSelections(coomanPlus._cookiesTree);
-				if (!s)
-					return;
-
-				var p = false;
-				for(var i = 0; i < s.length; i++)
-				{
-					var r = [];
-					if(!coomanPlus._isSelected(coomanPlus._cookies[s[i]], coomanPlus._cookiesAll, r) || coomanPlus._cookies[s[i]].isProtected)
-						continue;
-
-					p = true;
-					coomanPlus._cookies[s[i]].isProtected = true;
-					coomanPlus._cookiesAll[r[0]].isProtected = true;
-				}
-				if (!p)
-					return;
-
-				coomanPlus._cookiesTree.treeBoxObject.invalidateRange(coomanPlus._cookiesTree.treeBoxObject.getFirstVisibleRow(), coomanPlus._cookiesTree.treeBoxObject.getLastVisibleRow());
-//				coomanPlus._cookiesTree.treeBoxObject.invalidate();
-
-			}
-			else
-			{
-				var r = [];
-				if(coomanPlus._isSelected(aCookie, coomanPlus._cookiesAll, r))
-					coomanPlus._cookiesAll[r[0]].isProtected = aCookie.isProtected;
-				else
-					coomanPlus._cookiesAll.push(aCookie);
-			}
-			this.obj.cookies = coomanPlus._cookiesAll;
-			this.obj.saveProtCookies();
-			this.loadProtCookies();
-			if (!aCookie)
-				coomanPlus.cookieSelected();
-		},
-
-		unprotect: function(aCookie)
-		{
-			if (!this.enabled)
-				return
-
-			if (!aCookie)
-			{
-				var s = coomanPlus.getTreeSelections(coomanPlus._cookiesTree);
-				if (!s)
-					return;
-
-				var p = false;
-				for(var i = 0; i < s.length; i++)
-				{
-					var r = [];
-					if(!coomanPlus._isSelected(coomanPlus._cookies[s[i]], coomanPlus._cookiesAll, r) || !coomanPlus._cookies[s[i]].isProtected)
-						continue;
-
-					p = true;
-					coomanPlus._cookies[s[i]].isProtected = false;
-					coomanPlus._cookiesAll[r[0]].isProtected = false;
-				}
-				if (!p)
-					return;
-
-				coomanPlus._cookiesTree.treeBoxObject.invalidateRange(coomanPlus._cookiesTree.treeBoxObject.getFirstVisibleRow(), coomanPlus._cookiesTree.treeBoxObject.getLastVisibleRow());
-//				coomanPlus._cookiesTree.treeBoxObject.invalidate();
-
-			}
-			else
-			{
-				var r = [];
-				if(coomanPlus._isSelected(aCookie, coomanPlus._cookiesAll, r))
-					coomanPlus._cookiesAll[r[0]].isProtected = aCookie.isProtected;
-				else
-					coomanPlus._cookiesAll.push(aCookie);
-			}
-			this.obj.cookies = coomanPlus._cookiesAll;
-			this.obj.saveProtCookies();
-			this.loadProtCookies();
-			if (!aCookie)
-				coomanPlus.cookieSelected();
-		},
-		open: function()
-		{
-			var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
-			var browser = wm.getMostRecentWindow("navigator:browser");
-			var m = browser.document.getElementById("menu_ToolsPopup").childNodes;
-			for(var i = 0; i < m.length; i++)
-			{
-				if (m[i].getAttribute("oncommand").indexOf("cookieculler") != -1)
-				{
-					m[i].click();
-					return;
-				}
+				rows[i].setAttribute("first", (!last));
+				last = rows[i];
 			}
 		}
+		$("menu_info_expireProgress").disabled = !this.prefView_expires;
+		$("menu_info_expireProgressText").disabled = !this.prefView_expires;
+		$("menu_info_expireProgress").setAttribute("checked", this.prefExpireProgress);
+		$("menu_info_expireProgressText").setAttribute("checked", this.prefExpireCountdown);
+		$("cookieInfoBox").collapsed = last ? false : true;
+		let c = this.protect.enabled;
+		$("row_isProtected").hidden = !c;
+		$("isProtected").collapsed = !c;
+		$("protectMenuSeparator").collapsed = !c;
+		$("menu_info_isProtected").collapsed = !c;
+		$("menu_protect").collapsed = !c;
+		$("menu_unprotect").collapsed = !c;
+		$("tree_protectMenuSeparator").collapsed = !c;
+		$("tree_menu_protect").collapsed = !c;
+		$("tree_menu_unprotect").collapsed = !c;
+		$("isProtected")[c ? "removeAttribute" : "setAttribute"]("ignoreincolumnpicker", true);
+		this.infoRowsChanged = this.prefViewOrder != this.prefViewOrderDefault;
+		$("menu_info_reset").disabled = !this.infoRowsChanged;
+
+//		$("infoSplitter").collapsed = $("row_value").collapsed || $("ifl_value").getAttribute("wrap") == "off";
+		coomanPlus.setWrap();
+
+log.debug("end", 1);
+		if (!resize)
+			return;
+
+		coomanPlus.resizeWindow();
+/*
+		let w = $("main").boxObject.width,
+				h = $("main").boxObject.height;
+		if (document.width > w)
+			w = document.width;
+
+		if (document.height > h)
+			h = document.height;
+
+		w += (window.outerWidth - window.innerWidth);
+		h += (window.outerHeight - window.innerHeight);
+		window.resizeTo(w,h);
+*/
 	},
 
-	infoRowsShow: function()
+	infoRowsSort: function infoRowsSort(order)
 	{
-			this.prefExpireCountdown = !document.getElementById("expireProgressText").collapsed; //this.prefs.getBoolPref("expirecountdown");
-			this.prefExpireProgress = !document.getElementById("expireProgress").collapsed;
-			this.prefViewOrder = document.getElementById("cookieInfoRows").hasAttribute("order") ? document.getElementById("cookieInfoRows").getAttribute("order") : this.prefViewOrderDefault;
-			this.prefView_name = !document.getElementById("row_name").collapsed;
-			this.prefView_host = !document.getElementById("row_host").collapsed;
-			this.prefView_value = !document.getElementById("row_value").collapsed;
-			this.prefView_path = !document.getElementById("row_path").collapsed;
-			this.prefView_expires = !document.getElementById("row_expires").collapsed;
-			this.prefView_isSecure = !document.getElementById("row_isSecure").collapsed;
-			this.prefView_creationTime = !document.getElementById("row_creationTime").collapsed;
-			this.prefView_lastAccessed = !document.getElementById("row_lastAccessed").collapsed;
-			this.prefView_isHttpOnly = !document.getElementById("row_isHttpOnly").collapsed;
-			this.prefView_policy = !document.getElementById("row_policy").collapsed;
-			this.prefView_status = !document.getElementById("row_status").collapsed;
-			this.prefView_isProtected = !document.getElementById("row_isProtected").collapsed;
 
-			this.prefShowExtra = this.prefView_creationTime || this.prefView_lastAccessed || this.prefView_isHttpOnly || this.prefView_status || this.prefExpireProgress;
-			var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-			var last, id;
-			var s = 0;
-			for(var i = 0; i < rows.length; i++)
-			{
-				id = rows[i].id.replace("row_", "");
-				if ('prefView_' + id in this)
-				{
-//					rows[i].collapsed = !this['prefView_' + id];
-					document.getElementById("menu_info_" + id).setAttribute("checked", this['prefView_' + id]);
-				}
-				if (!rows[i].collapsed)
-				{
-					rows[i].setAttribute("first", (!last));
-					last = rows[i];
-				}
-			}
-			document.getElementById("menu_info_expireProgress").disabled = !this.prefView_expires;
-			document.getElementById("menu_info_expireProgressText").disabled = !this.prefView_expires;
-			document.getElementById("menu_info_expireProgress").setAttribute("checked", this.prefExpireProgress);
-			document.getElementById("menu_info_expireProgressText").setAttribute("checked", this.prefExpireCountdown);
-			document.getElementById("cookieInfoBox").collapsed = last ? false : true;
-			var c = (this.cookieCuller.enabled && this.prefCookieCuller);
-			document.getElementById("row_isProtected").hidden = !c;
-			document.getElementById("isProtected").collapsed = !c;
-			document.getElementById("cookieCullerMenuSeparator").collapsed = !c;
-			document.getElementById("menu_info_isProtected").collapsed = !c;
-			document.getElementById("menu_protect").collapsed = !c;
-			document.getElementById("menu_unprotect").collapsed = !c;
-			document.getElementById("tree_cookieCullerMenuSeparator").collapsed = !c;
-			document.getElementById("tree_menu_protect").collapsed = !c;
-			document.getElementById("tree_menu_unprotect").collapsed = !c;
-			document.getElementById("coocul_btn").collapsed = !c;
-			document.getElementById("isProtected")[c ? "removeAttribute" : "setAttribute"]("ignoreincolumnpicker", true);
-			this.infoRowsChanged = this.prefViewOrder != this.prefViewOrderDefault;
-			document.getElementById("menu_info_reset").disabled = !this.infoRowsChanged;
-	},
-
-	infoRowsSort: function(order)
-	{
+log.debug();
 		if (typeof(order) == "undefined")
-			var order = this.prefViewOrder.split("|");//document.getElementById("cookieInfoRows").getAttribute("order").split("|");
+			var order = this.prefViewOrder.split("|");//$("cookieInfoRows").getAttribute("order").split("|");
 
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
+		var rows = $("cookieInfoRows").getElementsByTagName("row");
 		var last, from, to;
 		for(var i = 0; i < rows.length; i++)
 		{
-			if (!rows[i].collapsed && rows[i].id != "row_end")
+			if (!rows[i].collapsed && !rows[i].hidden && rows[i].id != "row_end")
 			{
 				if (!last)
 				{
@@ -1872,10 +2460,11 @@ var coomanPlus = {
 			if (!order[i])
 				continue;
 
-			var row = document.getElementById("row_" + order[i]);
+			var row = $("row_" + order[i]);
 			if (!row || row.id == rows[i].id)
 				continue;
 
+			row.removeAttribute("highlight");
 			from = row;
 			to = rows[i];
 			this.moveAfter(row, to);
@@ -1888,16 +2477,150 @@ var coomanPlus = {
 		}
 	},
 
-	moveAfter: function(item1, item2)
+	infoRowAction: function infoRowAction(e)
 	{
-		var parent = item1.parentNode
-		parent.removeChild(item1)
-		parent.insertBefore(item1, item2 ? item2.nextSibling : null)
+log.debug();
+		var o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
+		if (o.getAttribute("empty") == "true" || o.getAttribute("multi") == "true")
+		{
+			o.focus();
+			return false;
+		}
+
+		if (!e.button)
+			o.select();
+
+		if (!e.button && e.detail > 1)
+			this.infoRowCopyToClipboard(e);
 	},
 
-	dragstart: function(e)
+	infoRowCopyToClipboard: function infoRowCopyToClipboard(e)
 	{
-		var row = coomanPlus.dragGetBox(e);
+log.debug();
+		if (e.button)
+			return false;
+
+		var o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
+		o.select();
+		Cc["@mozilla.org/widget/clipboardhelper;1"]
+		.getService(Ci.nsIClipboardHelper)
+		.copyString(o.value);
+	},
+
+	infoRowContextCheck: function infoRowContextCheck(e)
+	{
+log.debug();
+		var obj = document.popupNode.getAttribute("onclick") != "" ? document.popupNode : document.popupNode.parentNode;
+		var o = obj.parentNode.getElementsByTagName("textbox")[0]
+		$("infoRowCopy").disabled = (o.getAttribute("empty") == "true" || o.getAttribute("multi") == "true");
+		$("infoRowUp").disabled = obj.parentNode.id == coomanPlus.infoRowsFirst.id;
+		$("infoRowDown").disabled = obj.parentNode.id == coomanPlus.infoRowsLast.id;
+		
+		if (o.id == "ifl_value")
+		{
+			$("infoRowWrap").collapsed = false;
+			$("infoRowWrap").previousSibling.collapsed = false;
+		}
+		else
+		{
+			$("infoRowWrap").collapsed = true;
+			$("infoRowWrap").previousSibling.collapsed = true;
+		}
+		obj.click();
+	},
+
+	infoRowGetRowObj: function infoRowGetRowObj(p)
+	{
+		while(p)
+		{
+			if (p.tagName == "row")
+				break;
+
+			p = p.parentNode;
+		}
+		return p;
+	},
+
+	infoRowContextExec: function infoRowContextExec(e)
+	{
+log.debug();
+		let obj = document.popupNode,
+				o = coomanPlus.infoRowGetRowObj(obj);
+
+		if (o)
+			obj = o.firstChild;
+
+		switch(e.target.value)
+		{
+			case "select":
+					obj.click();
+				break;
+			case "copy":
+					let evt = document.createEvent("MouseEvents");
+					evt.initMouseEvent("click", true, true, window, 2, 0, 0, 0, 0, false, false, false, false, 0, null);
+					obj.dispatchEvent(evt);
+				break;
+			case "up":
+					o = coomanPlus.infoRowGetRowObj(obj.parentNode);
+					if (o)
+						coomanPlus.dragMoveUp(o);
+				break;
+			case "down":
+					o = coomanPlus.infoRowGetRowObj(obj.parentNode);
+					if (o)
+						coomanPlus.dragMoveDown(o);
+				break;
+			case "wrap":
+					o = $("ifl_value");
+					o.setAttribute("wrap", o.getAttribute("wrap") == "off" ? "" : "off");
+					coomanPlus.setWrap();
+				break;
+		}
+		return true;
+	},
+
+	setWrap: function()
+	{
+		let o = $("ifl_value");
+		$("infoRowWrap").setAttribute("checked", o.getAttribute("wrap") != "off");
+		try
+		{
+			$("infoRowWrap2").setAttribute("checked", o.getAttribute("wrap") != "off");
+		}catch(e){};
+		$("infoSplitter").collapsed = $("row_value").collapsed || $("ifl_value").getAttribute("wrap") == "off";
+		if ($("infoSplitter").collapsed)
+			$("cookieInfoBox").setAttribute("height", "");
+	},
+
+	infoRowHighlight: function infoRowHighlight(e)
+	{
+		let obj = e.target,
+				hide = e.type == "blur";
+		
+		if (obj.editor)
+			obj.editor.selectionController.setCaretEnabled(!(obj.getAttribute("empty") == "true" || obj.getAttribute("multi") == "true"));
+
+		let o = this.infoRowGetRowObj(obj);
+		if (o)
+			if(hide)
+				o.removeAttribute("highlight");
+			else
+				o.setAttribute("highlight", true);
+	},
+
+	moveAfter: function moveAfter(item1, item2)
+	{
+		let parent = item1.parentNode;
+		parent.removeChild(item1);
+		parent.insertBefore(item1, item2 ? item2.nextSibling : null);
+	},
+
+	dragstart: function dragstart(e)
+	{
+		coomanPlus.dragStarted = true;
+		let row = coomanPlus.dragGetBox(e);
+		row.getElementsByTagName("textbox")[0].focus();
+		row.setAttribute("highlight", true);
 		coomanPlus.dragCancel = false;
 		coomanPlus.dragPause = false;
 		e.dataTransfer.addElement(row);
@@ -1905,35 +2628,33 @@ var coomanPlus = {
 		e.dataTransfer.mozSetDataAt("application/x-moz-node", row, 0);
 	},
 
-	dragenter: function(e)
+	dragenter: function dragenter(e)
 	{
-		if (coomanPlus.dragCancel || coomanPlus.dragPause)
+		if (coomanPlus.dragCancel || coomanPlus.dragPause || !coomanPlus.dragStarted)
 			return true;
 
 		e.preventDefault();
 		return false;
 	},
 
-	dragover: function(e)
+	dragover: function dragover(e)
 	{
-		if (coomanPlus.dragCancel)
+		if (coomanPlus.dragCancel || !coomanPlus.dragStarted)
 			return true;
 
-		var obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0);
-		var box = document.getElementById("cookieInfoBox").boxObject;
+		let	obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0),
+				box = $("cookieInfoBox").boxObject;
 		if (obj.firstChild.boxObject.x <= e.clientX && (obj.firstChild.boxObject.x + obj.firstChild.boxObject.width) >= e.clientX && e.clientY >= box.y && e.clientY <= (box.y + box.height))
 		{
-			var o = coomanPlus.dragGetRow(e);
+			let o = coomanPlus.dragGetRow(e);
 			if (o != coomanPlus.dragoverObj)
 			{
 				coomanPlus.dragoverObj = o;
 				if (o)
 				{
-					var s;
+					let s = o.previousSibling;
 					if (e.target.id == o.id)
 						s = e.target.previousSibling;
-					else
-						s = o.previousSibling;
 
 					coomanPlus.dragoverShow(o.id);
 				}
@@ -1950,11 +2671,11 @@ var coomanPlus = {
 		return false;
 	},
 
-	dragoverShow: function(id)
+	dragoverShow: function dragoverShow(id)
 	{
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-		var spacer, dragover, dragupdown, last, obj;
-		for(var i = 0; i < rows.length; i++)
+		let	rows = $("cookieInfoRows").getElementsByTagName("row"),
+				spacer, dragover, dragupdown, last, obj;
+		for(let i = 0; i < rows.length; i++)
 		{
 			spacer = rows[i];
 			if (spacer == last)
@@ -1969,7 +2690,7 @@ var coomanPlus = {
 			{
 				if (spacer.collapsed)
 				{
-					spacer = document.getElementById("row_end");
+					spacer = $("row_end");
 					dragupdown = "down";
 				}
 				last = spacer;
@@ -1979,43 +2700,59 @@ var coomanPlus = {
 		}
 	},
 
-	dragend: function(e)
+	dragend: function dragend(e)
 	{
-		if (coomanPlus.dragCancel || coomanPlus.dragPause)
+		if (coomanPlus.dragCancel || coomanPlus.dragPause || !coomanPlus.dragStarted)
 			return false;
 
+		coomanPlus.dragStarted = false;
 		coomanPlus.dragCancel = true;
 		coomanPlus.dragoverShow();
 		if (!e.dataTransfer.mozUserCancelled)
 		{
 			var obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0);
+			var t = obj.getElementsByTagName("textbox")[0];
+			var r = [];
+			for(var i = 0; i < t.editor.selection.rangeCount; i++)
+				r.push(t.editor.selection.getRangeAt(i).cloneRange());
+
 			var o = coomanPlus.dragoverObj;
 			if (o)
 			{
 				coomanPlus.cookieInfoRowsOrderSave(obj, o);
+				t.focus();
+				for(var i = 0; i < r.length; i++)
+				{
+					t.editor.selection.addRange(r[i])
+					t.selectionStart = r[i].startOffset;
+					t.selectionEnd = r[i].endOffset;
+				}
 			}
+/*
 			var sel = coomanPlus.getTreeSelections(coomanPlus._cookiesTree);
 			if (sel.length)
 				coomanPlus._updateCookieData(coomanPlus._cookies[sel[0]], sel);
 			else
 				coomanPlus.cookieSelected();
+*/
 
 		}
 		coomanPlus.dragoverObj = null;
 		e.preventDefault();
 		return false;
-	},
+	},//dragend()
 
-	dragGetRow: function(e)
+	dragGetRow: function dragGetRow(e)
 	{
-		var dropTarget = e.target;
-		var dropTargetCenter = dropTarget.boxObject.y + (dropTarget.boxObject.height / 2);
-		var obj = coomanPlus.dragGetBox(e);
+		var	dropTarget = e.target,
+				dropTargetCenter = dropTarget.boxObject.y + (dropTarget.boxObject.height / 2),
+				obj = coomanPlus.dragGetBox(e);
+
 		if (obj)
 		{
 			if (e.clientY > dropTargetCenter)
 			{
-				var o = obj.nextSibling;
+				let o = obj.nextSibling;
 				while(o)
 				{
 					if (!o.collapsed && o.id != "row_end")
@@ -2029,9 +2766,9 @@ var coomanPlus = {
 		return obj;
 	},
 
-	dragGetBox: function(e)
+	dragGetBox: function dragGetBox(e)
 	{
-		var obj = e.target;
+		let obj = e.target;
 		switch(obj.tagName)
 		{
 			case "spacer":
@@ -2050,36 +2787,104 @@ var coomanPlus = {
 		return obj;
 	},
 
-	dragKeyDown: function(e)
+	dragKeyDown: function dragKeyDown(e)
 	{
-		var keys = coomanPlus.getKeys(e);
-		var r = true;
-		var obj;
-		var id = e.target.id.replace("ifl_", "");
+		let keys = coomanPlus.getKeys(e),
+				r = true,
+				obj,
+				id = e.target.id.replace("ifl_", "");
 		if (coomanPlus.matchKeys(keys[0], ["ACCEL", "UP"], 2))
-		{
-			coomanPlus.dragMoveUp(document.getElementById("row_" + id));
-		}
+			coomanPlus.dragMoveUp($("row_" + id));
 		else if (coomanPlus.matchKeys(keys[0], ["ACCEL", "DOWN"], 2))
-		{
-			coomanPlus.dragMoveDown(document.getElementById("row_" + id));
-		}
+			coomanPlus.dragMoveDown($("row_" + id));
+		else if (coomanPlus.matchKeys(keys[0], ["UP"], 1))
+			coomanPlus.changeUp($("row_" + id));
+		else if (coomanPlus.matchKeys(keys[0], ["DOWN"], 1))
+			coomanPlus.changeDown($("row_" + id));
 	},
 
-	dragMoveUp: function(obj)
+	changeUp: function changeUp(obj)
+	{
+		let o = obj,
+				sel = function()
+				{
+					coomanPlusCore.async(function()
+					{
+						let t = o.getElementsByTagName("textbox")[0];
+						t.focus();
+						t.select();
+					});
+				};
+		if (obj.id == this.infoRowsFirst.id)
+			return sel();
+
+		let rows = $("cookieInfoRows").getElementsByTagName("row");
+
+		for(let i = 0; i < rows.length; i++)
+		{
+			if (rows[i].id == obj.id)
+				break;
+
+			if (!rows[i].collapsed && !rows[i].hidden)
+				o = rows[i];
+
+		}
+		sel();
+	},
+
+	changeDown: function changeDown(obj)
+	{
+		let o = obj,
+				sel = function()
+				{
+					coomanPlusCore.async(function()
+					{
+						if (o.id == "row_end")
+							o = obj;
+						let t = o.getElementsByTagName("textbox")[0];
+						t.focus();
+						t.select();
+					});
+				};
+		if (obj.id == this.infoRowsLast.id)
+			return sel();
+
+		let rows = $("cookieInfoRows").getElementsByTagName("row"),
+				s = false;
+		for(let i = 0; i < rows.length; i++)
+		{
+			if (rows[i].id == obj.id)
+			{
+				s = true;
+				continue;
+			}
+			if (!s)
+				continue;
+
+			if (!rows[i].collapsed && !rows[i].hidden)
+			{
+				o = rows[i];
+				break;
+			}
+		}
+		sel();
+	},
+
+	dragMoveUp: function dragMoveUp(obj)
 	{
 		if (obj.id == this.infoRowsFirst.id)
 			return;
 
-		var id = obj.id.replace("row_", "");
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-		var o = null;
-		for(var i = 0; i < rows.length; i++)
+		let id = obj.id.replace("row_", ""),
+				rows = $("cookieInfoRows").getElementsByTagName("row"),
+				o = null;
+
+		for(let i = 0; i < rows.length; i++)
 		{
 			if (rows[i].id == "row_" + id)
 				break;
 
-			if (!rows[i].collapsed)
+			if (!rows[i].collapsed && !rows[i].hidden)
 				o = rows[i];
 
 		}
@@ -2089,17 +2894,18 @@ var coomanPlus = {
 		}
 	},
 
-	dragMoveDown: function(obj)
+	dragMoveDown: function dragMoveDown(obj)
 	{
 		if (obj.id == this.infoRowsLast.id)
 			return;
 
-		var id = obj.id.replace("row_", "");
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-		var o = null;
-		var o2 = null;
-		var s = false;
-		for(var i = 0; i < rows.length; i++)
+		let id = obj.id.replace("row_", ""),
+				rows = $("cookieInfoRows").getElementsByTagName("row"),
+				o = null,
+				o2 = null,
+				s = false;
+
+		for(let i = 0; i < rows.length; i++)
 		{
 			if (rows[i].id == "row_" + id)
 			{
@@ -2109,7 +2915,7 @@ var coomanPlus = {
 			if (!s)
 				continue;
 
-			if (!rows[i].collapsed)
+			if (!rows[i].collapsed && !rows[i].hidden)
 			{
 				o2 = o;
 				o = rows[i];
@@ -2123,40 +2929,59 @@ var coomanPlus = {
 		}
 	},
 
-	dragMove: function(obj, o)
+	dragMove: function dragMove(obj, o)
 	{
-		var field = document.getElementById(obj.id.replace("row_", "ifl_"));
-		var selectionStart = field.selectionStart;
-		var selectionEnd = field.selectionEnd;
+		let field = $(obj.id.replace("row_", "ifl_")),
+				selectionStart = field.selectionStart,
+				selectionEnd = field.selectionEnd;
+
 		coomanPlus.cookieInfoRowsOrderSave(obj, o);
 		field.focus();
 		field.selectionStart = selectionStart;
 		field.selectionEnd = selectionEnd;
 	},
 
-	dragMenu: function(e)
+	dragMenu: function dragMenu(e, hide)
 	{
-		var obj = e.originalTarget;
+		let obj = e.originalTarget;
+		var p = coomanPlus.infoRowGetRowObj(e.target.parentNode);
 		if (!obj.getElementsByAttribute("coomanPlus", "true").length)
 		{
-			var menu = document.getElementById("coomanPlus_inforow_drag_menu").childNodes;
-			for(var i = 0; i < menu.length; i++)
+			let menu = $("coomanPlus_inforow_drag_menu").childNodes;
+			if (p.id == "row_value")
 			{
-				var clone = document.importNode(menu[i], false);
+				let clone = document.importNode($("infoRowWrap").previousSibling, false);
+				obj.appendChild(clone);
+				clone = document.importNode($("infoRowWrap"), false);
+				clone.id += 2;
+				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
+				obj.appendChild(clone);
+			}
+			for(let i = 0; i < menu.length; i++)
+			{
+				let clone = document.importNode(menu[i], false);
 				obj.appendChild(clone);
 			}
 		}
-		var p = e.target.parentNode.tagName == "row" ? e.target.parentNode : e.target.parentNode.parentNode.parentNode;
+		if (p)
+		{
+			if (hide)
+				p.removeAttribute("highlight");
+			else
+				p.setAttribute("highlight", true);
+		}
 		obj.getElementsByAttribute("value", "up")[0].disabled = p.id == coomanPlus.infoRowsFirst.id;
 		obj.getElementsByAttribute("value", "down")[0].disabled = p.id == coomanPlus.infoRowsLast.id;
 	},
 
-	cookieInfoRowsOrderSave: function(obj, target)
+	cookieInfoRowsOrderSave: function cookieInfoRowsOrderSave(obj, target)
 	{
-		var rows = document.getElementById("cookieInfoRows").getElementsByTagName("row");
-		var list = [];
-		var id;
-		for(var i = 0; i < rows.length; i++)
+log.debug();
+		let rows = $("cookieInfoRows").getElementsByTagName("row"),
+				list = [],
+				id;
+
+		for(let i = 0; i < rows.length; i++)
 		{
 			if (rows[i].id == obj.id && obj.id != target.id)
 				continue
@@ -2176,7 +3001,7 @@ var coomanPlus = {
 		if (l != coomanPlus.prefViewOrder)
 		{
 			coomanPlus.prefViewOrder = l;
-			document.getElementById("cookieInfoRows").setAttribute("order", l);
+			$("cookieInfoRows").setAttribute("order", l);
 //			coomanPlus.prefs.setCharPref("vieworder", l);
 			coomanPlus.infoRowsSort(list);
 			var sel = coomanPlus.getTreeSelections(coomanPlus._cookiesTree);
@@ -2186,12 +3011,12 @@ var coomanPlus = {
 				coomanPlus.cookieSelected();
 		}
 		this.infoRowsShow();
-	},
+	},//cookieInfoRowsOrderSave()
 
-	cookieInfoRowsReset: function()
+	cookieInfoRowsReset: function cookieInfoRowsReset()
 	{
 		this.prefViewOrder = this.prefViewOrderDefault;
-		document.getElementById("cookieInfoRows").setAttribute("order", this.prefViewOrderDefault);
+		$("cookieInfoRows").setAttribute("order", this.prefViewOrderDefault);
 //		coomanPlus.clearUserPref("vieworder");
 		coomanPlus.infoRowsSort();
 		var sel = coomanPlus.getTreeSelections(coomanPlus._cookiesTree);
@@ -2203,13 +3028,24 @@ var coomanPlus = {
 		this.infoRowsShow();
 	},
 
-	treeView: function(aPopup)
+	treeViewColpicker: function treeViewColpicker(e)
 	{
+		coomanPlus.treeView(e.target, true);
+	},
+
+	treeView: function treeView(aPopup, isColpicker)
+	{
+log.debug();
 //addopted from chrome://global/content/bindings/tree.xml
 		// We no longer cache the picker content, remove the old content.
-		while (aPopup.childNodes.length > 4)
-			if (aPopup.firstChild.tagName == "menuitem" && !aPopup.firstChild.id.match("treeViewRest"))
+		while (aPopup.childNodes.length > 1)
+		{
+			if (aPopup.firstChild.tagName != "menuitem")
+				break;
+
+			if (aPopup.firstChild.tagName == "menuitem" && !aPopup.firstChild.hasAttribute("stationary"))
 				aPopup.removeChild(aPopup.firstChild);
+		}
 
 		var refChild = aPopup.firstChild;
 
@@ -2226,14 +3062,13 @@ var coomanPlus = {
 				d = false;
 			}
 
-			if (!currElement.hasAttribute("ignoreincolumnpicker")) {
+			if (!currElement.hasAttribute("ignoreincolumnpicker") && !currElement.collapsed)
+			{
 				var popupChild = document.createElement("menuitem");
 				popupChild.setAttribute("type", "checkbox");
 				popupChild.setAttribute("closemenu", "none");
 				var columnName = currElement.getAttribute("display") ||
 												 currElement.getAttribute("label");
-				if (columnName.match(/\*$/))
-					popupChild.setAttribute("tooltiptext", coomanPlus.strings.fields_note);
 
 				popupChild.setAttribute("label", columnName);
 				popupChild.setAttribute("colindex", currCol.index);
@@ -2244,28 +3079,43 @@ var coomanPlus = {
 				aPopup.insertBefore(popupChild, refChild);
 			}
 		}
-		aPopup.getElementsByAttribute("anonid", "treeViewRest")[0].disabled = d;
+		let treeViewReset = aPopup.getElementsByAttribute("anonid", isColpicker ? "menuitem" : "treeViewReset")[0]
+		if (treeViewReset)
+			treeViewReset.disabled = d;
 	},
 
-	treeViewSelect: function(event)
+	treeViewSelectColpicker: function treeViewSelectColpicker(event)
 	{
+log.debug();
+		coomanPlus.menuView(event);
+		coomanPlus.treeViewSelect(event);
+		event.stopPropagation();
+		event.preventDefault();
+	},
+
+	treeViewSelect: function treeViewSelect(event)
+	{
+log.debug();
 		var tree = coomanPlus._cookiesTree;
 		if (event.originalTarget.parentNode.id.match("treeViewSort"))
 		{
 			coomanPlus.treeViewSortSelect(event)
-			event.originalTarget.setAttribute("tooltiptext", coomanPlus.strings[tree.getAttribute("sortDirection")]);
+			event.originalTarget.setAttribute("tooltiptext", coomanPlus.string(tree.getAttribute("sortDirection")));
 		}
 		else
 		{
 //addopted from chrome://global/content/bindings/tree.xml
 			tree.stopEditing(true);
-			var menuitem = event.originalTarget.parentNode.getElementsByAttribute("anonid", "treeViewRest")[0];
-			if (event.originalTarget == menuitem) {
+			var menuitem = event.originalTarget.parentNode.getElementsByAttribute("anonid", "treeViewReset")[0]
+											|| event.originalTarget.parentNode.getElementsByAttribute("anonid", "menuitem")[0];
+			if (event.originalTarget == menuitem)
+			{
 				tree.columns.restoreNaturalOrder();
 				tree._ensureColumnOrder();
 				coomanPlus.treeView(event.target.parentNode)
 			}
-			else {
+			else
+			{
 				var colindex = event.originalTarget.getAttribute("colindex");
 				var column = tree.columns[colindex];
 				if (column) {
@@ -2277,25 +3127,26 @@ var coomanPlus = {
 				}
 			}
 		}
+log.debug("end", 1);
 	},
 
-	treeViewSort: function(aPopup)
+	treeViewSort: function treeViewSort(aPopup)
 	{
-		var tree = coomanPlus._cookiesTree;
+		let tree = coomanPlus._cookiesTree;
 		// We no longer cache the picker content, remove the old content.
 		while (aPopup.childNodes.length > 0)
 			aPopup.removeChild(aPopup.firstChild);
 
-		var column = tree.getAttribute("sortResource");
-		var refChild = aPopup.firstChild;
-		for (var currCol = tree.columns.getFirstColumn(); currCol;
-				 currCol = currCol.getNext()) {
+		let column = tree.getAttribute("sortResource"),
+				refChild = aPopup.firstChild;
+		for (let currCol = tree.columns.getFirstColumn(); currCol; currCol = currCol.getNext())
+		{
 			// Construct an entry for each column in the row, unless
 			// it is not being shown.
-			var currElement = currCol.element;
+			let currElement = currCol.element;
 			if (currElement.id != "colhid" && currElement.id != "sel" && currElement.getAttribute("hidden") != "true")
 			{
-				var popupChild = document.createElement("menuitem");
+				let popupChild = document.createElement("menuitem");
 				popupChild.setAttribute("type", "radio");
 				popupChild.setAttribute("closemenu", "none");
 				popupChild.setAttribute("class", "menuitem-iconic sortmenu");
@@ -2312,12 +3163,12 @@ var coomanPlus = {
 		}
 	},
 
-	treeViewSortSelect: function(event)
+	treeViewSortSelect: function treeViewSortSelect(event)
 	{
-		var tree = coomanPlus._cookiesTree;
-		var index = event.originalTarget.getAttribute("colindex");
+		let tree = coomanPlus._cookiesTree,
+				index = event.originalTarget.getAttribute("colindex"),
+				items = event.originalTarget.parentNode.childNodes;
 		coomanPlus.cookieColumnSort(tree.columns[index].id);
-		var items = event.originalTarget.parentNode.childNodes;
 		for(var i = 0; i < items.length; i++)
 		{
 			if (items[i].getAttribute("colindex") == index)
@@ -2330,8 +3181,9 @@ var coomanPlus = {
 		}
 	},
 
-	menuView: function(e)
+	menuView: function menuView(e)
 	{
+log.debug();
 		if (e.target.id == "menu_info_reset")
 		{
 			this.cookieInfoRowsReset();
@@ -2341,35 +3193,201 @@ var coomanPlus = {
 			this.prefs.setBoolPref("topmost", e.target.getAttribute("checked") == "true");
 			return;
 		}
+		else if (e.target.id == "menu_treeView_realHost" || e.target.id == "treeView_realHost")
+		{
+			this.pref("showrealhost", e.target.getAttribute("checked") == "true");
+			this._cookiesTree.treeBoxObject.invalidateRange(this._cookiesTree.treeBoxObject.getFirstVisibleRow(), this._cookiesTree.treeBoxObject.getLastVisibleRow());
+		}
 		else if (e.target.id.match("menu_info"))
 		{
-			var o = document.getElementById(e.target.id.replace("menu_info_", "row_"));
+			let o = $(e.target.id.replace("menu_info_", "row_"));
 			if (!o)
-				o = document.getElementById(e.target.id.replace("menu_info_", ""));
+				o = $(e.target.id.replace("menu_info_", ""));
 //			coomanPlus.prefs.setBoolPref("view" + e.target.id.replace("menu_info_", "").toLowerCase(), e.target.getAttribute("checked") == "true");
-			o.collapsed = e.target.getAttribute("checked") != "true";
-			this.infoRowsShow();
+			let h = $("cookieInfoBox").boxObject.height,
+					h2 = $("infoSplitter").boxObject.height;
+
+			o.setAttribute("collapsed", (o.collapsed = e.target.getAttribute("checked") != "true"));
+			this.infoRowsShow(true);
+			if ($("row_value").collapsed)
+			{
+				$("cookieInfoBox").setAttribute("_height", $("cookieInfoBox").getAttribute("height"));
+				$("cookieInfoBox").removeAttribute("height");
+			}
+			else
+			{
+				$("cookieInfoBox").setAttribute("height", $("cookieInfoBox").getAttribute("_height"));
+			}
+
+			coomanPlusCore.async(function()
+			{
+				window.resizeBy(0, $("cookieInfoBox").boxObject.height + $("infoSplitter").boxObject.height - h - h2);
+			});
 		}
 		this.cookieSelected();
-	},
+		this.infoRowsSort();
+	},//menuView()
 
-	openAbout: function()
+	openAbout: function openAbout()
 	{
 		openDialog("chrome://mozapps/content/extensions/about.xul",
-							 "", "chrome,centerscreen,modal", this.app);
+							 "", "chrome,centerscreen,modal", coomanPlusCore.addon);
+	},
+
+	dblClickEdit: function dblClickEdit(e)
+	{
+		if (!e.button && e.detail == 2)
+		{
+			let col={};
+			e.rangeParent.treeBoxObject.getCellAt(e.clientX, e.clientY, {}, col, {});
+			if (!col.value || col.value.id == 'sel')
+				return;
+
+			coomanPlus.openEdit();
+		}
+	},
+
+	focus: function focus(args, submit)
+	{
+		if(!args)
+			return;
+
+		if (typeof(args) == "object")
+			args = args.wrappedJSObject;
+
+		if (args.window)
+			this.window = args.window;
+
+		if (args.gBrowser)
+		{
+			this.args = args;
+			let host;
+			try
+			{
+				host = args.gBrowser.currentURI.host;
+			}
+			catch(e)
+			{
+				host = ""
+			};
+			this.website = true;
+			this.websiteHost = host.toLowerCase();
+/*
+			this.prefFiltersearchcontent = false;
+			this.prefFiltersearchhost = true;
+			this.prefFiltersearchname = false;
+			this.prefFiltersearchcase = false;
+			this.prefFiltersearchrelaxed = true;
+*/
+			this.backup.filter = $('lookupcriterium').getAttribute("filter");
+			$('lookupcriterium').value = this.websiteHost;
+			$('lookupcriterium').setAttribute("filter", this.websiteHost);
+			if (submit)
+			 this.doLookup();
+		}
+		
+		if (args.options)
+		{
+			coomanPlusCore.async(function()
+			{
+				coomanPlus.options();
+			});
+		}
+	},//focus()
+
+	hasParent: function(obj, id)
+	{
+		if (obj.id == id)
+			return true;
+		
+		if (!obj.parentNode)
+			return false;
+		
+		return this.hasParent(obj.parentNode, id);
+			
+	},
+	filesDragOver: function filesDragOver(e)
+	{
+		let dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService),
+				dragSession = dragService.getCurrentSession();
+
+
+		if (dragSession.isDataFlavorSupported("application/x-moz-file"))
+		{
+			dragSession.canDrop = true;
+			dragSession.dragAction = e.ctrlKey ? dragService.DRAGDROP_ACTION_LINK : dragService.DRAGDROP_ACTION_COPY;
+		}
+	},
+
+	filesDragDrop: function filesDragDrop(e)
+	{
+		let	dragSession = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService).getCurrentSession()
+
+		// If sourceNode is not null, then the drop was from inside the application
+		if (dragSession.sourceNode)
+			return;
+
+		// Setup a transfer item to retrieve the file data
+		let trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable),
+				files = [];
+
+		trans.addDataFlavor("application/x-moz-file");
+		for (let i = 0; i < dragSession.numDropItems; i++)
+		{
+			let flavor = {},
+					data = {},
+					length = {};
+
+			dragSession.getData(trans, i);
+			trans.getAnyTransferData(flavor, data, length);
+			if (data)
+			{
+				let file = data.value.QueryInterface(Ci.nsIFile);
+				if (file && file.isFile())
+					files.push(file);
+			}
+		}
+		let list = [];
+		for(let i = 0; i < files.length; i++)
+		{
+			let file = files[i];
+			coomanPlus.restoreAll(e.ctrlKey, {
+				file: file,
+				displayDirectory: file.parent.path
+			}, function callback(r)
+			{
+				if (r)
+					list = list.concat(r[1]);
+
+				if (i >= files.length - 1)
+				{
+					if (!list.length)
+					{
+						coomanPlus.alert(coomanPlus.string("restore_none"));
+						return;
+					}
+					list[0].f = 2;
+					coomanPlus.selectionSave(list);
+					coomanPlus.loadCookies();
+					coomanPlus.alert(coomanPlus.string("restore_success").replace("#", list.length));
+				}
+			});
+		}
 	},
 };
 
-var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
-var browsers = wm.getZOrderDOMWindowEnumerator('', false);
-var b = false;
-while (browsers.hasMoreElements())
+(function()
 {
-	var browser = browsers.getNext();
-	if (browser.location.toString().indexOf("cookiesmanagerplus.xul") != -1 && browser.coomanPlus.winid != this.winid)
+	let	wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator),
+			browsers = wm.getZOrderDOMWindowEnumerator('', false);
+	while (browsers.hasMoreElements())
 	{
-		browser.focus();
-		window.close();
+		let browser = browsers.getNext();
+		if (browser.location.toString().indexOf("cookiesmanagerplus.xul") != -1 && browser.coomanPlus.winid != self.winid)
+		{
+			browser.focus();
+			window.close();
+		}
 	}
-}
+})()
 

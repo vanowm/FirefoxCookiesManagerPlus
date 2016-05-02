@@ -1,13 +1,15 @@
-<!ENTITY	CookieEditDlg.title.label			"Cookies Manager+">
-<!ENTITY	CookieEditDlg.titleEdit.label	"Edit Cookie+">
-<!ENTITY	CookieEditDlg.save.label			"Save">
-<!ENTITY	CookieEditDlg.save.accesskey	"S">
-<!ENTITY	CookieEditDlg.saveNew.label		"Save as new">
-<!ENTITY	CookieEditDlg.saveNew.accesskey "N">
-<!ENTITY	CookieEditDlg.close.label			"Close">
-<!ENTITY	CookieEditDlg.close.accesskey	"C">
-<!ENTITY	CookieEditDlg.moreinfo.label	"More info">
-<!ENTITY	CookieEditor.warning.expired	"WARNING! This cookie is expired">
+<!ENTITY	CookieEditDlg.title.label					"Cookies Manager+">
+<!ENTITY	CookieEditDlg.titleEdit.label			"Edit Cookie">
+<!ENTITY	CookieEditDlg.titleEdit2.label		"Edit Cookies">
+<!ENTITY	CookieEditDlg.titleAdd.label			"Add new Cookie">
+<!ENTITY	CookieEditDlg.save.label					"Save">
+<!ENTITY	CookieEditDlg.save.accesskey			"S">
+<!ENTITY	CookieEditDlg.saveNew.label				"Save as new">
+<!ENTITY	CookieEditDlg.saveNew.accesskey 	"N">
+<!ENTITY	CookieEditDlg.close.label					"Close">
+<!ENTITY	CookieEditDlg.close.accesskey			"C">
+<!ENTITY	CookieEditDlg.moreinfo.label			"More info">
+<!ENTITY	CookieEditor.warning.expired			"WARNING! This cookie is expired">
 
 <!ENTITY	months.january.label					"January">
 <!ENTITY	months.february.label					"February">
@@ -22,17 +24,32 @@
 <!ENTITY	months.november.label					"November">
 <!ENTITY	months.december.label					"December">
 
-<!ENTITY	optoins.expire.session.label	"at end of session">
-<!ENTITY	optoins.expire.date.label			"date">
-<!ENTITY	optoins.expire.date.months		"Months">
-<!ENTITY	optoins.expire.date.year			"Year">
-<!ENTITY	optoins.expire.date.day				"Day">
-<!ENTITY	optoins.expire.date.hours			"Hours">
-<!ENTITY	optoins.expire.date.minutes		"Minutes">
-<!ENTITY	optoins.expire.date.seconds		"Seconds">
-<!ENTITY	optoins.expire.date.time			"Time">
+<!ENTITY	options.expire.session.label	"at end of session">
+<!ENTITY	options.expire.date.label			"date">
+<!ENTITY	options.expire.date.months		"Months">
+<!ENTITY	options.expire.date.year			"Year">
+<!ENTITY	options.expire.date.day				"Day">
+<!ENTITY	options.expire.date.hours			"Hours">
+<!ENTITY	options.expire.date.minutes		"Minutes">
+<!ENTITY	options.expire.date.seconds		"Seconds">
+<!ENTITY	options.expire.date.time			"Time">
 
 
 <!ENTITY	props.isHttpOnly.label				"Http Only:">
 <!ENTITY	props.isHttpOnly.yes					"Yes">
 <!ENTITY	props.isHttpOnly.no						"No">
+<!ENTITY	default.select								"Preselected">
+<!ENTITY	default.select.info						"List of selected cookies">
+<!ENTITY	value.select.info							"Quick value select">
+
+<!ENTITY	overwrite											"A cookie with the same name already exists. Overwrite?">
+<!ENTITY	cookies												"cookies">
+<!ENTITY	type.label										"Type">
+<!ENTITY	type.info											"Type of the cookie">
+<!ENTITY	cookieType1										"Normal cookie">
+<!ENTITY	cookieType2										"HTML5">
+<!ENTITY	proto.label										"Protocol">
+<!ENTITY	port.label										"Port">
+<!ENTITY	json0													"Expand">
+<!ENTITY	json1			 										"Compact">
+<!ENTITY	wrap			 										"Wrap text">

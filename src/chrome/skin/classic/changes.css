@@ -1,0 +1,217 @@
+#changesLogWindow
+{
+	margin: 0;
+	padding: 0;
+}
+#changesLog *
+{
+	-moz-user-select: text;
+}
+#changesLogBox
+{
+	margin: 0;
+	padding: 1em;
+	border: 0;
+	border-top: 1px solid ThreeDDarkShadow;
+	font-family: Monaco,"DejaVu Sans Mono",'courier new', 'times new roman', fixed, monospace;
+	overflow: auto;
+}
+
+#changesLogBox[window]
+{
+	border-bottom: 1px solid ThreeDDarkShadow;
+}
+
+#changesLog,
+#changesLog *
+{
+	cursor: text;
+}
+#changesLog *
+{
+	padding: 0;
+	margin: 0;
+	white-space: pre-wrap;
+	text-align: left;
+}
+#changesLog > hbox
+{
+	padding: 1px 0 1px 0;
+	margin-top: 1px;
+}
+
+.title,
+.titlelog
+{
+	font-weight: bold;
+	font-size: 1em;
+}
+
+hbox.border,
+.last
+{
+	border-bottom: 1px solid ThreeDShadow;
+}
+
+#changesLog[flex="1"]:not([highlight="2"]) hbox:not(.last)[wrapped] .border
+{
+	border-bottom: 1px dotted ThreeDShadow;
+}
+#changesLog:not([highlight="2"]) hbox:not(.last)[wrapped] .border.tab,
+#changesLog hbox:not(.last)[wrapped] .border
+{
+	border-bottom: 1px dotted transparent;
+}
+
+#changesLog hbox:not(.last)
+{
+	margin-bottom: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+#changesLog:not([legend="0"]) .titlelog,
+#changesLog[legend="0"] .titlelog:not(#changesLogFirst)
+{
+	margin-top: 1em !important;
+}
+
+#changesLogSupport
+{
+	min-width: 18em;
+}
+#changesLogSupport,
+#changesLogSupport *
+{
+	font-style: italic;
+}
+.type
+{
+	font-weight: bold;
+}
+#changesLog[altbg="1"] hbox[oddeven="1"]
+{
+	background-color: rgba(255, 255, 255, 0.5);
+}
+
+#changesLog[highlight="2"] .added,
+#changesLog[highlight="1"] description.added
+{
+	background-color: #C9F5C9;
+}
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"].added,
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"] .added,
+#changesLog[highlight="1"][altbg="1"] hbox[oddeven="1"] description.added
+{
+	background-color: #D9F9D9;
+}
+
+#changesLog[highlight="2"] .removed,
+#changesLog[highlight="1"] description.removed
+{
+	background-color: #FFBFBF;
+}
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"].removed,
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"] .removed,
+#changesLog[highlight="1"][altbg="1"] hbox[oddeven="1"] description.removed
+{
+	background-color: #FFD2D2;
+}
+
+#changesLog[highlight="2"] .changed,
+#changesLog[highlight="1"] description.changed
+{
+	background-color: #BFEEFF;
+}
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"].changed,
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"] .changed,
+#changesLog[highlight="1"][altbg="1"] hbox[oddeven="1"] description.changed
+{
+	background-color: #D2F2FF;
+}
+
+#changesLog[highlight="2"] .fixed,
+#changesLog[highlight="1"] description.fixed
+{
+	background-color: #FFFFBF;
+}
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"].fixed,
+#changesLog[highlight="2"][altbg="1"] hbox[oddeven="1"] .fixed,
+#changesLog[highlight="1"][altbg="1"] hbox[oddeven="1"] description.fixed
+{
+	background-color: #FFFFD2;
+}
+
+#changesLogMenu
+{
+	cursor: pointer;
+	list-style-image: none;
+}
+#changesLogMenu .button-icon
+{
+	margin-right: 0.5em;
+	list-style-image: url("images/options16x16.png");
+	-moz-image-region: rect(0 16px 16px 0);
+}
+
+#changesLogMenu button .button-icon
+{
+	margin-right: 0.5em;
+	list-style-image: url("images/coomanPlus16.png");
+	-moz-image-region: rect(0 16px 16px 0);
+}
+
+#changesLog[legend="0"] .legend
+{
+	display: none;
+}
+.link
+{
+	-moz-user-focus: normal;
+	margin: 0;
+	cursor: pointer !important;
+}
+.link.issue
+{
+	border: 1px solid ThreeDShadow;
+	border-radius: 3px;
+	padding: 0 5px 0 5px !important;
+	background-color: rgba(127,127,127, 0.07);
+	background-clip: padding-box;
+	font-weight: bold;
+}
+.link.setting
+{
+	font-weight: bold;
+}
+
+.changesLog_copy
+{
+	list-style-image:url("images/copy.png") !important;
+}
+.changesLog_copy_link
+{
+	list-style-image:url("images/copy_link.png") !important;
+}
+
+#changesLogContext menuitem[disabled="true"] .menu-iconic-left
+{
+	opacity: 0.5 !important;
+}
+
+.stats
+{
+	font-style: italic;
+	font-weight: normal;
+}
+
+#changesLog .stats:first-child
+{
+	margin-left: 1em;
+}
+
+/*
+#changesLog[altbg="1"] hbox[oddeven="0"]
+{
+	background-color: ghostwhite;
+}
+*/

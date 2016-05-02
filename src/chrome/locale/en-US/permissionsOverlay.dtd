@@ -1,0 +1,12 @@
+<!ENTITY backup-restore							"Backup/Restore">
+<!ENTITY backup-restore.accesskey		"B">
+<!ENTITY backup											"Backup">
+<!ENTITY backup.accesskey						"B">
+<!ENTITY backup.selected						"Backup selected">
+<!ENTITY backup.selected.accesskey	"S">
+<!ENTITY restore										"Restore">
+<!ENTITY restore.accesskey					"R">
+<!ENTITY permissions.restored				"Success: {SUCCESS}\nError: {ERROR}\nSkipped: {SKIPPED}">
+<!ENTITY restore.complete						"Restore complete">
+<!ENTITY restore.warning						"Warning!">
+<!ENTITY restore.warning.text				"This is not valid exceptions file.\nContinue?">

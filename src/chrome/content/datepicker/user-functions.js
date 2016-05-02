@@ -5,6 +5,8 @@ coomanPlus.spinEvent = function (spinevent, element, spin)
 
 //	var element = objSpinButton.id.replace('-spinButtons','');
 	var element = element || spinevent.target;
+	if (element.getAttribute("disabled") == "true")
+		return false;
 
 	element = element.id.replace('-spinButtons','');
 	var spin = spin || spinevent.target.getAttribute('class');
@@ -12,12 +14,11 @@ coomanPlus.spinEvent = function (spinevent, element, spin)
 	var objControl = document.getElementById('ifl_expires_' + element);
 	if (objControl.disabled)
 		return false;
-
 	if (spin=='up')
-			objControl.value++;
+			this.changeValue(objControl, parseInt(objControl.value, 10) + 1);
 
 	if (spin=='down')
-			objControl.value--;
+			this.changeValue(objControl, parseInt(objControl.value, 10) - 1);
 
 	this.spinFunc[element](objControl);
 
@@ -50,7 +51,7 @@ coomanPlus.calendarSave = function(datepopup)
 	var tempSrc = document.getElementById("ifl_expires_date");
 	var getMonth = newDate.getMonth();
 
-	tempSrc.value= this.getMonth(getMonth) + ' ' + newDate.getDate() + ", " +  newDate.getFullYear();
+	this.changeValue(tempSrc, this.getMonth(getMonth) + ' ' + newDate.getDate() + ", " +  newDate.getFullYear());
 	this.fixDate();
 	// datepopup.value is a Date object with
 	// the year, month, day set to the user selection
@@ -67,7 +68,7 @@ coomanPlus.changeSeconds = function(objText)
 	if (v < 0 || v > 59)
 		v = document.getElementById('ifl_expires_time').value.substring(6,8);
 
-	objText.value = coomanPlus.right('00' + v,2)
+	coomanPlus.changeValue(objText, coomanPlus.right('00' + v,2));
 
 }
 
@@ -84,7 +85,7 @@ coomanPlus.validateSeconds = function(objText)
 	if (v < 0)
 		v = '59';
 
-	objText.value = v;
+	this.changeValue(objText, v);
 }
 
 coomanPlus.changeMinutes = function(objText)
@@ -98,7 +99,7 @@ coomanPlus.changeMinutes = function(objText)
 	if (v < 0 || v > 59)
 		v = document.getElementById('ifl_expires_time').value.substring(3,5);
 
-	objText.value = coomanPlus.right('00' + v,2)
+	coomanPlus.changeValue(objText, coomanPlus.right('00' + v,2));
 
 }
 
@@ -115,9 +116,7 @@ coomanPlus.validateMinutes = function(objText)
 	if (v < 0)
 		v = '59';
 
-	objText.value = v;
-
-
+	this.changeValue(objText, v);
 }
 
 coomanPlus.changeHours = function(objText)
@@ -131,7 +130,7 @@ coomanPlus.changeHours = function(objText)
 	if (v < 0 || v > 23)
 		v = document.getElementById('ifl_expires_time').value.substring(0,2);
 
-	objText.value = coomanPlus.right('00' + v,2)
+	coomanPlus.changeValue(objText, coomanPlus.right('00' + v,2));
 
 }
 
@@ -147,7 +146,8 @@ coomanPlus.validateHours = function(objText)
 
 	if (v < 0)
 		v = '23';
-	objText.value = coomanPlus.right('00' + v);
+
+	this.changeValue(objText, coomanPlus.right('00' + v));
 }
 
 coomanPlus.changeDay = function(objText)
@@ -163,7 +163,7 @@ coomanPlus.changeDay = function(objText)
 		v = (new Date(document.getElementById('ifl_expires_date').value)).getDate();
 //		alert("Please enter a valid day");
 	}
-	objText.value = coomanPlus.right('00' + v,2)
+	coomanPlus.changeValue(objText, coomanPlus.right('00' + v,2));
 }
 
 coomanPlus.validateDay = function(objText)
@@ -181,15 +181,16 @@ coomanPlus.validateDay = function(objText)
 	if (v < 1)
 		v = days[month];
 
-	objText.value = v;
+	this.changeValue(objText, v);
 }
 
 coomanPlus.changeYear = function(objText)
 {
 	coomanPlus.validateYear(objText);
+	objText.value = objText.value.substr(objText.value.length - 4);
 	if (objText.value.length < 4 || objText.value.length > 4)
 	{
-		objText.value = (new Date(document.getElementById('ifl_expires_date').value)).getFullYear();
+		coomanPlus.changeValue(objText, (new Date(document.getElementById('ifl_expires_date').value)).getFullYear());
 //		alert("Please enter a sensible valid year");
 	}
 }
@@ -202,15 +203,14 @@ coomanPlus.validateYear = function(objText)
 	if (v <= min)
 		v = min;
 
-	objText.value = v;
+	this.changeValue(objText, ("" + v).substr(v.length-4));
 }
 
 coomanPlus.setTimeField = function()
 {
-	var d = document;
-	d.getElementById('ifl_expires_time').value =  this.right('00' + d.getElementById('ifl_expires_Hours').value,2) + ':' +
-																								this.right('00' + d.getElementById('ifl_expires_Minutes').value,2) + ':' +
-																								this.right('00' + d.getElementById('ifl_expires_Seconds').value,2);
+	this.changeValue("ifl_expires_time",	this.right('00' + document.getElementById('ifl_expires_Hours').value,2) + ':' +
+																				this.right('00' + document.getElementById('ifl_expires_Minutes').value,2) + ':' +
+																				this.right('00' + document.getElementById('ifl_expires_Seconds').value,2));
 	this.showWarning();
 }
 
@@ -224,18 +224,32 @@ coomanPlus.setDateField = function()
 										d.getElementById('ifl_expires_Minutes').value + ':' +
 										d.getElementById('ifl_expires_Seconds').value
 	);
+	this.changeValue("ifl_expires_date",	this.getMonth(t.getMonth()) + ' ' +
+																				this.right("00" + t.getDate(), 2) + ', ' +
+																				t.getFullYear());
+/*
 
-	d.getElementById('ifl_expires_date').value =  this.getMonth(t.getMonth()) + ' ' +
-																								this.right("00" + t.getDate(), 2) + ', ' +
-																								t.getFullYear();
 	if (d.getElementById('ifl_expires_date').value != d.getElementById('ifl_expires_Month').value + ' ' +
 																										this.right("00" + d.getElementById('ifl_expires_Day').value,2) + ', ' +
 																										d.getElementById('ifl_expires_Year').value)
 	{
 //		this.fixDate();
 	}
+*/
 
 	this.showWarning();
+}
+
+coomanPlus.changeValue = function(o, value)
+{
+	if (typeof(o) == "string")
+		o = document.getElementById(o);
+
+	var s = o.selectionStart;
+	var e = o.selectionEnd;
+	o.value = value;
+	o.selectionEnd = e;
+	o.selectionStart = s;
 }
 
 coomanPlus.showWarning = function()
@@ -245,15 +259,16 @@ coomanPlus.showWarning = function()
 	document.getElementById("warning").hidden = !(t && !isNaN(d) && d < (new Date()));
 }
 
-coomanPlus.fixDate = function()
+coomanPlus.fixDate = function(nofix)
 {
 	var d = document;
 	var expr_date = this.fixDateTime();
-	d.getElementById('ifl_expires_Month').value	= this.getMonth(expr_date.getMonth());
-	d.getElementById('ifl_expires_Day').value		= this.right("00" + expr_date.getDate(), 2);
-	d.getElementById('ifl_expires_Year').value	= expr_date.getFullYear();
+	d.getElementById("ifl_expires_Month").value	= this.getMonth(expr_date.getMonth());
+	this.changeValue("ifl_expires_Day", this.right("00" + expr_date.getDate(), 2))
+	this.changeValue("ifl_expires_Year", expr_date.getFullYear());
 	this.showWarning();
-	this.setDateField();
+	if (!nofix)
+		this.setDateField();
 }
 
 coomanPlus.fixDateTime = function()
@@ -263,25 +278,24 @@ coomanPlus.fixDateTime = function()
 	if (isNaN(expr_date))
 	{
 		if (d.getElementById('ifl_expires_date').prevDate)
-			expr_date = d.getElementById('ifl_expires_date').prevDate;
+			expr_date = new Date(d.getElementById('ifl_expires_date').prevDate);
 		else
 			expr_date = d.getElementById('ifl_expires').value ? new Date(d.getElementById('ifl_expires').value*1000) : this.dateAdd((new Date()), "d", 1);
 	}
-
 	d.getElementById('ifl_expires_date').prevDate = expr_date / 1000;
 	return expr_date;
 }
 
-coomanPlus.fixTime = function()
+coomanPlus.fixTime = function(nofix)
 {
 	var d = document;
 
 //	var expr_time = (new Date( 'Thursday, January 01, 1970 ' +d.getElementById('ifl_expires_time').value));
 	var expr_time = this.fixDateTime();
 
-	d.getElementById('ifl_expires_Hours').value		= this.right("00" + expr_time.getHours(), 2);
-	d.getElementById('ifl_expires_Minutes').value	= this.right("00" + expr_time.getMinutes(), 2);
-	d.getElementById('ifl_expires_Seconds').value	= this.right("00" + expr_time.getSeconds(), 2);
+	this.changeValue("ifl_expires_Hours", this.right("00" + expr_time.getHours(), 2));
+	this.changeValue("ifl_expires_Minutes", this.right("00" + expr_time.getMinutes(), 2));
+	this.changeValue("ifl_expires_Seconds", this.right("00" + expr_time.getSeconds(), 2));
 /*
 	var expr_time = d.getElementById('ifl_expires_time').value;
 
@@ -290,7 +304,8 @@ coomanPlus.fixTime = function()
 	d.getElementById('ifl_expires_Seconds').value 				= expr_time.substring(6,8);
 */
 	this.showWarning();
-	this.setTimeField();
+	if (!nofix)
+		this.setTimeField();
 }
 
 coomanPlus.getDay = function(ii)
@@ -436,6 +451,15 @@ coomanPlus.numbersOnly = function(e, ex)
 		}
 	}
 
+	if (e.keyCode == KeyEvent.DOM_VK_RETURN)
+	{
+		var f = e.target.id.replace("ifl_expires_", "");
+		if (coomanPlus.spinFunc[f])
+		{
+			coomanPlus.spinFunc[f](e.target);
+			coomanPlus.setTimeField();
+		}
+	}
 	var start = e.target.selectionStart;
 	var end = e.target.selectionEnd;
 	var m = e.target.value.substring(start, end).match(/:/);
@@ -459,12 +483,18 @@ coomanPlus.numbersOnly = function(e, ex)
 	if (e.keyCode == 38)
 	{
 		var s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
+		if (!s.length)
+			s = e.target.parentNode.getElementsByTagName("spinbuttonsV");
+
 		if (s.length)
 			this.spinEvent("", s[0], "up");
 	}
 	else if (e.keyCode == 40)
 	{
 		var s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
+		if (!s.length)
+			s = e.target.parentNode.getElementsByTagName("spinbuttonsV");
+
 		if (s.length)
 			this.spinEvent("", s[0], "down");
 	}

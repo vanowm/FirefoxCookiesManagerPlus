@@ -7,6 +7,8 @@
 	min-width: 0;
 	min-height: 0;
 	background-color: transparent;
+	border: 0;
+	cursor: pointer;
 }
 .link:focus
 {
@@ -44,4 +46,31 @@ textbox[multiline="true"]
 {
 	font-family: "courier new", "times new roman", fixed, monospace;
 	-moz-tab-size: 2;
+}
+
+*[hidden="true"]
+{
+	display: none !important;
+}
+
+#main [tooltiptext],
+#main [tooltiptext] > label,
+#main [tooltiptext] groupbox > caption > label
+{
+	cursor: help;
+}
+
+#coomanPlusWindowOptions
+{
+	min-width: 430px;
+}
+
+#options > tabpanels
+{
+	padding: 3px;
+}
+#panelExport
+{
+	margin: 3px;
+	padding: 3px;
 }

@@ -1,4 +1,4 @@
-coomanPlus.getTreeSelections = function (tree)
+coomanPlus.getTreeSelections = function getTreeSelections(tree)
 {
 	var selections = [];
 	var select;
@@ -27,7 +27,7 @@ coomanPlus.getTreeSelections = function (tree)
 	return selections;
 }
 
-coomanPlus.fixColumnName = function(c)
+coomanPlus.fixColumnName = function fixColumnName(c)
 {
 	if (this._cookies.length > 0 && !c in this._cookies[0])
 		c = "rawHost";
@@ -35,10 +35,11 @@ coomanPlus.fixColumnName = function(c)
 	return c;
 }
 
-coomanPlus.sortTreeData = function(tree, table, columnName)
+coomanPlus.sortTreeData = function sortTreeData(tree, table, columnName)
 {
-	var order = tree.getAttribute("sortDirection") == "ascending";
-	var column = tree.getAttribute("sortResource");
+log.debug("sort begin");
+	let order = tree.getAttribute("sortDirection") == "ascending",
+			column = tree.getAttribute("sortResource");
 
 	column = this.fixColumnName(column);
 
@@ -53,41 +54,50 @@ coomanPlus.sortTreeData = function(tree, table, columnName)
 	tree.setAttribute("sortDirection", order ? "ascending" : "descending");
 
 	// do the sort or re-sort
-	var compareFunc = function compare(first, second)
+	let h = coomanPlus.prefSimpleHost > 0 && column == "rawHost" ? (coomanPlus.prefSimpleHost == 1 ? "simpleHost" : "rootHost") : column,
+			f = column == "expiresString" ? "expires" : h.replace(/String$/, "");
+//log.debug([f, h]);
+	function compareFunc(a, b)
 	{
-		var h = coomanPlus.prefSimpleHost > 0 && column == "rawHost" ? (coomanPlus.prefSimpleHost == 1 ? "simpleHost" : "rootHost") : column;
-		var f = column == "expiresString" ? "expires" : h.replace(/String$/, "");
-		var r;
-		if (typeof(first[f]) == "string")
-			r = first[f].toLowerCase().localeCompare(second[f].toLowerCase());
+		let r;
+		if (typeof(a[f]) == "string")
+			r = a[f].toLowerCase().localeCompare(b[f].toLowerCase(), undefined, {ignorePunctuation: true});
 		else
-			r = (first[f] > second[f]) - (first[f] < second[f]);
+		{
+			r = (a[f] > b[f]) - (a[f] < b[f]);
+		}
 
 		if (!r)
 		{
-			var a = [(column == "rawHost" ? (coomanPlus.prefSimpleHost > 0 ? "rawHost" : "name") : "name"), "name", "path"];
-			for(var i = 0; i < a.length; i++)
+			let alt = [(column == "rawHost" ?  (coomanPlus.prefSimpleHost > 0 ? "rawHost" : "name") : "name"), "name", "path", "value"];
+			for(let i = 0; i < alt.length; i++)
 			{
-				r = first[a[i]].toLowerCase().localeCompare(second[a[i]].toLowerCase());
+				r = a[alt[i]].toLowerCase().localeCompare(b[alt[i]].toLowerCase(), undefined, {ignorePunctuation: true});
 				if (r)
 					break;
 			}
 		}
+//log([r, a[f], b[f]], 1);
 		return r;
 	}
-	var s = (new Date()).getTime();
 	table.sort(compareFunc);
+	for(let i = 0; i < table.length; i++)
+	{
+//		table[i].index = i;
+	}
+	
 	if (!order)
 		table.reverse();
 
-	var cols = tree.getElementsByTagName("treecol");
-	for (var i = 0; i < cols.length; i++)
+	let cols = tree.getElementsByTagName("treecol");
+	for (let i = 0; i < cols.length; i++)
 	{
 		cols[i].removeAttribute("sortDirection");
 	}
 	document.getElementById(column).setAttribute("sortDirection", order ? "ascending" : "descending");
+log.debug("sort end", 1);
 }
-coomanPlus.sortTree = function(tree, table, columnName)
+coomanPlus.sortTree = function sortTree(tree, table, columnName)
 {
 	this.sortTreeData(tree, table, columnName);
 

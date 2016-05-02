@@ -66,6 +66,8 @@ oeDatePicker.onpopupshowing = function( popup )
 
 oeDatePicker.clickDay = function( newDayItemNumber )
 {
+	coomanPlus.changeYear(document.getElementById("oe-date-picker-year-title-text"));
+	oeDatePicker.gSelectedDate.setFullYear( document.getElementById("oe-date-picker-year-title-text").value );
 	// get the clicked day
 
 	var dayNumberItem = document.getElementById( "oe-date-picker-month-day-text-" + newDayItemNumber );
@@ -217,7 +219,9 @@ oeDatePicker.nextYearCommand = function()
 oeDatePicker.redrawYear = function()
 {
 	var yearTitleItem = document.getElementById( "oe-date-picker-year-title-text" );
-	yearTitleItem.setAttribute( "value", oeDatePicker.gSelectedDate.getFullYear() );
+	var year = oeDatePicker.gSelectedDate.getFullYear();
+	yearTitleItem.setAttribute( "value", year );
+	yearTitleItem.value = year;
 	var today = new Date();
 	document.getElementById( "oe-date-picker-year-month-" + (today.getMonth()+1) + "-box"  ).setAttribute("today", (today.getFullYear() == oeDatePicker.gSelectedDate.getFullYear()))
 }
@@ -343,5 +347,22 @@ oeDatePicker.redrawDays = function( )
 		dayNumberItem.parentNode.setAttribute( "disabled" , disabled);
 	}
 
- }
+}
+oeDatePicker.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+coomanPlus.datepickerSelectYear = function(e, t)
+{
+	if (!t)
+		oeDatePicker.timer.init({observe: function(){if (!coomanPlus) return; coomanPlus.changeYear(e.target);coomanPlus.datepickerSelectYear(e, true); 	oeDatePicker.redrawYear();
+	oeDatePicker.redrawDays();
+oeDatePicker.selectDate();}}, 2000, Ci.nsITimer.TYPE_ONE_SHOT);
 
+	var y = oeDatePicker.gSelectedDate.getFullYear();
+
+	oeDatePicker.gSelectedDate.setFullYear( e.target.value );
+	if (isNaN(oeDatePicker.gSelectedDate))
+		oeDatePicker.gSelectedDate.setFullYear( y );
+
+	oeDatePicker.redrawYear();
+	oeDatePicker.redrawDays();
+	oeDatePicker.selectDate();
+}

@@ -1,34 +1,26 @@
-coomanPlus.dump = function (aMessage, obj)
+log.debug("libOut.js loaded");
+coomanPlus.log = log;
+coomanPlus.debug = log.debug;
+function _bench(c, s)
 {
-	var r = "";
-	var t = typeof(aMessage);
-	if (obj && t != "string" && t != "number" && t != "bool")
+	let t = (new Date()).getTime();
+	if (c && _bench.time)
 	{
-		for(var i in aMessage)
-			try
-			{
-				r = r + i + ": " + aMessage[i] + "\n";
-			}catch(e){r = r + i + ": " + e + "\n"};
+		let t2 = _bench.time;
+		if (!s)
+			_bench.time = t;
 
-
-		if (r)
-			r = "\n-------------\n"+t+"\n"+r;
+		log(c + " " + _bench.sec(t - t2) + " (" + _bench.sec(t - _bench.timeBegin) + ")");
+		return;
 	}
-	Components.classes["@mozilla.org/consoleservice;1"]
-		.getService(Components.interfaces.nsIConsoleService)
-		.logStringMessage("CookiesManager+: " + aMessage + r);
-};
-function out(s)
-{
-	coomanPlus.dump(s);
+	_bench.time = t;
+	_bench.timeBegin = t;
+	log("begin bench");
 }
-
-function out_d(s)
+_bench.sec = function(tms)
 {
-
-}
-
-function out_d2(s)
-{
-	coomanPlus.dump('  DBG2: ' + s +'\n');
+	let min = Math.floor(tms / 60000),
+			sec = Math.floor(tms / 1000) - min * 60,
+			ms = tms - (min * 60 + sec) * 1000;
+	return (min ? min + ":" : "") + sec + "." + ms;
 }

@@ -26,49 +26,55 @@
  Contains some of the code is from Mozilla original Cookie Editor
  ----------------------*/
 
-Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
 coomanPlusCore.lastKeyDown = [];
-
-var coomanPlus = {
+function $(id)
+{
+	return document.getElementById(id);
+}
+var	log = coomanPlusCore.log,
+		coomanPlus = {
 	_params: null,
 	focused: null,
-	_aWindow: null,
+	_cmpWindow: null,
 
 	_addFlag: false,
 	_addFlagNew: false,
 	_curCookie: null,
 	_newCookie: null,
 	_cb: null, //cookie bundle
-	_cb2: null, //cookie bundle
 	_parent: null,
 	_multi: false,
-	backup: {},
-	prefs: coomanPlusCommon.prefs,
-
-	load: function()
+	backupData: {},
+	prefs: coomanPlusCore.prefs,
+	mouseScrollTimeStamp: 0,
+	load: function load()
 	{
 		coomanPlus.init();
 	},
 
-	init: function()
+	init: function init()
 	{
-		this._aWindow = coomanPlusCore.aWindow;
-		coomanPlusCore.aWindow = window;
+log.debug.startTime = new Date();
+log.debug();
+		this._cmpWindow = coomanPlusCore.cmpWindow;
+		coomanPlusCore.cmpWindow = window;
 
 		this._params = window.arguments[0];
 		this._parent = this._params.document;
 
-		this._addFlag = this._params.type == "add";
-		this._cb = document.getElementById("cookieBundle");
-		this._cb2 = document.getElementById("bundlePreferences");
+		this._addFlag = this._params.type == "new";
+		this._cb = $("bundlePreferences");
 
-		document.getElementById('ifl_isSecureYes').label = document.getElementById('ifl_isSecureYes').value = this.string("forSecureOnly");
-		document.getElementById('ifl_isSecureNo').label = document.getElementById('ifl_isSecureNo').value = this.string("forAnyConnection");
+		Cu.import("resource://gre/modules/Services.jsm");
+		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/html5.js").spec, this);
+
+		$('ifl_isSecureYes').label = $('ifl_isSecureYes').value = this.string("forSecureOnly");
+		$('ifl_isSecureNo').label = $('ifl_isSecureNo').value = this.string("forAnyConnection");
 
 		if (this._params.cookies) //this._params.window.coomanPlus._selected.length == 1)
 		{
 			this._multi = (this._params.cookies.length > 1);
-			var aCookie = this.clone(this._cookieGetExtraInfo(this._params.cookies[0]));
+			var aCookie = this.clone(this._params.cookies[0]);
 			if (this._addFlag)
 			{
 				aCookie.name = "";
@@ -78,144 +84,212 @@ var coomanPlus = {
 			this._curCookie = new this.cookieObject(aCookie);
 		}
 		else
-			this._curCookie = new this.cookieObject({name:"",value:"",host:"",path:"",isSecure:false,expires:0,policy:0,isHttpOnly:false});
-		document.getElementById("ifl_name").disabled = this._multi;
-		document.getElementById("ifl_host").disabled = this._multi;
-		document.getElementById("ifl_path").disabled = this._multi;
+			this._curCookie = new this.cookieObject({
+				name: "",
+				value: "",
+				host: "",
+				path: "",
+				isSecure: false,
+				expires: 0,
+				policy: 0,
+				isHttpOnly: false,
+				type: coomanPlusCore.COOKIE_NORMAL
+			});
+
+		$("ifl_name").readonly = this._multi;
+		$("ifl_host").readonly = this._multi;
+		$("ifl_path").readonly = this._multi;
+		this.setType();
 		if (this._multi)
 		{
-			document.getElementById("c_name").disabled = this._multi;
-			document.getElementById("c_host").disabled = this._multi;
-			document.getElementById("c_path").disabled = this._multi;
-			this.backup["c_name"] = document.getElementById("c_name").checked;
-			this.backup["c_host"] = document.getElementById("c_host").checked;
-			this.backup["c_path"] = document.getElementById("c_path").checked;
-			document.getElementById("c_name").checked = false;
-			document.getElementById("c_host").checked = false;
-			document.getElementById("c_path").checked = false;
+			$("c_name").disabled = this._multi;
+			$("c_host").disabled = this._multi;
+			$("c_path").disabled = this._multi;
+			this.backup("c_name", "checked", $("c_name").checked);
+			this.backup("c_host", "checked", $("c_host").checked);
+			this.backup("c_path", "checked", $("c_path").checked);
+			$("c_name").checked = false;
+			$("c_host").checked = false;
+			$("c_path").checked = false;
 			document.title += " (" + this._params.cookies.length + " " + this.string("cookies") + ")";
+			$("ifl_value").setAttribute("type", "multi");
+			$("multiSelect").collapsed = false;
+			$("valueMenuBox").collapsed = false;
+			Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer).init({observe: function(){coomanPlus.loadMenu()}}, 0, Ci.nsITimer.TYPE_ONE_SHOT);
+			window.onresize = this.valueMenuSize;
 		}
-		for(var i in this._curCookie)
+		for(let i in this._curCookie)
 		{
-			if (!document.getElementById("c_" + i))
+			if (!$("c_" + i))
 				continue;
 
 			if (this._addFlag)
-				document.getElementById("c_" + i).disabled = true;
+				$("c_" + i).disabled = true;
 
-			document.getElementById("c_" + i).setAttribute("checked", !this._multi && this._addFlag ? true : document.getElementById("c_" + i).checked);
-			document.getElementById("c_" + i).addEventListener("CheckboxStateChange", this.enableDisable, false);
-			this.enableDisableChildren(document.getElementById("c_" + i));
+			$("c_" + i).setAttribute("checked", !this._multi && this._addFlag ? true : $("c_" + i).checked);
+			$("c_" + i).addEventListener("CheckboxStateChange", this.enableDisable, false);
+			this.enableDisableChildren($("c_" + i));
 		}
-		document.getElementById("ifl_expires_date").addEventListener("change", this.fixDate, true);
-		document.getElementById("ifl_expires_time").addEventListener("change", this.fixTime, true);
-		document.getElementById("ifl_expires_Year").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Month").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Day").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Hours").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Minutes").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Seconds").addEventListener("DOMMouseScroll", this.mouseScroll, false);
-		window.addEventListener("focus", this.focus, true);
+/*
+		$("ifl_expires_date").addEventListener("change", this.fixDate, true);
+		$("ifl_expires_time").addEventListener("change", this.fixTime, true);
+*/
+		$("ifl_expires_Year").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Month").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Day").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Hours").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Minutes").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Seconds").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		window.addEventListener("focus", this.onFocus, true);
 		if (this._addFlag)
 		{
-			document.title = this.string("CookieEditDlg.titleAdd");
-			document.getElementById("editCookie").hidden = false;
+			document.title = this.string("titleAdd");
+			$("editCookie").hidden = false;
 
-			document.getElementById('ifl_isSecure').value = document.getElementById('ifl_isSecureNo').value;
+			$('ifl_isSecure').value = $('ifl_isSecureNo').value;
 
-			document.getElementById("expr_selection").value = "expr_new";
+			$("expr_selection").value = "expr_new";
 
-			var newdate = (new Date());
+			let newdate = (new Date());
 
 			//add a day to the default time, so it does not expire right away.
-			var newdate = (this.dateAdd(newdate, "d", 1));
+			newdate = (this.dateAdd(newdate, "d", 1));
 
-			document.getElementById("ifl_expires_date").value = this.getDateStr(newdate);
-			document.getElementById('ifl_expires_time').value = this.getTimeStr(newdate); //newdate.getHours() + ':' + newdate.getMinutes() + ':' +newdate.getSeconds();
+			$("ifl_expires_date").value = this.getDateStr(newdate);
+			$('ifl_expires_time').value = this.getTimeStr(newdate); //newdate.getHours() + ':' + newdate.getMinutes() + ':' +newdate.getSeconds();
 
-			this.rebuildDateSelection(document.getElementById("expr_new"), true);
+			this.rebuildDateSelection($("expr_new"), true);
 			//set date/time picker fields
 		}
 		this.setFieldProps();
 		this.showNew();
+		this.setWrap();
+		this.setJSON();
+	},//init()
+
+	loadMenu: function loadMenu()
+	{
+log.debug();
+		var c = this._params.cookies;
+		for(var i = 0; i < c.length; i++)
+		{
+			let v = c[i].name + " @ " + c[i].host + c[i].path;
+			if (!i)
+			{
+				$("multiDefault").setAttribute("label", v);
+			}
+			$("multiDefault").appendItem(v, i).setAttribute("tooltiptext", v);
+			$("valueMenu").appendItem("(" + v + ") " + c[i].value, c[i].value).setAttribute("tooltiptext", c[i].value);
+		}
+		$("valuePopup").selectedIndex = 0;
+		$("multiDefault").selectedIndex = 0;
 	},
 
-	unload: function()
+	unload: function unload()
 	{
+log.debug();
 		coomanPlus.uninit();
 	},
 
-	uninit: function()
+	uninit: function uninit()
 	{
 
-		coomanPlusCore.aWindow = this._aWindow;
+log.debug();
+		coomanPlusCore.cmpWindow = this._cmpWindow;
 
 		for(var i in this._curCookie)
 		{
-			if (!document.getElementById("c_" + i))
+			if (!$("c_" + i))
 				continue;
 
-			document.getElementById("c_" + i).removeEventListener("CheckboxStateChange", this.enableDisable, false);
+			$("c_" + i).removeEventListener("CheckboxStateChange", this.enableDisable, false);
 		}
-		document.getElementById("ifl_expires_date").removeEventListener("change", this.fixDate, true);
-		document.getElementById("ifl_expires_time").removeEventListener("change", this.fixTime, true);
-		document.getElementById("ifl_expires_Day").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Month").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Year").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Hours").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Minutes").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
-		document.getElementById("ifl_expires_Seconds").removeEventListener("DOMMouseScroll", this.mouseScroll, false);
+/*
+		$("ifl_expires_date").removeEventListener("change", this.fixDate, true);
+		$("ifl_expires_time").removeEventListener("change", this.fixTime, true);
+*/
+		$("ifl_expires_Day").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Month").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Year").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Hours").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Minutes").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
+		$("ifl_expires_Seconds").removeEventListener("DOMMouseScroll", this.mouseScroll, true);
 
-		for(var i in this.backup)
-			document.getElementById(i).setAttribute("checked", this.backup[i]);
+		for(let i in this.backupData)
+		{
+			if ($(i))
+				$(i).setAttribute("checked", this.backup(i, "checked"));
+		}
 
-		window.removeEventListener("focus", this.focus, true);
+		try
+		{
+			coomanPlus.protect.unload();
+		}catch(e){log.error(e)}
+		window.removeEventListener("focus", this.onFocus, true);
 	},
 
-	focus: function(e)
+	onFocus: function focus(e)
 	{
 		coomanPlus.focused = "id" in e.target ? e.target.id : null;
 	},
 
-	setAttribute: function (obj, attr, value, remove)
+	focus: function(args)
+	{
+		if (args.options)
+		{
+			coomanPlusCore.async(function()
+			{
+				coomanPlus.options();
+			});
+		}
+		else
+			window.focus();
+	},
+
+	setAttribute: function setAttribute(obj, attr, value, remove)
 	{
 		if (typeof(obj) == "string")
-			obj = document.getElementById(obj);
+			obj = $(obj);
 
 		var c = obj.childNodes;
 		var command = remove ? "removeAttribute" : "setAttribute";
-		obj[command](attr, value);
+		obj[command]((attr == "disabled" && obj.tagName == "textbox" ? "readonly" : attr), value);
 		for(var i = 0; i < c.length; i++)
 		{
 			if (c[i][command])
-				c[i][command](attr, value);
+				c[i][command]((attr == "disabled" && c[i].tagName == "textbox" ? "readonly" : attr), value);
 
 			if (c[i].childNodes.length > 0)
-				coomanPlus.setAttribute(c[i], attr, value, remove);
+				this.setAttribute(c[i], attr, value, remove);
 		}
 	},
 
-	enableDisable: function(e)
+	enableDisable: function enableDisable(e)
 	{
+coomanPlus.debug();
 		e.target.setAttribute("checked", e.target.checked); //work around of bug https://bugzilla.mozilla.org/show_bug.cgi?id=15232
 		coomanPlus.enableDisableChildren(e.target);
 		coomanPlus.showNew();
 	},
 
-	enableDisableChildren: function(obj)
+	enableDisableChildren: function enableDisableChildren(obj)
 	{
-		this.setAttribute(obj.parentNode.nextSibling, "disabled", !obj.checked, obj.checked);
+		coomanPlus.setAttribute(obj.parentNode.nextSibling, "disabled", !obj.checked, obj.checked);
 	},
 
-	secure: function()
+	secure: function secure()
 	{
-		document.getElementById("secure").hidden = document.getElementById('ifl_isSecure').value == document.getElementById('ifl_isSecureNo').value;
+log.debug();
+		$("secure").hidden = $('ifl_isSecure').value == $('ifl_isSecureNo').value;
 	},
 
-	mouseScroll: function(e)
+	mouseScroll: function mouseScroll(e)
 	{
-		if (e.axis != e.VERTICAL_AXIS)
+log.debug();
+		if (e.axis != e.VERTICAL_AXIS || e.timeStamp == coomanPlus.mouseScrollTimeStamp)
 			return true;
+
+		coomanPlus.mouseScrollTimeStamp = e.timeStamp;
 	/*
 
 	var t = "";
@@ -231,6 +305,10 @@ var coomanPlus = {
 		}
 		var dir = e.detail > 0 ? "down" : "up";
 		var s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
+		if (!s.length)
+		{
+			s = e.target.parentNode.getElementsByTagName("spinbuttonsV");
+		}
 		if (s.length)
 		{
 			coomanPlus.spinEvent("", s[0], dir);
@@ -238,32 +316,34 @@ var coomanPlus = {
 
 	},
 
-	setFieldProps: function()
+	setFieldProps: function setFieldProps()
 	{
+log.debug();
 		var field;
 		var i;
-		var d = document;
 
-
+		$("ifl_type").value = this._curCookie.type;
 		var props = [
 			{id: "ifl_name", value: this._curCookie.name, readonly: true, hidden: false },
-			{id: "ifl_value", value: this._curCookie.value, readonly: false, hidden: false },
+			{id: "ifl_value", value: this.unescape(this._curCookie.value), readonly: false, hidden: false },
 			{id: "ifl_host", value: this._curCookie.host, readonly: true, hidden: false },
 			{id: "ifl_path", value: this._curCookie.path, readonly: true, hidden: false },
 			{id: "ifl_isSecure",
 			 value: this._curCookie.isSecure ?
 							this.string("forSecureOnly") :
 							this.string("forAnyConnection"), readonly: false, hidden: false },
-			{id: "ifl_expires", value: this._curCookie.expires, readonly: true, hidden: true },
+			{id: "ifl_expires", value: this._curCookie.type == coomanPlusCore.COOKIE_NORMAL ? this._curCookie.expires : (new Date()).getTime()/1000+31536000, readonly: true, hidden: true },
 			{id: "ifl_expires_date", value: "", readonly: true, hidden: false },
 			{id: "ifl_expires_time", value: "", readonly: true, hidden: false },
 			{id: "ifl_isHttpOnly", value: this._curCookie.isHttpOnly ? "true" : "false" , readonly: true, hidden: false },
+			{id: "ifl_port", value: this._curCookie.port, readonly: true, hidden: false },
+			{id: "ifl_proto", value: this._curCookie.proto, readonly: true, hidden: false },
 		];
 
 
 		for(i = 0; i < props.length; i++ )
 		{
-			field						= d.getElementById(props[i].id);
+			field						= $(props[i].id);
 			field.value			= props[i].value;
 			field.readonly	= props[i].readonly;
 			field.hidden		= props[i].hidden;
@@ -272,52 +352,57 @@ var coomanPlus = {
 		this.secure();
 		//rearrange radio bttons if this is a session cookie
 		var sel = "new";
-		if (!this._curCookie.expires)
+		if (this._curCookie.expires)
 		{
-			sel = "session";
-			var newdate = (new Date());
-
-			//add a day to the default time, so it does not expire right away.
-			var newdate = (this.dateAdd(newdate, "d", 1));
-
-			d.getElementById("ifl_expires_date").value = this.getDateStr(newdate);
-			d.getElementById('ifl_expires_time').value = this.getTimeStr(newdate); //newdate.getHours() + ':' + newdate.getMinutes() + ':' +newdate.getSeconds();
+			$("ifl_expires_date").value = this.getDateStr(new Date($("ifl_expires").value*1000))
+			$('ifl_expires_time').value = this.getTimeStr(new Date($("ifl_expires").value*1000))
 
 		}
 		else
 		{
-			d.getElementById("ifl_expires_date").value = this.getDateStr(new Date(d.getElementById("ifl_expires").value*1000))
-			d.getElementById('ifl_expires_time').value = this.getTimeStr(new Date(d.getElementById("ifl_expires").value*1000))
+			sel = "session";
+			var newdate = (new Date());
+
+			//add one day to the default time, so it does not expire right away.
+			var newdate = (this.dateAdd(newdate, "d", 1));
+
+			$("ifl_expires_date").value = this.getDateStr(newdate);
+			$('ifl_expires_time').value = this.getTimeStr(newdate); //newdate.getHours() + ':' + newdate.getMinutes() + ':' +newdate.getSeconds();
 		}
 
-		d.getElementById("expr_selection").value  = "expr_" + sel;
+		$("expr_selection").value  = "expr_" + sel;
+		$("ifl_type").value = this._curCookie.type;
 		//collapse the new date dialog
-	//  d.getElementById("datetimepickerbox").hidden = true;
-		this.rebuildDateSelection(document.getElementById("expr_" + sel));
+	//  $("datetimepickerbox").hidden = true;
+		this.rebuildDateSelection($("expr_" + sel));
 		//set date/time picker fields
 		this.fixDate();
 		this.setDateField();
 		this.fixTime();
 		this.setTimeField();
+		this.setType();
 	},
 
-	rebuildDateSelection: function(radio, noresize)
+	rebuildDateSelection: function rebuildDateSelection(radio, noresize)
 	{
+log.debug();
 		if (radio.id == "expr_new")
-			document.getElementById("datetimepickerbox").collapsed = false;
+			$("datetimepickerbox").collapsed = false;
 		else
-			document.getElementById("datetimepickerbox").collapsed = true;
+			$("datetimepickerbox").collapsed = true;
 		this.showWarning();
 		if (!noresize)
-			this.resizeWindow();
+		Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer).init({observe: function(){coomanPlus.resizeWindow()}}, 0, Ci.nsITimer.TYPE_ONE_SHOT);
+//			this.resizeWindow();
 	},
 
-	getExpireSelection: function()
+	getExpireSelection: function getExpireSelection()
 	{
-		switch (document.getElementById('expr_selection').value)
+log.debug();
+		switch ($('expr_selection').value)
 		{
 			case "expr_new":
-				return Date.parse(document.getElementById('ifl_expires_date').value + ' ' + document.getElementById('ifl_expires_time').value) / 1000;
+				return Date.parse($('ifl_expires_date').value + ' ' + $('ifl_expires_time').value) / 1000;
 			case "expr_session":
 				return false;
 			default:
@@ -328,8 +413,9 @@ var coomanPlus = {
 	},
 
 
-	test_url: function(host, path)
+	test_url: function test_url(host, path)
 	{
+log.debug();
 		var temp;
 
 		//check url
@@ -357,27 +443,31 @@ var coomanPlus = {
 		}
 	},
 
-	createNewCookie:function(check)
+	createNewCookie: function createNewCookie(check)
 	{
-		var check = typeof(check) == "undefined" ? true : check;
-		var name = this.trim(document.getElementById("ifl_name").value);
-		var value = document.getElementById("ifl_value").value;
-		var host = this.trim(document.getElementById("ifl_host").value);
-		var path = this.trim(document.getElementById("ifl_path").value);
-		var isHttpOnly = (document.getElementById("ifl_isHttpOnly").value == "true");
+		check = typeof(check) == "undefined" ? true : check;
+		let	name = this.trim($("ifl_name").value),
+				value = this.escape($("ifl_value").value),
+				host = this.trim($("ifl_host").value),
+				path = this.trim($("ifl_path").value),
+				isHttpOnly = ($("ifl_isHttpOnly").value == "true"),
+				proto = this.trim($("ifl_proto").value),
+				port = this.trim($("ifl_port").value),
+				type = Number($("ifl_type").value);
+
 		if (check)
 		{
-			var isValidURI = this.test_url(host, path);
+			let isValidURI = this.test_url(host, path);
 
 			if ( isValidURI != 0 )
 			{
-				alert('Error: \n' + isValidURI);
+				log.error(isValidURI);
 				return false;
 			}
 
 			if ( !(name.length > 0) )
 			{
-				alert('Error: \n' + 'please specify name');
+				log.error('please specify name');
 				return false;
 			}
 /*
@@ -392,232 +482,419 @@ var coomanPlus = {
 												value: value,
 												host: host,
 												path:path,
-												isSecure: document.getElementById("ifl_isSecure").value == coomanPlus.string("forSecureOnly"),
+												isSecure: $("ifl_isSecure").value == coomanPlus.string("forSecureOnly"),
 												expires: this.getExpireSelection(),
 												policy: this._curCookie.policy,
-												isHttpOnly: isHttpOnly
+												isHttpOnly: isHttpOnly,
+												proto: proto,
+												port: port,
+												type: type
 											});
+
 		return true;
 
 	},
 
-	_cookieEquals: function (aCookieA, aCookieB)
+/*
+	_cookieEquals: function _cookieEquals(aCookieA, aCookieB)
 	{
-		return this.trim(aCookieA.host) == this.trim(aCookieB.host) &&
-					 this.trim(aCookieA.name) == this.trim(aCookieB.name) &&
-					 this.trim(aCookieA.path) == this.trim(aCookieB.path);
+		return	aCookieA.type == aCookieB.type &&
+						this.trim(aCookieA.host) == this.trim(aCookieB.host) &&
+						this.trim(aCookieA.name) == this.trim(aCookieB.name) &&
+						this.trim(aCookieA.path) == this.trim(aCookieB.path);
 	},
-
-	cookieMerge: function(a, b)
+*/
+	cookieMerge: function cookieMerge(a, b)
 	{
-		var r = {};
-		for(var i in a)
+log.debug();
+		let r = {};
+		for(let i in a)
 		{
 			r[i] = a[i];
-			if (document.getElementById("c_" + i))
-				if (document.getElementById("c_" + i).checked)
-					r[i] = b[i];
+			if (((i == "port" || i == "proto") && $("c_host").checked)
+					|| ($("c_" + i) && $("c_" + i).checked))
+				r[i] = b[i];
 		}
 
+		r.hash = this.cookieHash(r, true);
 		return r;
 	},
 
-	saveCookie: function(asNew)
+	saveCookie: function saveCookie(asNew)
 	{
+log.debug();
 		asNew = typeof(asNew) == "undefined" ? false : true;
 	//out_d2("Cookie Manager::SaveCookie::BEGIN");
-
-		var d= document;
 
 		if (!this.createNewCookie())
 			return false;
 
-		var exists = coomanPlusCommon._cm2.cookieExists(this._newCookie);
-		var cookieEqual = this._cookieEquals(this._curCookie, this._newCookie);
+		this.isExists(this._newCookie, function(exists)
+		{
+			coomanPlus.saveCookieContinue(asNew, exists);
+		});
+	},
+
+	saveCookieContinue: function saveCookieContinue(asNew, exists)
+	{
+log.debug();
+		let cookieEqual = this._cookieEquals(this._curCookie, this._newCookie, true);
 		if (!cookieEqual && exists)
 		{
-			if (!window.confirm(this.string("exists.overwrite")))
+			if (!window.confirm(this.string("overwrite")))
 				return;
 		}
-		var list = this._params.cookies;
+		let list = this._params.cookies;
 		if (!list)
 			list = [this._curCookie];
 
-		var selected = [];
-		for(var i = 0; i < list.length; i++)
+		let selected = [],
+				count = 0,
+				working = false,
+				self = this;
+		function callback(r)
 		{
-			var aCookie = this.cookieMerge(list[i], this._newCookie);
-			cookieEqual = this._cookieEquals(aCookie, list[i]);
+			working = false;
+			count--;
+		}
+		for(let i = 0; i < list.length; i++)
+		{
+			let aCookie = this.cookieMerge(list[i], this._newCookie);
+			cookieEqual = this._cookieEquals(aCookie, list[i], true);
 			if(this._addFlag
 					|| (!this._addFlag && !exists)
 					|| !cookieEqual
 					|| (aCookie.value != list[i].value)
 					|| (aCookie.expires != list[i].expires)
 					|| (aCookie.isSecure != list[i].isSecure)
-					|| (aCookie.isHttpOnly!= list[i].isHttpOnly)
+					|| (aCookie.isHttpOnly != list[i].isHttpOnly)
+					|| (aCookie.type != list[i].type)
+					|| (aCookie.port != list[i].port)
+					|| (aCookie.proto != list[i].proto)
 				)
 			{
 				this._params.window.coomanPlus._noObserve = true;
-				if (!this._addFlag && !asNew && !cookieEqual)
+				function add()
 				{
-					coomanPlusCommon._cm.remove(list[i].host, list[i].name, list[i].path, false);
+					if (aCookie.type == coomanPlusCore.COOKIE_HTML5 && aCookie._aCookie && aCookie.type != aCookie._aCookie.type)
+					{
+						aCookie._aCookie = coomanPlus.clone(aCookie._aCookie);
+						aCookie._aCookie.originAttributes = "";
+						aCookie._aCookie.originKey = null;
+						aCookie.path = "";
+					}
+					count++;
+					working = true;
+					self.cookieAdd(aCookie, callback);
+					self._params.window.coomanPlus._noObserve = false;
 				}
-				coomanPlusCommon._cm2.add(aCookie.host,
-											aCookie.path,
-											aCookie.name,
-											aCookie.value,
-											aCookie.isSecure,
-											aCookie.isHttpOnly,
-											(aCookie.expires) ? false : true,
-											aCookie.expires || Math.round((new Date()).getTime() / 1000 + 9999999999)
-				);
-				this._params.window.coomanPlus._noObserve = false;
+				if (!this._addFlag && !asNew && (!cookieEqual || (aCookie._aCookie && aCookie._aCookie.type == coomanPlusCore.COOKIE_HTML5 && aCookie._aCookie.originKey)))
+				{
+					let c = list[i];
+					if (aCookie._aCookie && aCookie._aCookie.type == coomanPlusCore.COOKIE_HTML5 && aCookie._aCookie.originKey)
+						c = c._aCookie;
+
+					working = true;
+					this.cookieRemove(list[i], add);
+				}
+				else
+					add();
 			}
-			selected.push(aCookie);
+				let cookie = {
+					h: this.cookieHash({
+						host: aCookie.host,
+						path: aCookie.path,
+						name: aCookie.name,
+						type: aCookie.type,
+						value: aCookie.value
+					})
+				};
+			selected.push(cookie);
 		}
-		this._params.window.coomanPlus._selected = selected;
-		this._params.window.coomanPlus.loadCookies(this._parent.getElementById('lookupcriterium').getAttribute("filter"));
+		selected[0].f = 2;
+//		this._params.window.coomanPlus._cookiesTree.view.selection.currentIndex = -1;
+		function loop()
+		{
+			if (count || working)
+			{
+				this.loop = coomanPlusCore.async(loop, this.loop);
+				return;
+			}
+			coomanPlus._params.window.coomanPlus.loadCookies(coomanPlus._parent.getElementById('lookupcriterium').getAttribute("filter"), undefined, selected);
 
-	//out_d2("Cookie Manager::SaveCookie::END");
-		window.close();
-
+		//out_d2("Cookie Manager::SaveCookie::END");
+			window.close();
+		}
+		loop();
 		return true;
 
 	},
 
-//http://rishida.net/tools/conversion/
-	convertCharStr2jEsc: function ( str, cstyle )
+	showNew: function showNew()
 	{
-		// Converts a string of characters to JavaScript escapes
-		// str: sequence of Unicode characters
-		var highsurrogate = 0;
-		var suppCP;
-		var pad;
-		var n = 0;
-		var outputString = '';
-		for (var i = 0; i < str.length; i++)
-		{
-			var cc = str.charCodeAt(i);
-			if (cc < 0 || cc > 0xFFFF)
-			{
-				this.dump('Error in convertCharStr2jEsc: unexpected charCodeAt result, cc=' + cc + '!');
-				return str;
-			}
-			if (highsurrogate != 0) // this is a supp char, and cc contains the low surrogate
-			{
-				if (0xDC00 <= cc && cc <= 0xDFFF)
-				{
-					suppCP = 0x10000 + ((highsurrogate - 0xD800) << 10) + (cc - 0xDC00);
-					if (cstyle)
-					{
-						pad = suppCP.toString(16);
-						while (pad.length < 8) { pad = '0'+pad; }
-						outputString += '\\U'+pad;
-					}
-					else
-					{
-						suppCP -= 0x10000;
-						outputString += '\\u'+ dec2hex4(0xD800 | (suppCP >> 10)) +'\\u'+ dec2hex4(0xDC00 | (suppCP & 0x3FF));
-					}
-					highsurrogate = 0;
-					continue;
-				}
-				else
-				{
-					this.dump('Error in convertCharStr2jEsc: low surrogate expected, cc=' + cc + '!');
-					return str;
-				}
-			}
-			if (0xD800 <= cc && cc <= 0xDBFF) // start of supplementary character
-			{
-				highsurrogate = cc;
-			}
-			else // this is a BMP character
-			{
-				//outputString += dec2hex(cc) + ' ';
-				switch (cc)
-				{
-					case 0: outputString += '\0'; break;
-					case 8: outputString += '\b'; break;
-					case 9: outputString += '\t'; break;
-					case 10: outputString += '\n'; break;
-					case 13: outputString += '\r'; break;
-					case 11: outputString += '\v'; break;
-					case 12: outputString += '\f'; break;
-					case 34: outputString += '\"'; break;
-					case 39: outputString += '\''; break;
-					case 92: outputString += '\\'; break;
-					default:
-						if (cc > 0x1f && cc < 0x7F)
-						{
-							outputString += String.fromCharCode(cc);
-						}
-						else
-						{
-							pad = cc.toString(16).toUpperCase();
-							while (pad.length < 4)
-							{
-								pad = '0'+pad;
-							}
-							outputString += '\\u'+pad;
-						}
-				}
-			}
-		}
-		return outputString;
-	},
-
-	showNew: function()
-	{
-		var d = document;
+log.debug();
 		this.createNewCookie(false);
-		try
-		{
-			coomanPlusCommon._cm2.cookieExists(this._newCookie);
-			var ok = true;
-		}
-		catch(e)
-		{
-			var ok = false;
-		}
-		var e = (!ok
-							|| !this.trim(d.getElementById('ifl_name').value)
-							||	!this.trim(d.getElementById('ifl_host').value)
-							||	(!d.getElementById('c_name').checked
-										&& !d.getElementById('c_host').checked
-										&& !d.getElementById('c_path').checked
-										&& !d.getElementById('c_value').checked
-										&& !d.getElementById('c_expires').checked
-										&& !d.getElementById('c_isSecure').checked
+		let e = (			!this.trim($("ifl_name").value)
+							||	!this.trim($("ifl_host").value)
+							||	(
+											 !$("c_name").checked
+										&& !$("c_host").checked
+										&& !$("c_path").checked
+										&& !$("c_value").checked
+										&& !$("c_expires").checked
+										&& !$("c_isSecure").checked
+										&& !$("c_isHttpOnly").checked
+										&& !$("c_type").checked
 									)
 						);
 
-		d.getElementById("editCookie").disabled = e;
+		$("editCookie").disabled = e;
+		this.setJSON.timer = coomanPlusCore.async(function()
+		{
+			let val = $("ifl_value").value;
+			try
+			{
+				JSON.parse(val);
+				$("json").disabled = false;
+			}
+			catch(e)
+			{
+				let json = $("json");
+				if (val.match(/[\r\n\t]/i))
+				{
+					json.disabled = false;
+					json.setAttribute("label", coomanPlus.string("json1"))
+					json.setAttribute("checked", false);
+				}
+				else if(val.match(/(%0A|%0D|%09)/i))
+				{
+					json.disabled = false;
+					json.setAttribute("label", coomanPlus.string("json0"))
+					json.setAttribute("checked", true);
+				}
+				else
+					json.disabled = true;
+
+			}
+		}, 0, this.setJSON.timer);
 		if (this._addFlag || this._multi)
 			return;
 
-		var aCookie = this.cookieMerge(this._curCookie, this._newCookie);
-		this._addFlagNew = !this._cookieEquals(aCookie, this._curCookie);
-		d.getElementById("editCookieNew").hidden = false;
+		let aCookie = this.cookieMerge(this._curCookie, this._newCookie);
+		this._addFlagNew = !this._cookieEquals(aCookie, this._curCookie, true);
+		$("editCookieNew").hidden = false;
 		if (this._addFlagNew && !e)
 		{
-			d.getElementById("editCookieNew").disabled = false;
-	//    d.getElementById("editCookie").style.fontWeight = "normal";
+			$("editCookieNew").disabled = false;
+	//    $("editCookie").style.fontWeight = "normal";
 		}
 		else
 		{
-			d.getElementById("editCookieNew").disabled = true;
-	//    d.getElementById("editCookie").style.fontWeight = "bold";
+			$("editCookieNew").disabled = true;
+	//    $("editCookie").style.fontWeight = "bold";
 		}
 	},
 
-	saveCookiesCheck: function(e)
+	saveCookiesCheck: function saveCookiesCheck(e)
 	{
+log.debug();
 //		if (e.keyCode == KeyEvent.DOM_VK_RETURN && (this._addFlag || !this._addFlagNew))
-		if (e.keyCode == KeyEvent.DOM_VK_RETURN && !document.getElementById("editCookie").disabled)
+
+		if (e.target.id != "ifl_value" && e.keyCode == KeyEvent.DOM_VK_RETURN && !$("editCookie").disabled)
 		{
 			return this.saveCookie();
 		}
 		return false;
 	},
+
+	resizeWindow: function resizeWindow(f)
+	{
+log.debug();
+		var w = $("main").boxObject.width;
+		var h = $("main").boxObject.height;
+	//	alert(document.width + "x" + document.height +"\n" + w + "x" + h);
+		if (f || document.width < w || document.height < h)
+			window.sizeToContent();
+	},
+
+	showValueSelect: function showValueSelect(e)
+	{
+		$("ifl_value").value = e.target.value
+	},
+
+	showDefaultSelect: function showDefaultSelect(e)
+	{
+		this._curCookie = new this.cookieObject(this._params.cookies[e.target.value]);
+		this.setFieldProps();
+	},
+	
+	valueMenuSize: function valueMenuSize(e)
+	{
+		$("valueMenu").menupopup.style.maxWidth = $("ifl_value").clientWidth + "px";
+	},
+	
+	typeSelected: function typeSelected(e)
+	{
+log.debug();
+		this.showNew();
+		this.setType();
+	},
+
+	setType: function setType()
+	{
+log.debug();
+		let type = $("ifl_type").value == coomanPlusCore.COOKIE_NORMAL;
+
+		this.setTypeObj("c_expires", type);
+		this.setTypeObj("c_path", type);
+		this.setTypeObj("c_isSecure", type);
+		this.setTypeObj("c_isHttpOnly", type);
+		$("ifl_proto").hidden = type;
+		$("ifl_port").hidden = type;
+		$("ifl_path").disabled = !type;
+	},//setType()
+
+	setTypeObj: function setTypeObj(id, type)
+	{
+		let o = $(id);
+
+		if (!type && !o.disabled)
+			this.backup(o.id, "checked", o.checked);
+
+		o.disabled = !type;
+		let c = type;
+		if (type)
+		{
+			let b = this.backup(o.id, "checked");
+			if (typeof(b) != "undefined")
+				c = b;
+		}
+		o.checked = c;
+
+		o.setAttribute("checked", o.checked);
+		this.enableDisableChildren(o);
+	},//setTypeObj()
+
+	backup: function backup(id, type, val)
+	{
+		let r;
+		try
+		{
+			r = this.backupData[id][type];
+		}catch(e){};
+
+		if (typeof(val) == "undefined")
+			return r;
+
+		if (!(id in this.backupData))
+			this.backupData[id] = {};
+
+		this.backupData[id][type] = val;
+		return r;
+	},//backup()
+	
+	valueKeypress: function valueKeypress(e)
+	{
+		coomanPlus.saveCookiesCheck(e)
+		if(!e.ctrlKey
+				&& !e.shiftKey
+				&& !e.altKey
+				&& !this.open
+				&& (e.keyCode == KeyEvent.DOM_VK_UP
+						|| e.keyCode == KeyEvent.DOM_VK_DOWN
+						|| e.keyCode == KeyEvent.DOM_VK_PAGE_UP
+						|| e.keyCode == KeyEvent.DOM_VK_PAGE_DOWN
+						|| e.keyCode == KeyEvent.DOM_VK_HOME
+						|| e.keyCode == KeyEvent.DOM_VK_END
+						|| e.keyCode == KeyEvent.DOM_VK_BACK_SPACE
+						|| e.keyCode == KeyEvent.DOM_VK_SPACE))
+		{
+			e.target.open = true;
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	},
+	setWrap: function(e)
+	{
+		$("wrap").setAttribute("checked", $("wrap").getAttribute("checked") == "true");
+		$("ifl_value").setAttribute("wrap", $("wrap").getAttribute("checked") == "true" ? "" : "off");
+	},
+	setJSON: function(e)
+	{
+log.debug();
+		let ok = true,
+				type = $("json").getAttribute("checked") == "true";
+		if (e)
+		{
+			e.target.removeAttribute("error");
+			type = type ? 2 : 0;
+		}
+		else
+			type = type ? 0 : 2;
+
+		let val = $("ifl_value").value;
+		if (type)
+			val = this.unescape(val);
+		else
+			val = this.escape(val);
+
+		if (e)
+		{
+			if (val == $("ifl_value").value)
+			{
+				e.target.setAttribute("error", true);
+				coomanPlus.setJSON.timer = coomanPlusCore.async(function()
+				{
+					e.target.removeAttribute("error");
+				}, 1000, coomanPlus.setJSON.timer)
+			}
+			else
+			{
+				e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
+			}
+		}
+		if (val != $("ifl_value").value)
+		{
+			$("ifl_value").value = val;
+		}	
+		$("json").label = this.string("json" + ($("json").getAttribute("checked") == "true" ? 0 : 1));
+		return;
+/*
+		try
+		{
+			let val = JSON.parse($("ifl_value").value);
+			$("ifl_value").value = JSON.stringify(val, null, type);
+			if (e)
+			{
+				e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
+			}
+		}
+		catch(er)
+		{
+			if (e)
+			{
+				let val = $("ifl_value").value;
+				if (e.target.getAttribute("checked") == "true")
+					val = this.unescape(val);
+				else
+					val = this.escape(val);
+
+				if (val === $("ifl_value").value)
+				{
+					e.target.setAttribute("error", true);
+					coomanPlus.setJSON.timer = coomanPlusCore.async(function()
+					{
+						e.target.removeAttribute("error");
+					}, 1000, coomanPlus.setJSON.timer)
+				}
+				else
+				{
+					$("ifl_value").value = val;
+					e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
+				}
+			}
+		}
+		$("json").label = this.string("json" + ($("json").getAttribute("checked") == "true" ? 0 : 1));
+*/
+	},//json()
 };

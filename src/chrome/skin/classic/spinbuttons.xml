@@ -21,12 +21,14 @@
 	-->
 
 <bindings id="spinbuttonsBindings"
-	 xmlns="http://www.mozilla.org/xbl"
-	 xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	 xmlns:xbl="http://www.mozilla.org/xbl">
+					xmlns="http://www.mozilla.org/xbl"
+					xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+					xmlns:xbl="http://www.mozilla.org/xbl"
+>
 
-	<binding id="spinbuttonsH"
-		 extends="chrome://cookiesmanagerplus/skin/spinbuttonsH.xml#spinbuttonsH-baseline">
+	<binding	id="spinbuttonsH"
+						extends="chrome://cookiesmanagerplus/skin/spinbuttons.xml#spinbuttonsH-baseline"
+	>
 		<resources>
 			<stylesheet src="chrome://cookiesmanagerplus/skin/editCookie.css"/>
 		</resources>
@@ -36,13 +38,31 @@
 		<content>
 			<xul:hbox flex="1" align="center">
 				<xul:spacer flex="1"/>
-				<xul:image xbl:inherits="onclick=onup, id, disabled" anonid="upButton" class="up"/>
+				<xul:button xbl:inherits="oncommand=onup, id, disabled, control" anonid="upButton" type="repeat" class="up"/>
 				<xul:spacer flex="1"/>
-				<xul:image xbl:inherits="onclick=ondown, id, disabled" anonid="downButton" class="down"/>
+				<xul:button xbl:inherits="oncommand=ondown, id, disabled, control" anonid="downButton" type="repeat" class="down"/>
 				<xul:spacer flex="1"/>
 			</xul:hbox>
 		</content>
 	</binding>
 
+	<binding	id="spinbuttonsV"
+						extends="chrome://cookiesmanagerplus/skin/spinbuttons.xml#spinbuttonsV-baseline"
+	>
+		<resources>
+			<stylesheet src="chrome://cookiesmanagerplus/skin/editCookie.css"/>
+		</resources>
+	</binding>
+
+	<binding id="spinbuttonsV-baseline">
+		<content>
+			<xul:vbox flex="1" align="center">
+				<xul:spacer flex="1"/>
+				<xul:button xbl:inherits="oncommand=onup, id, disabled, control" anonid="upButton" type="repeat" class="up"/>
+				<xul:button xbl:inherits="oncommand=ondown, id, disabled, control" anonid="downButton" type="repeat" class="down"/>
+				<xul:spacer flex="1"/>
+			</xul:vbox>
+		</content>
+	</binding>
 </bindings>
 
