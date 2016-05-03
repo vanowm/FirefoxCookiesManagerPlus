@@ -656,7 +656,6 @@ coomanPlus.objFromArray = function(array, templ)
 
 coomanPlus.saveFileSelect = function(filename, ext, dir, title)
 {
-log(dir, 1);
 	let	nsIFilePicker = Ci.nsIFilePicker,
 			fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
@@ -688,11 +687,11 @@ coomanPlus.saveFile = function(fp, content)
 		if (localFile.exists())
 			localFile.remove(true);
 
-		localFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+		localFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0o600);
 		let fos = Cc["@mozilla.org/network/file-output-stream;1"]
 							.createInstance(Ci.nsIFileOutputStream);
 		// flags: PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE
-		fos.init(localFile, 0x04 | 0x08 | 0x20, 0600, 0);
+		fos.init(localFile, 0x04 | 0x08 | 0x20, 0o600, 0);
 		written = fos.write(content, content.length);
 		if (fos instanceof Ci.nsISafeOutputStream)
 			fos.finish();
@@ -761,8 +760,8 @@ coomanPlus.getHash = function(str)
 
 coomanPlus.getFilename = function(sel, file)
 {
-	var file, t = new Date();
-	var date = t.getFullYear()
+	let t = new Date(),
+			date = t.getFullYear()
 							+ coomanPlus.right("00" + t.getMonth(), 2)
 							+ coomanPlus.right("00" + t.getDate(), 2)
 							+ coomanPlus.right("00" + t.getHours(), 2)

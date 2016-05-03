@@ -86,6 +86,7 @@ var coomanPlus = {
 	showedExpires: -1,
 
 	_cookiesTreeView: {
+		QueryInterface: null,
 		rowCount : 0,
 		tree: null,
 		canDrop: function canDrop(row, orientation, dataTransfer){return false},
@@ -659,7 +660,7 @@ log.debug("building list");
 				});
 			}
 
-			for(s of selections)
+			for(let s of selections)
 			{
 				let item = self._cookies[s];
 				if (!item || item.deleted == 2)
@@ -2441,12 +2442,15 @@ log.debug("end", 1);
 
 log.debug();
 		if (typeof(order) == "undefined")
-			var order = this.prefViewOrder.split("|");//$("cookieInfoRows").getAttribute("order").split("|");
+			order = this.prefViewOrder.split("|");//$("cookieInfoRows").getAttribute("order").split("|");
 
-		var rows = $("cookieInfoRows").getElementsByTagName("row");
-		var last, from, to;
-		for(var i = 0; i < rows.length; i++)
+		let rows = $("cookieInfoRows").getElementsByTagName("row"),
+				last,
+				from,
+				to;
+		for(let i = 0; i < rows.length; i++)
 		{
+			let row = $("row_" + order[i]);
 			if (!rows[i].collapsed && !rows[i].hidden && rows[i].id != "row_end")
 			{
 				if (!last)
@@ -2460,7 +2464,6 @@ log.debug();
 			if (!order[i])
 				continue;
 
-			var row = $("row_" + order[i]);
 			if (!row || row.id == rows[i].id)
 				continue;
 
@@ -2480,7 +2483,7 @@ log.debug();
 	infoRowAction: function infoRowAction(e)
 	{
 log.debug();
-		var o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
+		let o = e.currentTarget.parentNode.getElementsByTagName("textbox")[0]
 		if (o.getAttribute("empty") == "true" || o.getAttribute("multi") == "true")
 		{
 			o.focus();

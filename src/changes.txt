@@ -35,6 +35,7 @@ v1.7 (2016-05-02)
 	+ when delete confirmation prompt showed the cookie in question is highlighted in the list
 	+ deleting more then one selected cookies one-by-one will display deleted cookies in italic, with line-through in the list
 	+ new filter option "Relaxed domain". When activated and entered sub2.sub1.domain.com as filter it will match cookies with domains: sub2.sub1.domain.com, .sub1.domain.com and .domain.com (note: starts with a dot, which means any sub-domains), but will not match sub3.sub1.domain.com
+	+ new filter option "Exact domain". Entered domain.com will not match .domain.com or sub1.domain.com (#31)
 	+ custom default export/backup filename can now contain # sign which will be replace with current date
 	+ ability show raw domain in the tree (.domain.com instead of domain.com)
 	+ experimental support for local storage (aka HTML5 cookies) (FF20+). Note, auto refresh when cookies changed doesn't work on HTML5 cookies!
@@ -43,7 +44,7 @@ v1.7 (2016-05-02)
 	+ expand/compact buttons for content in edit cookie window, which will attempt make text easier to read by adding new lines to it (first it tries use JSON.parse(), if failed, replaces all %0A, %0D and %09 with \n, \r and \t, which creates new lines and tab characters). Note, it will automatically "compact" the value on save, regardless if it was previously expanded or not.
 	+ checkbox to enable/disable word wrap in edit -> content
 	+ scrollbars to content row view when word wrap is disabled (via right click on content row)
-	+ debug information sent to error console (controlled by hidden setting extensions.cookiesmanagerplus.debug)
+	+ debug messages in error console (controlled by hidden setting extensions.cookiesmanagerplus.debug, bitwise: 0 = off, 1 = errors, 2 = messages, 4 = debug (this will flood with messages!))
 	+ delete expired cookies via menu or automatically when window opened or cookies list reloaded (issue #32)
 	+ links to support website/email at help menu
 	+ CM+ window can now be minimized

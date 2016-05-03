@@ -390,7 +390,8 @@ if (typeof(__dumpName__) == "undefined")
 			if (caller.name)
 				_caller = caller.name;
 
-			let i = 0;
+			let n = 0,
+					i;
 			while(i in caller.arguments)
 			{
 				let quote = typeof caller.arguments[i] == "string" ? '"' : "",
@@ -408,10 +409,10 @@ if (typeof(__dumpName__) == "undefined")
 
 				_arguments += (_arguments ? ", " : "") + quote + arg + quote;
 
-				i++;
+				n++;
 			}
-			if (i >= 10)
-				_arguments += ", +" + (i - 10);
+			if (n >= 10)
+				_arguments += ", +" + (n - 10);
 
 			_arguments = "(" + _arguments + ")";
 		}

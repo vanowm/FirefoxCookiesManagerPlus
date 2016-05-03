@@ -247,17 +247,11 @@ coomanPlus.cookieRemove = function cookieRemove(aCookie, callback)
 	{
 		case coomanPlusCore.COOKIE_NORMAL:
 			let result;
-			if (aCookie._aCookie.originAttributes)
-				result = coomanPlusCore._cm.remove(aCookie.host,
-																						aCookie.name,
-																						aCookie.path,
-																						aCookie.originAttributes,
-																						aCookie.block);
-			else
-				result = coomanPlusCore._cm.remove(aCookie.host,
-																						aCookie.name,
-																						aCookie.path,
-																						aCookie.block);
+			result = coomanPlusCore._cm.remove(aCookie.host,
+																					aCookie.name,
+																					aCookie.path,
+																					aCookie.block,
+																					aCookie.originAttributes);
 			if (typeof(callback) == "function")
 				callback(result)
 
@@ -868,7 +862,7 @@ coomanPlus.listKeys = function()
 
 }
 
-coomanPlus.isMac = coomanPlus.os == "Darwin";
+coomanPlus.isMac = coomanPlusCore.os == "Darwin";
 
 /*
 coomanPlus.openChanges = function openChanges()
