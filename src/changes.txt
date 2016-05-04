@@ -58,11 +58,12 @@ v1.7 (2016-05-02)
 	* order of elements in edit cookie window (when navigating with TAB key)
 	* mouse wheel for changing date numbers can now be used anywhere inside the window
 	* consistency: Site, Host labels are now renamed to Domain
-	* renamed "Add" menu item to "New" in "File" menu (issue #55)
+	* renamed "Add" menu item to "New Cookie" in "File" menu (issue #55)
 	* options window now remembers last opened tabs
 	* adding/removing cookie information row will not resize cookies list
 	* if delete multiple cookies window closed with ESC key or by "close window" button it's now equal to pressing cancel button
 	* auto refresh is now enabled by default
+	* buttons in prompt delete window are now aligned to the left, this prevents them from jumping around when multiple prompts shown.
 	! FF48+ compatibility issue #61
 	! View -> Expires* settings would change when more then one cookie selected
 	! window changes size after each start (fixed only for FF43+)

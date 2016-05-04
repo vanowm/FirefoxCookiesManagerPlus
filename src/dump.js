@@ -13,15 +13,13 @@ if (typeof(__dumpName__) == "undefined")
 		if (typeof(param) != "object")
 			param = {prefix: param};
 
-		function getParam(id, d)
-		{
-			if (typeof(param[id]) == "undefined")
-				param[id] = typeof(_func[id]) == "undefined" ? d : _func[id];
+		if (!("getParam" in param))
+			param.getParam = new _getParam(param);
 
-			return param[id];
-		}//getParam()
 
-		let prefix = getParam("prefix", ""),
+		let getParam = param.getParam,
+				objectId = getParam("objectId", new _objectId()),
+				prefix = getParam("prefix", ""),
 				title = getParam("title", "dump"),
 				parent = getParam("parent", aMessage),
 				file = getParam("file", null),
@@ -88,13 +86,14 @@ if (typeof(__dumpName__) == "undefined")
 			catch(e){_func(e, 1)}
 		}
 
+/*
 		if (typeof(tab) == "undefined")
 		{
 			cache = {
 				id: 1
 			};
 		}
-
+*/
 		if (showCaller)
 		{
 			caller_line = getCaller(callerIndex, stack);
@@ -258,16 +257,16 @@ if (typeof(__dumpName__) == "undefined")
 							ret += "\n" + getTab(tab) + (t2 == "object" ? "{" : "") + "\n";
 
 						let cid = objectId(aMessage[id]);
-						if (!(cid in cache))
+						if (!(cid in objectId.cache))
 						{
 							param.tab = tab + 4;
 							param.parent = parent;
 							param.c = c + 1;
-							cache[cid] = _func(aMessage[id], obj, param);
+							objectId.cache[cid] = _func(aMessage[id], obj, param);
 						}
-						ret += cache[cid];
+						ret += objectId.cache[cid];
 						let suffix = "";
-						if (cache[cid].split("\n").length > showEnd)
+						if (objectId.cache[cid].split("\n").length > showEnd)
 							suffix = "//" + id + " (" + t2 + ")";
 
 							ret += getTab(tab) + ((t2 == "object") ? "}" : "") + suffix;
@@ -302,24 +301,27 @@ if (typeof(__dumpName__) == "undefined")
 			});
 
 
-	if (type)
-	{
-		let	scriptError = Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError),
-				aFlags = type == 1 ? scriptError.warningFlag : scriptError.errorFlag,
-				aMessage = title + " " + output + "\n" + (stack ? stack : ""),
-				aSourceName = caller_file_full;
-				aSourceLine = null,
-				aLineNumber = caller_file.match(/:([0-9]+):([0-9]+)?$/),
-				aColumnNumber = caller_file.match(/:([0-9]+):([0-9]+)?$/),
-				aCategory = null;//"CM+";
-		aLineNumber = aLineNumber ? aLineNumber[1] : null;
-		aColumnNumber = aColumnNumber ? aColumnNumber[2] : null;
-		scriptError.init(aMessage, aSourceName, aSourceLine, aLineNumber, aColumnNumber, aFlags, aCategory);
-		Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService).logMessage(scriptError);
-	}
-	else
-		Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
-			.logStringMessage(title + caller_line + ": " + output);
+		if (type)
+		{
+			let	scriptError = Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError),
+					aFlags = type == 1 ? scriptError.warningFlag : scriptError.errorFlag,
+					aMessage = title + " " + output + "\n" + (stack ? stack : ""),
+					aSourceName = caller_file_full;
+					aSourceLine = null,
+					aLineNumber = caller_file.match(/:([0-9]+):([0-9]+)?$/),
+					aColumnNumber = caller_file.match(/:([0-9]+):([0-9]+)?$/),
+					aCategory = null;//"CM+";
+			aLineNumber = aLineNumber ? aLineNumber[1] : null;
+			aColumnNumber = aColumnNumber ? aColumnNumber[2] : null;
+			scriptError.init(aMessage, aSourceName, aSourceLine, aLineNumber, aColumnNumber, aFlags, aCategory);
+			Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService).logMessage(scriptError);
+		}
+		else
+			Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
+				.logStringMessage(title + caller_line + ": " + output);
+
+		for (let o of objectId.cacheObj)
+			delete o.___obj_id;
 
 		if (!dumpFile)
 		{
@@ -435,7 +437,7 @@ if (typeof(__dumpName__) == "undefined")
 		}
 	});
 
-	_func.error = function log_error(err)
+	_func.error = function log_error(err,prop)
 	{
 		if (typeof(err) != "object" || !("stack" in err))
 		{
@@ -446,17 +448,33 @@ if (typeof(__dumpName__) == "undefined")
 		}
 		let l = err.stack.split("\n"),
 				index = -1;
-
-		for(let i in l)
-			if (l[i].indexOf(" -> ") != -1)
-			{
-				index = i;
-				break;
-			}
+	
+		if (prop && "callerIndex" in prop && l[prop.callerIndex])
+			index = prop.callerIndex;
+		else
+		{
+			for(let i in l)
+				if (l[i].indexOf(" -> ") != -1)
+				{
+					index = i;
+					break;
+				}
+		}
 		_func(" " + err, 1, {callerIndex: index, stack: err.stack, type: 2});
 	}//error()
 
 	_func.debug.startT = new Date();
+
+	function _getParam(param)
+	{
+		return function (id, d)
+		{
+			if (typeof(param[id]) == "undefined")
+				param[id] = typeof(_func[id]) == "undefined" ? d : _func[id];
+
+			return param[id];
+		}
+	}//getParam()
 
 	function getCaller(callerIndex, stack)
 	{
@@ -496,20 +514,36 @@ if (typeof(__dumpName__) == "undefined")
 		return r;
 	}//getCaller()
 
-	function objectId(obj)
+	function _objectId()
 	{
-		let id = cache.id++;
-		if (obj==null) return id;
-		try
+		let id = (new Date()).getTime(),
+				cacheObj = [];
+		function objectId(obj)
 		{
-			if (obj.___obj_id==null)
-				obj.___obj_id=id;
-			id = obj.___obj_id;
-		}
-		catch(e){}
-		return id;
-	}//objectId()
+			id++;
+			if (!obj)
+				return id;
 
+			try
+			{
+				if (!obj.___obj_id)
+				{
+					obj.___obj_id = id;
+					cacheObj.push(obj);
+				}
+
+				id = obj.___obj_id;
+			}
+			catch(e){}
+			return id;
+		}//objectId()
+		objectId.cache = [];
+		objectId.cacheObj = cacheObj;
+		return objectId;
+	}//_objectId()
+
+
+//log(_objectId.cache = {test: "blah"}, 1);
 	/**
 	 * http://mxr.mozilla.org/mozilla-release/search?string=function+resolveURIToLocalPath
 	 *
@@ -588,9 +622,8 @@ if (typeof(__dumpName__) == "undefined")
 	{
 		if (timer)
 		{
-			timer.cancel();
-			if ("unload" in timer)
-				timer.unload();
+			timer.timer.cancel();
+			timer.unload();
 		}
 		else
 			timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
@@ -604,8 +637,7 @@ if (typeof(__dumpName__) == "undefined")
 			callback();
 			clean();
 		}}, time || 0, timer.TYPE_ONE_SHOT);
-		timer.unload = clean;
-		return timer;
+		return {timer: timer, unload: clean};
 	}//async()
 
 	function saveFile(file, data)
@@ -650,10 +682,8 @@ if (typeof(__dumpName__) == "undefined")
 			ph = Cc["@mozilla.org/network/protocol;1?name=file"].createInstance(Ci.nsIFileProtocolHandler),
 			lf = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile),
 			files = [],
-			dumpFile = null,
-			cache = {
-				id: 1
-			};
+			dumpFile = null;
+
 
 	_func.path = Components.stack.caller.filename.replace(/.* -> |[^\/]+$/g, "");
 	_func.dir = getLocalPath(_func.path);

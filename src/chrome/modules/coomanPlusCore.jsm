@@ -66,52 +66,63 @@ var	self = this,
 		}
 	},//openCMP()
 
-	pref: function (key, val, noAsync)
+	pref: function (key, val, noCache, noAsync)
 	{
 		let pref = coomanPlusCore.pref;
 
-		if (typeof(val) == "undefined")
-		{
-			return pref.prefs[key];
-		}
-		else
-		{
-			let type = typeof(pref.prefs[key]);
-			if (type != typeof(val))
+			try
 			{
-				if (type == "number")
-					val = Number(val);
-				else if (type == "string")
-					val = String(val);
-				else
-					val = Boolean(val);
+			if (!noCache && typeof(val) == "undefined")
+			{
+				return pref.prefs[key];
 			}
-			pref.prefs[key] = val;
-			let callback = function()
+			let type = typeof(pref.prefs[key]);
+			if (typeof(val) == "undefined")
 			{
-				delete pref.timers[key];
-				let type = pref.types[typeof(pref.prefs[key])];
-				try
+				type = pref.types[type];
+				if (type)
+					val = coomanPlusCore.prefs["get" + type + "Pref"](key);
+				else
+					val = coomanPlusCore.prefs.getComplexValue(key, Ci.nsISupportsString).data;
+
+				if (typeof(val) != "undefined")
+				pref.prefs[key] = val;
+				return val
+			}
+			else
+			{
+				if (type != typeof(val))
 				{
+					if (type == "number")
+						val = Number(val);
+					else if (type == "string")
+						val = String(val);
+					else
+						val = Boolean(val);
+				}
+				pref.prefs[key] = val;
+				let callback = function()
+				{
+					delete pref.timers[key];
+					let type = pref.types[typeof(pref.prefs[key])];
 					if (type)
 						coomanPlusCore.prefs["set" + type + "Pref"](key, val);
 					else
 					{
 						let str = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
 						str.data = val;
-						coomanPlusCore.prefs.setComplexValue((key), Ci.nsISupportsString, str);
+						coomanPlusCore.prefs.setComplexValue(key, Ci.nsISupportsString, str);
 					}
 				}
-				catch(e)
-				{
-					log.error(e);
-				}
+				if (noAsync)
+					callback();
+				else
+					pref.timers[key] = coomanPlusCore.async(callback, 0, pref.timers[key]);
 			}
-			if (noAsync)
-				callback();
-			else
-				pref.timers[key] = coomanPlusCore.async(callback, 0, pref.timers[key]);
-
+		}
+		catch(e)
+		{
+			log.error(e);
 		}
 		return null;
 	},

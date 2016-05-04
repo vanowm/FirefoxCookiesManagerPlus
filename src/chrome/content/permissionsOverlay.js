@@ -54,7 +54,6 @@ var coomanPlus = {
 
 	backup: function backup(s)
 	{
-		this.prefBackupEncrypt = coomanPlusCore.pref("backupencrypt");
 		let t = new Date(),
 				list = [],
 				sel = [],

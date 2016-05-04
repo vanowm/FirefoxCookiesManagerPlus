@@ -2,7 +2,6 @@ Components.utils.import("resource://gre/modules/FileUtils.jsm");
 Components.utils.import("resource://gre/modules/NetUtil.jsm");
 coomanPlus.prefTemplateClipboard = {value: "", extra: false}
 coomanPlus.prefTemplateFile = {value: "", extra: false};
-coomanPlus.prefBackupEncrypt = false;
 coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT_RAW}		{TYPE_RAW}", extra: false};
 coomanPlus.restoreTemplate = [["host", "string"],["isDomain", "bool"],["path", "string"],["isSecure", "bool"],["expires", "int"],["name", "string"],["value", "string"],["isProtected", "bool"],["type", "int"]];
 coomanPlus.exportGetData = function(t, s, a, u, j)
@@ -145,74 +144,6 @@ coomanPlus.decrypt = function(data, pass, crc)
 
 coomanPlus.encrypt = function(data, pass, crc)
 {
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-//converted encrypt to async
-//decrypt is next
-//	let p = this.getHash256(pass);
-	let scriptloader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
-	scriptloader.loadSubScript(coomanPlus.app.getResourceURI("chrome/content/cryptico.js").spec);
-_bench()
-	let RSAKey = cryptico.generateRSAKey(pass, 1024),
-			re,
-			r;
-_bench("RSA");
-	let p = {return: null, title: "encrypt for now"};
-	coomanPlus.async(function()
-	{
-		coomanPlus._openDialog("de-en-crypt_progress.xul", "", "chrome,resizable=no,centerscreen," + (coomanPlus.isMac ? "dialog=no" : "modal"), p);
-	});
-	if (crc)
-	{
-		re = cryptico.decrypt(data, RSAKey)
-		r = re.plaintext || null;
-	}
-	else
-	{
-		re = cryptico.encrypt(data, cryptico.publicKeyString(RSAKey), null, function(d)
-		{
-_bench("callback");
-			log(d.status, 1);
-//			log(cryptico.decrypt(d.cipher, RSAKey), 1);
-		});
-//		r = re.cipher;
-	}
-	return r
-*/
 	pass = Base64.encode(pass); //work around some issues when used non-ASCII characters
 	let n = 0, r = "";
 
@@ -226,7 +157,6 @@ _bench("callback");
 		return null;
 
 	return r;
-
 }
 
 coomanPlus.backupSelected = function()
@@ -269,7 +199,7 @@ coomanPlus.backupAll = function(sel, file, templ, header)
 		return;
 
 	data = "#template:" + templ.value + "\r\n\r\n\r\n" + data;
-	if (this.prefBackupEncrypt)
+	if (this.pref("backupencrypt"))
 	{
 		var password = this.promptPassword(null, null, true);
 		if (password)
@@ -317,9 +247,8 @@ coomanPlus.backupAddPassword = function()
 		this.alert(this.string("backup_already_encrypted"));
 		return;
 	}
-	let b = this.prefBackupEncrypt,
-			cookies = file[1];
-	this.prefBackupEncrypt = true;
+	let cookies = file[1];
+
 	if (!cookies)
 		return;
 
@@ -501,21 +430,6 @@ coomanPlus.restoreAll = function(sel, fp, callback)
 			self.selectionSave(list);
 			self.loadCookies();
 		}
-	//	self.selectLastCookie(false);
-	/*
-		let s = self.getTreeSelections(self._cookiesTree);
-		if (s.length)
-		{
-			self._currentIndexObj = null;
-			self._currentIndex = s[0];
-			self._cookiesTree.view.selection.currentIndex = s[0];
-			self._cookiesTree.treeBoxObject.ensureRowIsVisible(s[0]);
-		}
-		else
-		{
-			self._cookiesTree.view.selection.currentIndex = self._currentIndex;
-		}
-	*/
 		if (fp)
 		{
 			callback([restored, list]);
@@ -776,35 +690,3 @@ coomanPlus.getFilename = function(sel, file)
 	return file;
 }
 
-/*
-coomanPlus.getHash256 = function(str)
-{
-	let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
-			createInstance(Ci.nsIScriptableUnicodeConverter);
-
-	// we use UTF-8 here, you can choose other encodings.
-	converter.charset = "UTF-8";
-	// result is an out parameter,
-	// result.value will contain the array length
-	let result = {};
-	// data is an array of bytes
-	let data = converter.convertToByteArray(str, result),
-			ch = Cc["@mozilla.org/security/hash;1"]
-						.createInstance(Ci.nsICryptoHash);
-	ch.init(ch.SHA256);
-	ch.update(data, data.length);
-	let hash = ch.finish(false);
-	// return the two-digit hexadecimal code for a byte
-	function toHexString(charCode)
-	{
-		return ("0" + charCode.toString(16)).slice(-2);
-	}
-	// convert the binary hash data to a hex string.
-	let h = [];
-	for (let i in hash)
-	{
-		h.push(toHexString(hash.charCodeAt(i)));
-	}
-	return h.splice(0,16).join("");
-}
-*/

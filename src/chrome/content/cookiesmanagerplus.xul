@@ -338,7 +338,7 @@
 										default="true"
 										flex="1"
 										onkeyup="if (event.keyCode == 13) coomanPlus.doLookup(event);"
-										oncommand="if (coomanPlus.pref('autofilter') &amp;&amp; coomanPlus.checkFilter()) coomanPlus.doLookup()"
+										oncommand="coomanPlus.autofilter()"
 										persist="filter"
 										filter=""
 										type="search"

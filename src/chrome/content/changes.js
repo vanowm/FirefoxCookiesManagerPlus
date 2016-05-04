@@ -316,6 +316,9 @@ var changesLog = {
 		l.sort();
 		for each (let i in l)
 		{
+			if (/^template/.test(i))
+				continue;
+
 			switch(this.pref.getPrefType(i))
 			{
 				case Ci.nsIPrefBranch.PREF_BOOL:
@@ -326,6 +329,8 @@ var changesLog = {
 					break;
 				case Ci.nsIPrefBranch.PREF_STRING:
 					r[i] = this.pref.getComplexValue(i, Ci.nsISupportsString).data;
+					if (/^template/.test(i))
+						r[i] = r[i].replace(/\s{2,}/g, " ");
 					break;
 			}
 		}
@@ -385,7 +390,14 @@ var changesLog = {
 										.createBundle("chrome://" + ADDONDOMAIN + "/locale/changesLog.properties"),
 				_ = function(s)
 				{
-					return strings.GetStringFromName(s);
+					try
+					{
+						return strings.GetStringFromName(s);
+					}
+					catch(e)
+					{
+						log.error(e,{callerIndex: 1});
+					}
 				};
 		try //WHAT THE FUCK, MOZILLA?! HOW ABOUT YOU UPDATE THE DAMN DOCUMENTATION BEFORE YOU REMOVE SHIT WITHOUT BACKWARDS COMPATIBILITY?
 		{
@@ -451,15 +463,16 @@ var changesLog = {
 			{
 				let href = changesLog.fixUrl("mailto:{NAME} support<{EMAIL}>?subject={NAME}&body=%0A%0A__________%0A [Extension]%0A{NAME} v{VER}%0A%0A [Program]%0A{APP} ({LOCALE})%0A%0A [OS]%0A{OS}%0A%0A [Preferences]%0A{PREFSSERIALIZE}"),
 						promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
+						isClipboard = {value: false}
 						button = promptService.confirmEx(window,
 											_("addExtensionsTitle"),
 											_("addExtensions"),
-											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_YES + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_NO,
-											"",
-											"",
-											"",
-											null,
-											{});
+											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2_DEFAULT,
+											_("infoLevel0"),
+											_("infoLevel2"),
+											_("infoLevel1"),
+											_("infoClipboard"),
+											isClipboard);
 				function callback(list)
 				{
 					let addons = {extension:[],theme:[],plugin:[]};
@@ -484,15 +497,15 @@ var changesLog = {
 					if (list)
 						href += encodeURIComponent(list);
 
-					if (Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-							.getService(Components.interfaces.nsIVersionComparator)
+					if (Cc["@mozilla.org/xpcom/version-comparator;1"]
+							.getService(Ci.nsIVersionComparator)
 							.compare(coomanPlusCore.appInfo.version, "8.0") < 0)
 					{
-						let aURI = Components.classes["@mozilla.org/network/io-service;1"]
-										.getService(Components.interfaces.nsIIOService)
+						let aURI = Cc["@mozilla.org/network/io-service;1"]
+										.getService(Ci.nsIIOService)
 										.newURI(href, null, null);
-						Components.classes["@mozilla.org/messengercompose;1"]
-							.getService(Components.interfaces.nsIMsgComposeService)
+						Cc["@mozilla.org/messengercompose;1"]
+							.getService(Ci.nsIMsgComposeService)
 							.OpenComposeWindowWithURI(null, aURI);
 					}
 					else
@@ -514,6 +527,7 @@ var changesLog = {
 						}
 					}
 				}
+log(button);
 				if (button)
 					callback([]);
 				else
@@ -668,7 +682,7 @@ var changesLog = {
 
 			let line = array[i].substr(txt).trim(),
 					listIssue = [],
-					regIssue = /(^|[\s,.;:])(#([0-9]+))/g,
+					regIssue = /(^|[\s,.;:\(])(#([0-9]+))/g,
 					issue,
 					list = [];
 
@@ -745,7 +759,6 @@ var changesLog = {
 									start = end + url.length;
 									ll.addEventListener("click", function(e)
 									{
-log("click");
 										if (e.button == 2)
 											return;
 
@@ -756,20 +769,15 @@ log("click");
 										}
 										catch(e)
 										{
-log(e, 1);
 											if (coomanPlus.getOpenURL)
 												win = coomanPlus.getOpenURL(link, true);
 										}
-log(link, 1, "link");
-log(win);
-log(coomanPlus.getOpenURL, 1);
 										if (!win)
 											return;
 e.stopPropagation();
 e.preventDefault();
 										function setFilter(e)
 										{
-log(e, null, "setFilter");
 											win.document.getElementById("textbox").value = url;
 										}
 										if (win.document.readyState == "complete")
@@ -777,10 +785,8 @@ log(e, null, "setFilter");
 										else
 											win.addEventListener("load", function(e)
 											{
-log(e, 1, "load");
 												setFilter(e);
 											}, false);
-log("click end");
 									}, true);
 
 									c = " setting";

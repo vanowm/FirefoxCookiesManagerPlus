@@ -12,7 +12,7 @@
 				buttons="accept,extra1,help,extra2"
 				defaultButton="extra2"
 				buttonpack="center"
-				align="center"
+				align="start"
 				persist="screenX,screenY"
 >
 	<stringbundle id="cookieBundle" src="chrome://cookiesmanagerplus/locale/coomanPlusPromptDelete.properties"/>

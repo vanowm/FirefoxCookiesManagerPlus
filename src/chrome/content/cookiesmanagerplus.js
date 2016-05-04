@@ -413,6 +413,9 @@ log.debug("end", 1);
 		l.sort();
 		for each (let i in l)
 		{
+			if (/^template/.test(i))
+				continue;
+
 			switch(this.prefs.getPrefType(i))
 			{
 				case Ci.nsIPrefBranch.PREF_BOOL:
@@ -423,6 +426,8 @@ log.debug("end", 1);
 					break;
 				case Ci.nsIPrefBranch.PREF_STRING:
 					r[i] = this.prefs.getComplexValue(i, Ci.nsISupportsString).data;
+					if (/^template/.test(i))
+						r[i] = r[i].replace(/\s{2,}/g, " ");
 					break;
 			}
 		}
@@ -747,8 +752,12 @@ log.debug();
 		inited: false,
 		observe: function observe(subject, topic, key)
 		{
+			let self = this;
 			if (!coomanPlus.prefNoObserve)
-				this.do(subject, topic, key);
+				coomanPlusCore.async(function()
+				{
+					self.do(subject, topic, key);
+				});
 		},
 		do: function onPrefChange_do(subject, topic, key)
 		{
@@ -800,7 +809,6 @@ log.debug("begin");
 																						|| self.prefTemplateFile.value.indexOf("{CREATIONTIME_RAW}") != -1
 																						|| self.prefTemplateFile.value.indexOf("{LASTACCESSED_RAW}") != -1);
 
-			self.prefBackupEncrypt = self.pref("backupencrypt");
 			if (self._cookiesAll.length > 0)
 			{
 				self.selectLastCookie(true);
@@ -1706,13 +1714,25 @@ log.debug("selection set end", 1);
 		}//selectLastCookieContinue()
 	},//selectLastCookie()
 
-	doLookup: function doLookup(e)
+	autofilter: function autofilter(e)
+	{
+		if (coomanPlus.pref('autofilter') && coomanPlus.checkFilter())
+			coomanPlus.autofilter.timer = coomanPlusCore.async(function()
+			{
+				coomanPlus.doLookup();
+			}, 250, coomanPlus.autofilter.timer)
+
+	},
+
+	doLookup: function doLookup(e, website)
 	{
 log.debug();
 		if (this.loadCookies.started)
 			return false;
 
-		this.website = false;
+		if (!website)
+			this.website = false;
+
 		this.setFilter();
 		if( (e && e.keyCode == 13) || !e || this.pref("autofilter"))
 		{
@@ -2277,17 +2297,17 @@ log.debug();
 
 	openEdit: function openEdit()
 	{
-		var s = this.getTreeSelections(this._cookiesTree);
+		let s = this.getTreeSelections(this._cookiesTree);
 		if (!s.length)
 		{
 			this.openAdd();
 			return;
 		}
-		var selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
+		let selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
 		selIndex = s[((selIndex == -1) ? 0 : selIndex)]
 
-		var cookies = [this._cookies[selIndex]];
-		for(var i = 0; i < s.length; i++)
+		let cookies = [this._cookies[selIndex]];
+		for(let i = 0; i < s.length; i++)
 		{
 			if (s[i] != selIndex)
 				cookies[cookies.length] = this._cookies[s[i]];
@@ -3286,7 +3306,7 @@ log.debug();
 			$('lookupcriterium').value = this.websiteHost;
 			$('lookupcriterium').setAttribute("filter", this.websiteHost);
 			if (submit)
-			 this.doLookup();
+			 this.doLookup(undefined, this.website);
 		}
 		
 		if (args.options)

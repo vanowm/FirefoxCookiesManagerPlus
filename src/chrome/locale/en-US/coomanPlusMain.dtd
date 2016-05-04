@@ -9,7 +9,7 @@
 <!ENTITY		menu.invertSelection.label															"Invert selected">
 <!ENTITY		menu.edit.label																					"Edit">
 <!ENTITY		menu.edit.accesskey																			"E">
-<!ENTITY		menu.new.label																					"New">
+<!ENTITY		menu.new.label																					"New Cookie">
 <!ENTITY		menu.new.accesskey																			"N">
 <!ENTITY		menu.delete.label																				"Delete">
 <!ENTITY		menu.delete.accesskey																		"D">

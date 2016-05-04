@@ -59,7 +59,7 @@
 					<vbox>
 						<checkbox id="changesLogHightlight" label="&changesLog.menu.hightlight;" value="1" persist="value" oncommand="changesLog.highlight(event);"/>
 						<checkbox id="changesLogWrap" label="&changesLog.menu.wrap;" value="1" persist="value" oncommand="changesLog.wrap(event);"/>
-						<checkbox id="changesLogAltBg" label="&changesLog.menu.altbg;" value="1" persist="value" oncommand="changesLog.altbg(event);"/>
+						<checkbox id="changesLogAltBg" label="&changesLog.menu.altbg;" value="0" persist="value" oncommand="changesLog.altbg(event);"/>
 						<checkbox id="changesLogLegend" label="&changesLog.menu.legend;" value="1" persist="value" oncommand="changesLog.legend(event);"/>
 						<checkbox id="changesLogCopyIssueUrl" label="&changesLog.menu.copyIssueUrl;" tooltiptext="&changesLog.menu.copyIssueUrl.desc;" value="0" persist="value" oncommand="changesLog.copyIssueUrl(event);"/>
 						<button id="changeLogAddonOptions" label="&changesLog.options.addon;" oncommand="changesLog.openOptions(event)"/>

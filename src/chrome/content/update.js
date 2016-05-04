@@ -440,7 +440,7 @@ coomanPlus.update = function update()
 		{
 			log.error(e);
 		}
-		coomanPlusCore.prefs.setCharPref("version", coomanPlusCore.addon.version);
+		coomanPlusCore.pref("version", coomanPlusCore.addon.version);
 		coomanPlusCore.async(coomanPlus.openChanges);
 	}
 	coomanPlusCore.updateChecked = true;
