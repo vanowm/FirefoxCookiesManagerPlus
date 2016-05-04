@@ -17,7 +17,7 @@ coomanPlus.exportGetData = function(t, s, a, u, j)
 		a = this._cookies;
 
 	let data = [];
-	for(var i = 0; i < s.length; i++)
+	for(let i = 0; i < s.length; i++)
 	{
 		if (u)
 			data[data.length] = this.exportTemplate(a[s[i]], t).replace(/\ttrue/g, "\tTRUE").replace(/\tfalse/g, "\tFALSE");
@@ -28,6 +28,20 @@ coomanPlus.exportGetData = function(t, s, a, u, j)
 	return data.join(j);
 }
 
+coomanPlus.exportEscape = function(text)
+{
+	return text
+					.replace(/\n/g, "_CMP_N__CMP__")
+					.replace(/\r/g, "_CMP_R__CMP__")
+					.replace(/\t/g, "_CMP_T__CMP__")
+}
+coomanPlus.exportUnescape = function(text)
+{
+	return text
+					.replace(/_CMP_N__CMP__/g, "\n")
+					.replace(/_CMP_R__CMP__/g, "\r")
+					.replace(/_CMP_T__CMP__/g, "\t")
+}
 coomanPlus.exportClipboard = function()
 {
 	let data = this.exportGetData(this.prefTemplateClipboard, undefined, undefined, false, ""),
@@ -85,21 +99,21 @@ coomanPlus.exportTemplate = function(aCookie, t)
 	let r = t.value,
 			tags = "",
 			data = {
-				NAME:					aCookie.name,
-				CONTENT:			aCookie.value,
-				CONTENT_RAW:	aCookie.value,
-				HOST:					aCookie.host,
-				PATH:					aCookie.path,
+				NAME:					this.exportEscape(aCookie.name),
+				CONTENT:			this.exportEscape(aCookie.value),
+				CONTENT_RAW:	this.exportEscape(aCookie.value),
+				HOST:					this.exportEscape(aCookie.host),
+				PATH:					this.exportEscape(aCookie.path),
 				ISSECURE:			aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
 				ISSECURE_RAW:	aCookie.isSecure,
 				EXPIRES:			this.getExpiresString(aCookie.expires),
 				EXPIRES_RAW:	aCookie.expires,
-				POLICY:				this.string("policy"+aCookie.policy),
+				POLICY:				this.string("policy" + aCookie.policy),
 				POLICY_RAW:		aCookie.policy,
 				ISDOMAIN:			this.string("yesno"+ (aCookie.isDomain ? 1 : 0)),
 				ISDOMAIN_RAW:	aCookie.isDomain,
-				TYPE:				this.string("cookieType" + (typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type)),
-				TYPE_RAW:		aCookie.type,
+				TYPE:					this.string("cookieType" + (typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type)),
+				TYPE_RAW:			aCookie.type,
 		
 				//exceptions
 				CAPABILITY:		aCookie.capability,
@@ -201,7 +215,7 @@ coomanPlus.backupAll = function(sel, file, templ, header)
 	data = "#template:" + templ.value + "\r\n\r\n\r\n" + data;
 	if (this.pref("backupencrypt"))
 	{
-		var password = this.promptPassword(null, null, true);
+		let password = this.promptPassword(null, null, true);
 		if (password)
 		{
 			data = this.encryptData(password, data);
@@ -559,6 +573,8 @@ coomanPlus.objFromArray = function(array, templ)
 					case "bool":
 						val = val.toUpperCase() == "TRUE"
 						break;
+					default:
+						val = this.exportUnescape(val);
 				}
 			}
 			catch(e){}
@@ -601,11 +617,11 @@ coomanPlus.saveFile = function(fp, content)
 		if (localFile.exists())
 			localFile.remove(true);
 
-		localFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0o600);
+		localFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
 		let fos = Cc["@mozilla.org/network/file-output-stream;1"]
 							.createInstance(Ci.nsIFileOutputStream);
 		// flags: PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE
-		fos.init(localFile, 0x04 | 0x08 | 0x20, 0o600, 0);
+		fos.init(localFile, 0x04 | 0x08 | 0x20, 0600, 0);
 		written = fos.write(content, content.length);
 		if (fos instanceof Ci.nsISafeOutputStream)
 			fos.finish();

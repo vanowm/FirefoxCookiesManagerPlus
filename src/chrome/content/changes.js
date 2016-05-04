@@ -13,7 +13,6 @@ var changesLog = {
 	PREF_BRANCH: coomanPlusCore.PREF_BRANCH,
 	GUID: coomanPlusCore.GUID,
 	pref: null,
-	_copyIssueUrl: 0,
 	decode: function(t)
 	{
 		t = t.toString();
@@ -96,6 +95,14 @@ var changesLog = {
 		return timer;
 	},//async()
 
+	clone: function(o)
+	{
+		let n = {};
+		for(let i in o)
+			n[i] = o[i];
+		return n;
+	},//clone()
+
 	context: function(e)
 	{
 		let sel = window.getSelection();
@@ -105,7 +112,7 @@ var changesLog = {
 			{
 //				let txt = sel.getRangeAt(0).toString();
 				let txt = sel.toString();
-				if (this._copyIssueUrl && ISSUESSITE)
+				if (this.checkboxGet("changesLogCopyIssueUrl") && ISSUESSITE)
 				{
 					txt = txt.replace(/([ ,])(#([0-9]+))/g, function(a, b, c, d)
 					{
@@ -173,49 +180,33 @@ var changesLog = {
 
 	legend: function(e)
 	{
-		let val = Number($("changesLogLegend").getAttribute("value"))+1;
-		if (val > 1 || val < 0)
-			val = 0;
-		$("changesLogLegend").setAttribute("value", val);
+		this.checkboxSet(e.target.id);
 		this.showLegend();
 	},
 
 	showLegend: function()
 	{
-		let c = $("changesLogLegend");
-		let val = Number(c.getAttribute("value"));
-		if (val == 1)
-			c.setAttribute("checked", true);
-		else
-			c.removeAttribute("checked");
-
+		let val = this.checkboxGet("changesLogLegend");
 		$("changesLog").setAttribute("legend", val)
 	},
 
 	wrap: function(e)
 	{
-		let val = Number($("changesLogWrap").getAttribute("value"))+1;
-		if (val > 1 || val < 0)
-			val = 0;
-
-		$("changesLogWrap").setAttribute("value", val);
+		this.checkboxSet(e.target.id);
 		this.showWrap();
 	},
 
 	showWrap: function()
 	{
-		let c = $("changesLogWrap"),
+		let val = this.checkboxGet("changesLogWrap"),
 				b = $("changesLog");
-		let val = Number(c.getAttribute("value"));
 		if (val == 1)
 		{
-			c.setAttribute("checked", true);
 			b.setAttribute("flex", 1);
 			b.parentNode.setAttribute("flex", 1);
 		}
 		else
 		{
-			c.removeAttribute("checked");
 			b.setAttribute("flex", 0);
 			b.parentNode.setAttribute("flex", 0);
 		}
@@ -225,50 +216,43 @@ var changesLog = {
 
 	altbg: function(e)
 	{
-		let val = Number($("changesLogAltBg").getAttribute("value"))+1;
-		if (val > 1 || val < 0)
-			val = 0;
-
-		$("changesLogAltBg").setAttribute("value", val);
+		let val = this.checkboxSet(e.target.id)
 		this.showAltbg();
 	},
 
 	showAltbg: function()
 	{
-		let c = $("changesLogAltBg"),
-				b = $("changesLog");
-		let val = Number(c.getAttribute("value"));
-		if (val == 1)
-		{
-			c.setAttribute("checked", true);
-		}
-		else
-		{
-			c.removeAttribute("checked");
-		}
+		let val = this.checkboxGet("changesLogAltBg");
 		$("changesLog").setAttribute("altbg", val)
 		this.onResize();
 	},
 
 	copyIssueUrl: function(e)
 	{
-		let val = Number($("changesLogCopyIssueUrl").getAttribute("value"))+1;
-		if (val > 1 || val < 0)
-			val = 0;
-		$("changesLogCopyIssueUrl").setAttribute("value", val);
-		this.showCopyIssueUrl();
+		this.checkboxSet(e.target.id);
 	},
 
-	showCopyIssueUrl: function()
+	checkboxSet: function(id, val)
 	{
-		let c = $("changesLogCopyIssueUrl");
-		let val = Number(c.getAttribute("value"));
+		let c = $(id);
+		if (typeof(val) == "undefined")
+			val = Number(c.getAttribute("value")) + 1;
+
+		if (val > 1 || val < 0)
+			val = 0;
+		c.setAttribute("value", val);
+
 		if (val == 1)
 			c.setAttribute("checked", true);
 		else
 			c.removeAttribute("checked");
+		return val;
+	},
 
-		this._copyIssueUrl = val;
+	checkboxGet: function(id)
+	{
+		let val = Number($(id).getAttribute("value"));
+		return this.checkboxSet(id, val);
 	},
 
 	openOptions: function()
@@ -349,17 +333,24 @@ var changesLog = {
 	fixUrl: function(url)
 	{
 		let tags = {
-					OS: encodeURIComponent(Services.appinfo.OS + " (" + Services.appinfo.XPCOMABI + ")"),
-					VER: encodeURIComponent(this.addon.version),
-					APP: encodeURIComponent(Services.appinfo.name + " v" + Services.appinfo.version),
-					EMAIL: escape(this.decode(EMAIL)),
+					OSRAW: Services.appinfo.OS + " (" + Services.appinfo.XPCOMABI + ")",
+					VERRAW: this.addon.version,
+					APPRAW: Services.appinfo.name + " v" + Services.appinfo.version,
 					EMAILRAW: this.decode(EMAIL),
-					NAME: encodeURIComponent(this.addon.name),
 					NAMERAW: this.addon.name,
-					LOCALE: encodeURIComponent(Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry).getSelectedLocale("global")),
-					PREFS: encodeURIComponent(this.getPrefs()),
-					PREFSSERIALIZE: encodeURIComponent(JSON.stringify(this.getPrefs(true)))
-				}
+					LOCALERAW: Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry).getSelectedLocale("global"),
+					PREFSRAW: this.getPrefs(true),
+					PREFSSERIALIZERAW: JSON.stringify(this.getPrefs(true))
+				};
+		tags.OS = encodeURIComponent(tags.OSRAW);
+		tags.VER = encodeURIComponent(tags.VERRAW);
+		tags.APP = encodeURIComponent(tags.APPRAW);
+		tags.EMAIL = escape(tags.EMAILRAW);
+		tags.NAME = encodeURIComponent(tags.NAMERAW);
+		tags.LOCALE = encodeURIComponent(tags.LOCALERAW);
+		tags.PREFS = encodeURIComponent(tags.PREFSRAW);
+		tags.PREFSSERIALIZE = encodeURIComponent(tags.PREFSSERIALIZERAW);
+
 		let reg = new RegExp("\{([A-Z]+)\}", "gm");
 		url = url.replace(reg, function(a, b, c, d)
 		{
@@ -461,13 +452,12 @@ var changesLog = {
 			}
 			else
 			{
-				let href = changesLog.fixUrl("mailto:{NAME} support<{EMAIL}>?subject={NAME}&body=%0A%0A__________%0A [Extension]%0A{NAME} v{VER}%0A%0A [Program]%0A{APP} ({LOCALE})%0A%0A [OS]%0A{OS}%0A%0A [Preferences]%0A{PREFSSERIALIZE}"),
-						promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
-						isClipboard = {value: false}
+				let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
+						isClipboard = {value: 0},
 						button = promptService.confirmEx(window,
 											_("addExtensionsTitle"),
 											_("addExtensions"),
-											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2_DEFAULT,
+											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_0_DEFAULT,
 											_("infoLevel0"),
 											_("infoLevel2"),
 											_("infoLevel1"),
@@ -475,37 +465,53 @@ var changesLog = {
 											isClipboard);
 				function callback(list)
 				{
-					let addons = {extension:[],theme:[],plugin:[]};
-					for(let i in list)
-					{
-						if (list[i].isActive)
-						{
-							if (!addons[list[i].type])
-								addons[list[i].type] = []
+					let href = changesLog.fixUrl("mailto:{NAME} support<{EMAIL}>"),
+							subject = changesLog.fixUrl("subject={NAME}&body=%0A%0A__________%0A"),
+							body = {
+								Addon: changesLog.fixUrl("{NAMERAW} v{VERRAW}"),
+								Program: changesLog.fixUrl("{APPRAW} ({LOCALERAW})"),
+								OS: changesLog.fixUrl("{OSRAW}"),
+								Preferences: changesLog.getPrefs(true)
+							},
+							bodyEncoded = changesLog.clone(body),
+							extra = {};
 
-							addons[list[i].type].push(list[i].name + " v" + list[i].version + " " + list[i].id.replace("@", "{a}"));
+					if (list.length && (button == 1 || isClipboard.value))
+					{
+						for(let i in list)
+						{
+							if (list[i].isActive)
+							{
+								let type = list[i].type.charAt(0).toUpperCase() + list[i].type.slice(1) + "s";
+
+								if (!extra[type])
+									extra[type] = []
+
+								extra[type].push([list[i].name, list[i].version,  list[i].id.replace("@", "{a}")]);
+							}
 						}
 					}
-					list = "";
-					for(let i in addons)
-					{
-						addons[i].sort();
-						let t = addons[i].join("\n");
-						if (t)
-							list += "\n\n [" + i.charAt(0).toUpperCase() + i.slice(1) + (addons[i].length > 1 ? "s" : "") + "]\n" + t;
-					}
-					if (list)
-						href += encodeURIComponent(list);
 
-					if (Cc["@mozilla.org/xpcom/version-comparator;1"]
-							.getService(Ci.nsIVersionComparator)
+					if (button == 1)
+					{
+						for(let i in extra)
+							bodyEncoded[i] = extra[i];
+					}
+					if (button)
+						href += "?" + subject + encodeURIComponent(JSON.stringify(bodyEncoded));
+
+					for(let i in extra)
+						body[i] = extra[i];
+
+					if (isClipboard.value)
+						changesLog.copy(JSON.stringify(body, null, "\t"));
+
+					if (Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator)
 							.compare(coomanPlusCore.appInfo.version, "8.0") < 0)
 					{
-						let aURI = Cc["@mozilla.org/network/io-service;1"]
-										.getService(Ci.nsIIOService)
+						let aURI = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService)
 										.newURI(href, null, null);
-						Cc["@mozilla.org/messengercompose;1"]
-							.getService(Ci.nsIMsgComposeService)
+						Cc["@mozilla.org/messengercompose;1"].getService(Ci.nsIMsgComposeService)
 							.OpenComposeWindowWithURI(null, aURI);
 					}
 					else
@@ -526,14 +532,13 @@ var changesLog = {
 							e.target.dispatchEvent(evt);
 						}
 					}
-				}
-log(button);
-				if (button)
+				}//else
+				if (button != 1 && !isClipboard.value)
 					callback([]);
 				else
 					AddonManager.getAllAddons(callback);
 
-			}
+			}//promptExtList()
 			e.stopPropagation();
 			e.preventDefault();
 		}
@@ -853,7 +858,7 @@ e.preventDefault();
 		this.showHighlight();
 		this.showWrap();
 		this.showAltbg();
-		this.showCopyIssueUrl();
+		this.checkboxGet("changesLogCopyIssueUrl");
 		window.addEventListener("resize", this.onResize, true);
 	} //init()
 };

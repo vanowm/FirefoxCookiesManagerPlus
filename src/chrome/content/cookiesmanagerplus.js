@@ -446,17 +446,23 @@ log.debug("end", 1);
 	fixUrl: function(url)
 	{
 		let tags = {
-					OS: encodeURIComponent(Services.appinfo.OS + " (" + Services.appinfo.XPCOMABI + ")"),
-					VER: encodeURIComponent(coomanPlusCore.addon.version),
-					APP: encodeURIComponent(Services.appinfo.name + " v" + Services.appinfo.version),
-					EMAIL: escape(this.decode(EMAIL)),
+					OSRAW: Services.appinfo.OS + " (" + Services.appinfo.XPCOMABI + ")",
+					VERRAW: coomanPlusCore.addon.version,
+					APPRAW: Services.appinfo.name + " v" + Services.appinfo.version,
 					EMAILRAW: this.decode(EMAIL),
-					NAME: encodeURIComponent(coomanPlusCore.addon.name),
 					NAMERAW: coomanPlusCore.addon.name,
-					LOCALE: encodeURIComponent(Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry).getSelectedLocale("global")),
-					PREFS: encodeURIComponent(this.getPrefs()),
-					PREFSSERIALIZE: encodeURIComponent(JSON.stringify(this.getPrefs(true)))
-				}
+					LOCALERAW: Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry).getSelectedLocale("global"),
+					PREFSRAW: this.getPrefs(true),
+					PREFSSERIALIZERAW: JSON.stringify(this.getPrefs(true))
+				};
+		tags.OS = encodeURIComponent(tags.OSRAW);
+		tags.VER = encodeURIComponent(tags.VERRAW);
+		tags.APP = encodeURIComponent(tags.APPRAW);
+		tags.EMAIL = escape(tags.EMAILRAW);
+		tags.NAME = encodeURIComponent(tags.NAMERAW);
+		tags.LOCALE = encodeURIComponent(tags.LOCALERAW);
+		tags.PREFS = encodeURIComponent(tags.PREFSRAW);
+		tags.PREFSSERIALIZE = encodeURIComponent(tags.PREFSSERIALIZERAW);
 		let reg = new RegExp("\{([A-Z]+)\}", "gm");
 		url = url.replace(reg, function(a, b, c, d)
 		{
@@ -475,40 +481,61 @@ log.debug("end", 1);
 
 	supportEmail: function supportEmail()
 	{
-		let href = coomanPlus.fixUrl("mailto:{NAME} support<{EMAIL}>?subject={NAME}&body=%0A%0A__________%0A [Extension]%0A{NAME} v{VER}%0A%0A [Program]%0A{APP} ({LOCALE})%0A%0A [OS]%0A{OS}%0A%0A [Preferences]%0A{PREFSSERIALIZE}"),
-				promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
+		let self = this,
+			promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
+				isClipboard = {value: 0},
 				button = promptService.confirmEx(window,
-									this.string("addExtensionsTitle"),
-									this.string("addExtensions"),
-									promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_YES + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_NO,
-									"",
-									"",
-									"",
-									null,
-									{});
+									self.string("addExtensionsTitle"),
+									self.string("addExtensions"),
+									promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_0_DEFAULT,
+									self.string("infoLevel0"),
+									self.string("infoLevel2"),
+									self.string("infoLevel1"),
+									self.string("infoClipboard"),
+									isClipboard);
 		function callback(list)
 		{
-			let addons = {extension:[],theme:[],plugin:[]};
-			for(let i in list)
-			{
-				if (list[i].isActive)
-				{
-					if (!addons[list[i].type])
-						addons[list[i].type] = []
+			let href = self.fixUrl("mailto:{NAME} support<{EMAIL}>"),
+					subject = self.fixUrl("subject={NAME}&body=%0A%0A__________%0A"),
+					body = {
+						Addon: self.fixUrl("{NAMERAW} v{VERRAW}"),
+						Program: self.fixUrl("{APPRAW} ({LOCALERAW})"),
+						OS: self.fixUrl("{OSRAW}"),
+						Preferences: self.getPrefs(true)
+					},
+					bodyEncoded = coomanPlus.clone(body),
+					extra = {};
 
-					addons[list[i].type].push(list[i].name + " v" + list[i].version + " " + list[i].id.replace("@", "{a}"));
+			if (list.length && (button == 1 || isClipboard.value))
+			{
+				for(let i in list)
+				{
+					if (list[i].isActive)
+					{
+						let type = list[i].type.charAt(0).toUpperCase() + list[i].type.slice(1) + "s";
+
+						if (!extra[type])
+							extra[type] = []
+
+						extra[type].push([list[i].name, list[i].version,  list[i].id.replace("@", "{a}")]);
+					}
 				}
 			}
-			list = "";
-			for(let i in addons)
+
+			if (button == 1)
 			{
-				addons[i].sort();
-				let t = addons[i].join("\n");
-				if (t)
-					list += "\n\n [" + i.charAt(0).toUpperCase() + i.slice(1) + (addons[i].length > 1 ? "s" : "") + "]\n" + t;
+				for(let i in extra)
+					bodyEncoded[i] = extra[i];
 			}
-			if (list)
-				href += encodeURIComponent(list);
+			if (button)
+				href += "?" + subject + encodeURIComponent(JSON.stringify(bodyEncoded));
+
+			for(let i in extra)
+				body[i] = extra[i];
+
+			if (isClipboard.value)
+				Cc["@mozilla.org/widget/clipboardhelper;1"].getService(Ci.nsIClipboardHelper)
+				.copyString(JSON.stringify(body, null, "\t"));
 
 			if (coomanPlus.getOpenURL)
 			coomanPlus.getOpenURL(href, true);
@@ -3070,16 +3097,15 @@ log.debug();
 				aPopup.removeChild(aPopup.firstChild);
 		}
 
-		var refChild = aPopup.firstChild;
-
-		var tree = coomanPlus._cookiesTree;
-		var i = 0;
-		var d = true;
-		for (var currCol = tree.columns.getFirstColumn(); currCol; currCol = currCol.getNext())
+		let refChild = aPopup.firstChild,
+				tree = coomanPlus._cookiesTree,
+				i = 0,
+				d = true;
+		for (let currCol = tree.columns.getFirstColumn(); currCol; currCol = currCol.getNext())
 		{
 			// Construct an entry for each column in the row, unless
 			// it is not being shown.
-			var currElement = currCol.element;
+			let currElement = currCol.element;
 			if (d && i++ != currCol.index)
 			{
 				d = false;
@@ -3087,10 +3113,10 @@ log.debug();
 
 			if (!currElement.hasAttribute("ignoreincolumnpicker") && !currElement.collapsed)
 			{
-				var popupChild = document.createElement("menuitem");
+				let popupChild = document.createElement("menuitem");
 				popupChild.setAttribute("type", "checkbox");
 				popupChild.setAttribute("closemenu", "none");
-				var columnName = currElement.getAttribute("display") ||
+				let columnName = currElement.getAttribute("display") ||
 												 currElement.getAttribute("label");
 
 				popupChild.setAttribute("label", columnName);

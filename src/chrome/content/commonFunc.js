@@ -359,7 +359,7 @@ coomanPlus.right = function(str, n)
 
 	else
 	{
-		var iLen = String(str).length;
+		let iLen = String(str).length;
 		return String(str).substring(iLen, iLen - n);
 	}
 }
@@ -377,7 +377,7 @@ coomanPlus.left = function(str, n)
 
 coomanPlus.alert = function(msg, title)
 {
-	var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
+	let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
 											.getService(Ci.nsIPromptService);
 	promptService.alert(window, title || msg, msg);
 }
@@ -780,8 +780,8 @@ coomanPlus._match = function _match(str, needle, wildcard, start, type)
 			if (str == needle)
 				return true;
 
-			var p = -1;
-			var l = website.lastIndexOf(".");
+			let p = -1,
+					l = website.lastIndexOf(".");
 			while(1)
 			{
 				p = website.indexOf(".", p+1);
@@ -821,7 +821,7 @@ coomanPlus.matchKeys = function(k, l, len)
 	if (k.length != l.length || (len && k.length < len))
 		return false;
 
-	for(var i = 0; i < l.length; i++)
+	for(let i = 0; i < l.length; i++)
 	{
 		if (k.indexOf(this.getAccel(l[i])) == -1)
 		{
@@ -833,14 +833,14 @@ coomanPlus.matchKeys = function(k, l, len)
 
 coomanPlus.getKeys = function(e)
 {
-	var keys = [];
-	var keycode = this.getAccel(this.keysList[e.keyCode]);
+	let keys = [],
+			keycode = this.getAccel(this.keysList[e.keyCode]);
 	if(e.ctrlKey) keys.push(this.getAccel("CONTROL"));
 	if(e.altKey) keys.push(this.getAccel("ALT"));
 	if(e.metaKey) keys.push(this.getAccel("META"));
 	if(e.shiftKey) keys.push(this.getAccel("SHIFT"));
 
-	var modifiers = keys.slice();
+	let modifiers = keys.slice();
 	if (keys.indexOf(keycode) == -1)
 		keys.push(keycode);
 	return [keys, [modifiers, keycode]];
@@ -857,7 +857,7 @@ coomanPlus.listKeys = function()
 		return;
 
 	coomanPlus.keysList = [];
-	for (var property in KeyEvent)
+	for (let property in KeyEvent)
 		coomanPlus.keysList[KeyEvent[property]] = property.replace("DOM_VK_","");
 
 }

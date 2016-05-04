@@ -859,42 +859,5 @@ log.debug();
 		}	
 		$("json").label = this.string("json" + ($("json").getAttribute("checked") == "true" ? 0 : 1));
 		return;
-/*
-		try
-		{
-			let val = JSON.parse($("ifl_value").value);
-			$("ifl_value").value = JSON.stringify(val, null, type);
-			if (e)
-			{
-				e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
-			}
-		}
-		catch(er)
-		{
-			if (e)
-			{
-				let val = $("ifl_value").value;
-				if (e.target.getAttribute("checked") == "true")
-					val = this.unescape(val);
-				else
-					val = this.escape(val);
-
-				if (val === $("ifl_value").value)
-				{
-					e.target.setAttribute("error", true);
-					coomanPlus.setJSON.timer = coomanPlusCore.async(function()
-					{
-						e.target.removeAttribute("error");
-					}, 1000, coomanPlus.setJSON.timer)
-				}
-				else
-				{
-					$("ifl_value").value = val;
-					e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
-				}
-			}
-		}
-		$("json").label = this.string("json" + ($("json").getAttribute("checked") == "true" ? 0 : 1));
-*/
 	},//json()
 };
