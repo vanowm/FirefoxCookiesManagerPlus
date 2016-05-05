@@ -569,14 +569,20 @@ var changesLog = {
 					hboxStats = document.createElement("hbox");
 
 			hboxStats.className = "stats";
+			let list = [];
 			for(let i in stats)
 			{
+				list.push(i);
+			}
+			for(let c = 0; c < list.length; c++)
+			{
+				let i = list[c];
 				let hbox = document.createElement("hbox"),
 						type = document.createElement("description"),
 						value = document.createElement("description");
 				type.className = i;
 				type.appendChild(document.createTextNode(stats[i][0]));
-				value.appendChild(document.createTextNode("" + stats[i][1] + ", "))
+				value.appendChild(document.createTextNode(stats[i][1] + (c < list.length - 1 ? ", " : "")))
 				hbox.appendChild(type);
 				hbox.appendChild(value);
 				hbox.setAttribute("line", "");

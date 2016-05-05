@@ -1,7 +1,7 @@
 var log = coomanPlusCore.log,
 html5 = {
 	cmp: coomanPlus,
-	enabled: true,
+	enabled: coomanPlusCore.pref("html5"),
 //	db: {path: OS.Path.join(OS.Constants.Path.profileDir, "webappsstore.sqlite")},
 	db: {path: "webappsstore.sqlite"},
 	api: 44, //FF44<
@@ -162,7 +162,7 @@ log.debug();
 							value	= (aRow.getTypeOfIndex(2) == aRow.VALUE_TYPE_TEXT ? aRow.getResultByName("value") : null);
 
 					if (scope == null || scope.length == 0 || key == null || key.length == 0)
-						return;
+						continue;
 
 					list.push(self.getCookieObject(scope, key, value, aRow.getResultByName("originKey"), aRow.getResultByName("originAttributes")));
 				}

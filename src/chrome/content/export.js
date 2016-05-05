@@ -416,7 +416,7 @@ coomanPlus.restoreAll = function(sel, fp, callback)
 	}
 	(function loop()
 	{
-		if (added == restored.length)
+		if (added >= restored.length)
 		{
 			restoreAllContinue();
 			return;
@@ -501,10 +501,11 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 			pos = data.indexOf(str);
 		}
 		data = data.substring(pos + str.length, data.length);
+log([this.getHash(data), encrypted[3]],1);
 		if (this.getHash(data) != encrypted[3])
 		{
 			this.alert(this.strings.backup_corrupted);
-			return false;
+//			return false;
 		}
 
 		let r = true, msg;
@@ -521,6 +522,8 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 				}
 				msg = this.string("password_incorrect");
 //					this.alert(this.string("password_incorrect"));
+data=d;
+break;
 			}
 			else
 			{
@@ -528,6 +531,8 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 			}
 		}
 	}
+log(data, 1);
+return false;
 	let lines = data.split("\r\n"),
 			cookies = [];
 	data = "";
