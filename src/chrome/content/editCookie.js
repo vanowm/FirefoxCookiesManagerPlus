@@ -45,6 +45,7 @@ var	log = coomanPlusCore.log,
 	_parent: null,
 	_multi: false,
 	backupData: {},
+	pref: coomanPlusCore.pref,
 	prefs: coomanPlusCore.prefs,
 	html5: coomanPlusCore.html5,
 	mouseScrollTimeStamp: 0,
@@ -159,8 +160,7 @@ log.debug();
 			this.rebuildDateSelection($("expr_new"), true);
 			//set date/time picker fields
 		}
-log(this.html5.available);
-		$("typebox").collapsed = !this.html5.enabled;
+		$("typebox").collapsed = !this.html5.available || !this.pref("html5");
 		this.setFieldProps();
 		this.showNew();
 		this.setWrap();
