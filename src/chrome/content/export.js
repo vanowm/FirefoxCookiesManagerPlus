@@ -501,7 +501,7 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 			pos = data.indexOf(str);
 		}
 		data = data.substring(pos + str.length, data.length);
-log([this.getHash(data), encrypted[3]],1);
+//log([this.getHash(data), encrypted[3]],1);
 		if (this.getHash(data) != encrypted[3])
 		{
 			this.alert(this.strings.backup_corrupted);
@@ -522,8 +522,8 @@ log([this.getHash(data), encrypted[3]],1);
 				}
 				msg = this.string("password_incorrect");
 //					this.alert(this.string("password_incorrect"));
-data=d;
-break;
+//data=d;
+//break;
 			}
 			else
 			{
@@ -531,8 +531,8 @@ break;
 			}
 		}
 	}
-log(data, 1);
-return false;
+//log(data, 1);
+//return false;
 	let lines = data.split("\r\n"),
 			cookies = [];
 	data = "";

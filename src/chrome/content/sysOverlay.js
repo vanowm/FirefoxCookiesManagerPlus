@@ -75,12 +75,18 @@ coomanPlusCore.log.debug("end load", 1);
 coomanPlusCore.log.debug(host);
 		if (host && ["http","https"].indexOf(gBrowser.currentURI.scheme) != -1)
 		{
-			m.label = this.strings.site + ": " + host;
-			m2.label = this.strings.site + ": " + host;
+			if (m)
+				m.label = this.strings.site + ": " + host;
+
+			if (m2)
+			{
+				m2.label = this.strings.site + ": " + host;
+				m2.hidden = false;
+			}
+
 			if (m3)
 				m3.label = this.strings.site + ": " + host;
 			
-			document.getElementById("coomanPlus_tools_menuitem").hidden = false;
 		}
 		else
 		{
@@ -89,8 +95,8 @@ coomanPlusCore.log.debug(host);
 				this.openCookieEditor();
 				return false;
 			}
-
-			document.getElementById("coomanPlus_tools_menuitem").hidden = true;
+			if (m2)
+				m2.hidden = true;
 		}
 		return true;
 	},
