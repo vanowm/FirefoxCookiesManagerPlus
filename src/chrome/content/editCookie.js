@@ -46,6 +46,7 @@ var	log = coomanPlusCore.log,
 	_multi: false,
 	backupData: {},
 	prefs: coomanPlusCore.prefs,
+	html5: coomanPlusCore.html5,
 	mouseScrollTimeStamp: 0,
 	load: function load()
 	{
@@ -64,9 +65,6 @@ log.debug();
 
 		this._addFlag = this._params.type == "new";
 		this._cb = $("bundlePreferences");
-
-		Cu.import("resource://gre/modules/Services.jsm");
-		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/html5.js").spec, this);
 
 		$('ifl_isSecureYes').label = $('ifl_isSecureYes').value = this.string("forSecureOnly");
 		$('ifl_isSecureNo').label = $('ifl_isSecureNo').value = this.string("forAnyConnection");
@@ -161,6 +159,8 @@ log.debug();
 			this.rebuildDateSelection($("expr_new"), true);
 			//set date/time picker fields
 		}
+log(this.html5.available);
+		$("typebox").collapsed = !this.html5.enabled;
 		this.setFieldProps();
 		this.showNew();
 		this.setWrap();

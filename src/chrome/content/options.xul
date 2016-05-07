@@ -79,6 +79,7 @@
 				<preference id="showChangesLog" name="extensions.cookiesmanagerplus.showChangesLog" type="int" />
 				<preference id="deleteexpired" name="extensions.cookiesmanagerplus.deleteexpired" type="bool" />
 				<preference id="restoreselection" name="extensions.cookiesmanagerplus.restoreselection" type="int" />
+				<preference id="html5" name="extensions.cookiesmanagerplus.html5" type="bool" />
 			</preferences>
 			<tabbox id="options" persist="selectedIndex" flex="1">
 				<tabs>
@@ -106,7 +107,7 @@
 							<hbox>
 								<checkbox preference="deleteexpired" label='&options.deleteexpired.label;' tooltiptext="&options.deleteexpired.info;" accessibleType="1003"/>
 							</hbox>
-							<hbox id="protectbox">
+							<hbox id="protectbox" collapsed="true">
 								<checkbox id="deleteprotectedCheckbox" preference="deleteprotected" label='&options.protect.delete.label;' accessibleType="1003"/>
 							</hbox>
 							<hbox align="center" tooltiptext="&options.restoreselection.info;">
@@ -121,6 +122,11 @@
 														type="number"
 														accessibleType="101B"
 									/>
+								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
+							</hbox>
+							<hbox id="html5box" collapsed="true">
+								<checkbox id="html5Checkbox" preference="html5" label='&options.html5.label;' accessibleType="1003"/>
+								<label value="&options.html5.warning;" control="restoreselection" class="info"/>
 							</hbox>
 							<hbox tooltiptext="&options.simplehost.info;" align="center">
 								<label value="&options.simplehost.label;" control="simplehostmenu"/>

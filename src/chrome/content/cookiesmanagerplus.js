@@ -36,6 +36,7 @@ var self = this;
 var coomanPlus = {
 	_cmpWindow: null,
 	core: coomanPlusCore,
+	html5: coomanPlusCore.html5,
 	winid: new Date(),
 	inited: false,
 	app: null,
@@ -308,17 +309,9 @@ log.debug("begin");
 		this.listKeys();
 
 		Cu.import("resource://gre/modules/Services.jsm");
-		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/html5.js").spec, this);
 		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/constants.js").spec, self);
-		if (!this.html5.enabled)
-		{
-			$("menu_info_type").hidden = true;
-			$("searchtype1").hidden = true;
-			$("searchtype1").setAttribute("checked", true);
-			$("searchtype2").hidden = true;
-			$("type").collapsed = true;
-			$("row_type").hidden = true;
-		}
+		this.html5.cmp = this;
+		this.checkHTML5();
 		var rows = $("cookieInfoRows").getElementsByTagName("row");
 		for(let i = 0; i < rows.length; i++)
 		{
@@ -395,6 +388,21 @@ log.debug("end", 1);
 			window.sizeToContent();
 */
 	},//start()
+
+	checkHTML5: function()
+	{
+		let c = (!this.html5.available || !coomanPlusCore.pref("html5"));
+		$("menu_info_type").hidden = c;
+		$("searchtype1").hidden = c;
+		if (c)
+			$("searchtype1").setAttribute("checked", c);
+		else
+			$("searchtype1").removeAttribute("checked");
+		
+		$("searchtype2").hidden = c;
+		$("type").collapsed = c;
+		$("row_type").hidden = c;
+	},
 
 	decode: function(t)
 	{
@@ -811,6 +819,12 @@ log.debug("begin");
 											.getInterface(Ci.nsIXULWindow);
 				xulWin.zLevel = (self.pref("topmost")) ? xulWin.raisedZ : xulWin.normalZ;
 			}
+			if (key == "html5")
+			{
+				self.checkHTML5();
+				self.loadCookies();
+			}
+
 			$("menu_info_topmost").setAttribute("checked", self.pref("topmost"));
 			$("menu_treeView_realHost").setAttribute("checked", self.pref("showrealhost"));
 			$("treeView_realHost").setAttribute("checked", self.pref("showrealhost"));
@@ -836,7 +850,7 @@ log.debug("begin");
 																						|| self.prefTemplateFile.value.indexOf("{CREATIONTIME_RAW}") != -1
 																						|| self.prefTemplateFile.value.indexOf("{LASTACCESSED_RAW}") != -1);
 
-			if (self._cookiesAll.length > 0)
+			if (self._cookiesAll.length > 0 && key != "html5")
 			{
 				self.selectLastCookie(true);
 			}

@@ -74,3 +74,8 @@ textbox[multiline="true"]
 	margin: 3px;
 	padding: 3px;
 }
+
+.info
+{
+	font-style: italic;
+}

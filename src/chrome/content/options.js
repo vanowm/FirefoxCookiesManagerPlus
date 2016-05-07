@@ -39,6 +39,7 @@ var coomanPlus = {
 	instantApply: false,
 	inited: false,
 	pref: coomanPlusCore.pref,
+	html5: coomanPlusCore.html5,
 	load: function load()
 	{
 		coomanPlusCore.async(function()
@@ -49,6 +50,7 @@ var coomanPlus = {
 
 	init: function init()
 	{
+		let self = this;
 		this._cb = $("cookieBundle");
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
@@ -105,6 +107,10 @@ var coomanPlus = {
 		this.changesLogMenu();
 		$("changesLog").addEventListener("command", coomanPlus.changesLogClick, true);
 		$("protectbox").setAttribute("collapsed", !this.protect.enabled);
+		coomanPlusCore.async(function()
+		{
+			$("html5box").setAttribute("collapsed", !self.html5.available);
+		}, 100);
 		$("showChangesLog_button").addEventListener("click", function(e)
 		{
 			if (e.button == 2)

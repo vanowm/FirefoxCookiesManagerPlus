@@ -356,7 +356,7 @@
 						</hbox>
 					</groupbox>
 				</row>
-				<row align="center">
+				<row id="typebox" align="center">
 					<hbox align="center" pack="end">
 						<checkbox	id="c_type"
 											label="&type.label;"

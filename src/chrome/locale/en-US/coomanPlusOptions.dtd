@@ -77,3 +77,6 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY options.showChangesLogFull.desc		"Open full changes log in a tab">
 <!ENTITY options.restoreselection.label			"Preserve selection:">
 <!ENTITY options.restoreselection.info			"How many selected items will be remembered when CM+ closed and re-selected when CM+ opened again">
+<!ENTITY options.restoreselection.warning		"* might affect startup time">
+<!ENTITY options.html5.label								"Enable Local Storage (HTML5 Cookies) support">
+<!ENTITY options.html5.warning							"(experimental might not work properly)">

@@ -17,12 +17,12 @@ pref("extensions.cookiesmanagerplus.backupencrypt", false);
 pref("extensions.cookiesmanagerplus.backupfilename", ""); //default filename used for backup
 pref("extensions.cookiesmanagerplus.nativesync", false);
 pref("extensions.cookiesmanagerplus.showrealhost", true);
-pref("extensions.cookiesmanagerplus.showChangesLog", 4);
+pref("extensions.cookiesmanagerplus.showChangesLog", 1);
 pref("extensions.cookiesmanagerplus.deleteexpired", false);
 pref("extensions.cookiesmanagerplus.restoreselection", 1); //restore selection NN = number of items to store, -1 = no limit
+pref("extensions.cookiesmanagerplus.html5", false);
 
 //hidden options:
-pref("extensions.cookiesmanagerplus.html5", true);
 pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
 pref("extensions.cookiesmanagerplus.debug", 1);
 pref("extensions.cookiesmanagerplus.version", "");

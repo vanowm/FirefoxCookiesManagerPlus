@@ -8,7 +8,11 @@ Legend:
 - = Removed
 
 v1.7.2 (2016--)
+	+ added option to disable/enable local storage support
+	* support for local storage cookies is disabled by default
+	* default notification when CM+ updated changed from show full changes log to notificaiton1
 	! CM+ doesn't show any cookies when local storage module fails to read data
+	! sub-menu in tools menu/toolbar button didn't work properly
 
 v1.7.1 (2016-05-03)
 	+ hidden setting extensions.cookiesmanagerplus.html5 to disable local storage support

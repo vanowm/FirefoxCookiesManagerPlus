@@ -165,7 +165,10 @@ AddonManager.getAddonByID(coomanPlusCore.GUID, function(addon)
 	coomanPlusCore.addon = addon;
 	coomanPlusCore.prefs.QueryInterface(Ci.nsIPrefBranch).addObserver('', coomanPlusCore.onPrefChange, false);
 	Services.scriptloader.loadSubScript(addon.getResourceURI("dump.js").spec, self);
+	coomanPlusCore.log = log;
 	Services.scriptloader.loadSubScript(addon.getResourceURI("chrome/content/constants.js").spec, self);
+	Services.scriptloader.loadSubScript(addon.getResourceURI("chrome/content/html5.js").spec, self);
+	coomanPlusCore.html5 = html5;
 	coomanPlusCore.EMAIL = EMAIL;
 	coomanPlusCore.HOMEPAGE = HOMEPAGE;
 	coomanPlusCore.SUPPORTSITE = SUPPORTSITE;
@@ -175,7 +178,6 @@ AddonManager.getAddonByID(coomanPlusCore.GUID, function(addon)
 	log.folder = "";
 	log.title = "CM+";
 	log.showCaller = 3;
-	coomanPlusCore.log = log;
 	let l = coomanPlusCore.prefs.getChildList("");
 
 	for(let i of l)

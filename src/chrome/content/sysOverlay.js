@@ -72,7 +72,7 @@ coomanPlusCore.log.debug("end load", 1);
 			host = gBrowser.currentURI.host;
 		}
 		catch(er){};
-coomanPlusCore.log.debug(gBrowser.currentURI.host);
+coomanPlusCore.log.debug(host);
 		if (host && ["http","https"].indexOf(gBrowser.currentURI.scheme) != -1)
 		{
 			m.label = this.strings.site + ": " + host;

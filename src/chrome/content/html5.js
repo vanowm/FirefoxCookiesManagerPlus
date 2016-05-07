@@ -1,7 +1,8 @@
 var log = coomanPlusCore.log,
 html5 = {
-	cmp: coomanPlus,
-	enabled: coomanPlusCore.pref("html5"),
+	cmp: null,
+	enabled: false,
+	available: false,
 //	db: {path: OS.Path.join(OS.Constants.Path.profileDir, "webappsstore.sqlite")},
 	db: {path: "webappsstore.sqlite"},
 	api: 44, //FF44<
@@ -35,7 +36,7 @@ html5 = {
 			// Properties
 			scope				: aScope,
 			host				: host,
-			rawHost			: coomanPlus.getRawHost(host),
+			rawHost			: this.cmp.getRawHost(host),
 			proto				: proto,
 			port				: port,
 			key					: aKey,
@@ -67,7 +68,7 @@ html5 = {
 
 	cookieToHTML5: function cookieToHTML5(aCookie)
 	{
-		let item = coomanPlus.clone(aCookie);
+		let item = this.cmp.clone(aCookie);
 		if (!("scope" in item))
 			item.scope = this.reverseString(item.host) + ":" + item.proto + ":" + item.port;
 
@@ -133,7 +134,7 @@ html5 = {
 	load: function html5_load(callback)
 	{
 log.debug();
-		if (!this.enabled)
+		if (!this.available || !coomanPlusCore.pref("html5"))
 		{
 			callback([]);
 			return;
@@ -182,11 +183,14 @@ log.debug();
 	
 	add: function html5_add(aCookie, callback)
 	{
-		if (!this.enabled)
+		if (!this.available || !coomanPlusCore.pref("html5"))
+		{
+			callback(false);
 			return;
+		}
 
 		let self = this;
-coomanPlus.debug();
+coomanPlusCore.debug();
 		Task.spawn(function html5_add_task()
 		{
 			let list = [],
@@ -237,13 +241,13 @@ coomanPlus.debug();
 
 	remove: function html5_remove(aCookie, callback)
 	{
-		if (!this.enabled)
+		if (!this.available || !coomanPlusCore.pref("html5"))
 		{
 			callback([]);
 			return false;
 		}
 		let self = this;
-coomanPlus.debug();
+coomanPlusCore.debug();
 		Task.spawn(function html5_remove_task()
 		{
 			let list = [],
@@ -281,7 +285,7 @@ coomanPlus.debug();
 
 	isExists: function html5_isExists(aCookie, callback)
 	{
-		if (!this.enabled)
+		if (!this.available || coomanPlusCore.pref("html5"))
 		{
 			callback(false);
 			return false;
@@ -353,6 +357,8 @@ log.debug("html5.js loaded");
 			html5.cols = cols;
 			if (cols.indexOf("originKey") != -1 && cols.indexOf("originAttributes") != -1)
 				html5.api = 45;//FF45 and newer
+
+			html5.available = true;
 		}
 		catch(e)
 		{
@@ -361,12 +367,13 @@ log.debug("html5.js loaded");
 		finally
 		{
 			if (db)
+			{
 				yield db.close();
+			}
 		}
 	});
 }
 catch(e)
 {
-//	log.error(e);
-	html5.enabled = false;
+	log.error(e);
 }
