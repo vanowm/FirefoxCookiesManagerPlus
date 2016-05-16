@@ -9,7 +9,7 @@
 		<script src="chrome://cookiesmanagerplus/content/common.js"/>
 		<script src="chrome://cookiesmanagerplus/content/cookiesOverlay.js"/>
 		<vbox class="ub" flex="0" id="coomanPlusButton">
-			<button image="chrome://cookiesmanagerplus/skin/images/anec16.png"
+			<button image="chrome://cookiesmanagerplus/skin/images/coomanPlus16.png"
 							tooltiptext="&coockiesManagerPlus;"
 							accesskey="&coockiesManagerPlus.accesskey;"
 							style="min-width: 18px;"

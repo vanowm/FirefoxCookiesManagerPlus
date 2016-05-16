@@ -25,111 +25,235 @@
 /*----------------------
  Contains some of the code is from Mozilla original Cookie Editor
  ----------------------*/
-Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
 coomanPlusCore.lastKeyDown = [];
 
+function $(id)
+{
+	return document.getElementById(id);
+}
 var coomanPlus = {
-	aWindowBackup: null,
+	cmpWindowBackup: null,
 	standalone: true,
 	winid: new Date(),
 	_cb: null,
 	instantApply: false,
-	load: function()
+	inited: false,
+	pref: coomanPlusCore.pref,
+	html5: coomanPlusCore.html5,
+	load: function load()
 	{
-		coomanPlus.init();
+		coomanPlusCore.async(function()
+		{
+			coomanPlus.init();
+		});
 	},
 
-	init: function()
+	init: function init()
 	{
-		this._cb = document.getElementById("cookieBundle");
+		let self = this;
+		this._cb = $("cookieBundle");
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
-		this.test(document.getElementById("format"));
-		var t = document.getElementById("preset").childNodes;
+		this.test($("format"));
 		this.instantApply = Cc["@mozilla.org/preferences-service;1"]
 												.getService(Ci.nsIPrefBranch)
 												.getBoolPref("browser.preferences.instantApply");
 
+		coomanPlus.protect.init();
+		var tree = $("dateList");
+		var p = null;
+		var t = (new Date()).getTime() / 1000;
+		for(var i = 0; i < tree.view.rowCount; i++)
+		{
+			if (p == null)
+			{
+				if (tree.view.getCellValue(i, tree.columns[0]) != "presets")
+					continue;
+
+				p = i;
+				continue
+			}
+			if (tree.view.getParentIndex(i) != p)
+				break;
+
+			var val = tree.view.getCellValue(i, tree.columns[0]) != "default" ? tree.view.getCellText(i, tree.columns[0]) : "";
+
+			tree.view.setCellText(i, tree.columns[2], ("Ex: " + this.getExpiresString(t, val)));
+		}
 		for(var i = 0; i < t.length; i++)
 		{
 			if (!t[i].label)
 				t[i].label = this.getExpiresString((new Date()).getTime()/1000, t[i].value);
 		}
-		document.getElementById("cookiecullerCheckbox").addEventListener("CheckboxStateChange", this.enableDisable, false);
-//		document.getElementById("ifl_expires").addEventListener("CheckboxStateChange", this.enableDisable, false);
-		document.getElementById("templateclipboardinput").editor.transactionManager.clear();
-		document.getElementById("templatefileinput").editor.transactionManager.clear();
-		document.getElementById("templateclipboardinput").selectionStart = 0;
-		document.getElementById("templateclipboardinput").selectionEnd = 0;
-		document.getElementById("templatefileinput").selectionStart = 0;
-		document.getElementById("templatefileinput").selectionEnd = 0;
-		function getContents(aURL){
-			var ioService=Components.classes["@mozilla.org/network/io-service;1"]
-				.getService(Components.interfaces.nsIIOService);
-			var scriptableStream=Components
-				.classes["@mozilla.org/scriptableinputstream;1"]
-				.getService(Components.interfaces.nsIScriptableInputStream);
+		$("templateclipboardinput").editor.transactionManager.clear();
+		$("templatefileinput").editor.transactionManager.clear();
+		$("templateclipboardinput").selectionStart = 0;
+		$("templateclipboardinput").selectionEnd = 0;
+		$("templatefileinput").selectionStart = 0;
+		$("templatefileinput").selectionEnd = 0;
+		$("dateList").addEventListener("keydown", this.dateFormatAdd, true);
+		$("dateList").addEventListener("click", this.dateFormatAdd, true);
+		if ($("options").tabs.itemCount <= parseInt($("options").getAttribute("selectedIndex")))
+			$("options").selectedIndex = 0;
 
-			var channel=ioService.newChannel(aURL,null,null);
-			var input=channel.open();
-			scriptableStream.init(input);
-			var str=scriptableStream.read(input.available());
-			scriptableStream.close();
-			input.close();
-			return str;
-		}
+		if ($("exportChildren").tabs.itemCount <= parseInt($("exportChildren").getAttribute("selectedIndex")))
+			$("exportChildren").selectedIndex = 0;
 
-		document.getElementById("changesLog").value = getContents("chrome://cookiesmanagerplus/content/changes.txt");
-		document.getElementById("changesLog").selectionStart = 0;
-		document.getElementById("changesLog").selectionEnd = 0;
-		document.getElementById("general").focus();
-		this.enableDisable();
-	},
-
-	unload: function()
-	{
-		coomanPlusCore.aWindowOptions = null;
-		if (!coomanPlus.standalone)
-			coomanPlusCore.aWindow = coomanPlus.aWindowBackup;
-	},
-
-	openLink: function(e)
-	{
-		var w = window.open('http://php.net/manual/en/function.date.php', "dateManual", "resizable=yes,scrollbars=yes,location=yes,centerscreen");
-		if (this.prefTopmost)
+		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
+		$("dateListSplitter").setAttribute("state", $("dateListBox").collapsed ? "collapsed" : "open");
+		$("dateListSplitter").setAttribute("substate", $("dateListBox").collapsed ? "before" : "");
+		this.exportFilename({target: $("fieldBackupfilename")});
+		this.dateListSize();
+		this.changesLogMenu();
+		$("changesLog").addEventListener("command", coomanPlus.changesLogClick, true);
+		$("protectbox").setAttribute("collapsed", !this.protect.enabled);
+		coomanPlusCore.async(function()
 		{
-			var xulWin = w.QueryInterface(Ci.nsIInterfaceRequestor)
-									.getInterface(Ci.nsIWebNavigation)
-									.QueryInterface(Ci.nsIDocShellTreeItem)
-									.treeOwner.QueryInterface(Ci.nsIInterfaceRequestor)
-									.getInterface(Ci.nsIXULWindow);
-			xulWin.zLevel = xulWin.normalZ;
+			$("html5box").setAttribute("collapsed", !self.html5 || !self.html5.available);
+		}, 100);
+		$("showChangesLog_button").addEventListener("click", function(e)
+		{
+			if (e.button == 2)
+				return;
+
+			let win = null,
+					link = "chrome://" + coomanPlusCore.ADDONDOMAIN + "/content/changes.xul";
+
+			coomanPlusCore.window.switchToTabHavingURI(link, true);
+		}, true);
+		let numBox = $("ifl_restoreselection");
+		numBox.addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		numBox.addEventListener("keydown", this.keydown, true);
+		numBox.prev = [0, 0, this.pref("restoreselection")];
+		numBox._validateValue = function(aValue, aIsIncDec)
+		{
+			let min = numBox.min,
+					max = numBox.max;
+
+			aValue = Number(String(aValue).replace(/[^0-9\-]/g, "")) || 0;
+			if (aValue < min)
+				aValue = min;
+			else if (aValue > max)
+				aValue = numBox._value > max ? max : numBox._value;
+
+			aValue = Number(aValue);
+			numBox._valueEntered = false;
+			numBox._value = aValue;
+			numBox.prev.push(numBox._value);
+			numBox.prev.splice(0,1);
+			numBox.inputField.value = aValue > 0 ? aValue : aValue == -1 ? coomanPlus.string("all") : coomanPlus.string("none");
+			numBox._enableDisableButtons();
+			return "" + aValue;
 		}
-		w.focus();
+		numBox.value = this.pref("restoreselection");
+		this.inited = true;
+	},//init()
+
+	keydown: function keydown(e)
+	{
+		switch(e.keyCode)
+		{
+			case e.DOM_VK_PAGE_UP:
+					e.target.value = Number(e.target.value) + 10;
+				break;
+			case e.DOM_VK_PAGE_DOWN:
+					e.target.value = Number(e.target.value) - 10;
+				break;
+		}
 	},
 
-	enableDisable: function()
+	unload: function unload()
 	{
-		document.getElementById("cookiecullerbox").collapsed = !coomanPlusCommon.isCookieCuller;
-		document.getElementById("cookiecullerdeleteCheckbox").disabled = !document.getElementById("cookiecullerCheckbox").checked;
+
+		coomanPlusCore.cmpWindowOptions = null;
+		if (!coomanPlus.standalone)
+			coomanPlusCore.cmpWindow = coomanPlus.cmpWindowBackup;
+
+		if (coomanPlus.inited)
+		{
+			coomanPlus.changesLogSave();
+			try
+			{
+				coomanPlus.protect.unload();
+			}catch(e){log.error(e)}
+		}
 	},
 
-	template: function(e)
+	focus: function()
 	{
-		document.getElementById("format").value = e.originalTarget.value;
+		window.focus();
+	},
+
+	changesLogMenuParse: function changesLogMenuParse()
+	{
+		let c = $("changesLogMenu").children,
+		r = 0;
+		for (let i = 0; i < c.length; i++)
+			if (c[i].getAttribute("checked"))
+				r += Number(c[i].getAttribute("value"));
+
+		return r;
+	},
+	changesLogSave: function()
+	{
+		coomanPlusCore.pref("showChangesLog", this.changesLogMenuParse());
+	},
+
+	changesLogClick: function changesLogClick(e)
+	{
+		if (e.explicitOriginalTarget.getAttribute("checked")
+				&& Number(e.explicitOriginalTarget.getAttribute("value")) & coomanPlus.CHANGESLOG_NOTIFICATION)
+			coomanPlus.showChangesLog(coomanPlus.CHANGESLOG_NOTIFICATION, window)
+
+		if (e.explicitOriginalTarget.getAttribute("checked")
+				&& Number(e.explicitOriginalTarget.getAttribute("value")) & coomanPlus.CHANGESLOG_NOTIFICATION2)
+			coomanPlus.showChangesLog(coomanPlus.CHANGESLOG_NOTIFICATION2, window)
+
+		coomanPlus.changesLogMenu(coomanPlus.changesLogMenuParse());
+	},
+
+	changesLogMenu: function changesLogMenu(v)
+	{
+		v = typeof(v) == "undefined" ? coomanPlusCore.pref("showChangesLog") : v;
+		let c = $("changesLogMenu"),
+				t = [];
+
+		c = c.children;
+		for (let i = 0; i < c.length; i++)
+		{
+			if (c[i].getAttribute("value") == 1 && !coomanPlus.notificationAvailable)
+				c[i].disabled = true;
+
+			if (!c[i].disabled && v & Number(c[i].getAttribute("value")))
+			{
+				t.push(coomanPlus.string("changesLog" + Number(c[i].getAttribute("value"))));
+				c[i].setAttribute("checked", true);
+			}
+			else
+				c[i].removeAttribute("checked");
+		}
+		if (!t.length)
+			t = [coomanPlus.string("none")];
+
+		$("changesLog").setAttribute("label", (t.join(" + ")));
+	},
+
+	template: function template(e)
+	{
+		$("format").value = e.originalTarget.value;
 		var event = document.createEvent("Events");
 		event.initEvent("change", true, true);
-		document.getElementById("format").dispatchEvent(event);
+		$("format").dispatchEvent(event);
 		this.test(e.originalTarget);
-		document.getElementById("format").focus();
+		$("format").focus();
 	},
 
-	test: function(obj)
+	test: function test(obj)
 	{
-		document.getElementById("test").value = this.getExpiresString((new Date()).getTime()/1000, obj.value);
+		$("test").value = this.getExpiresString((new Date()).getTime()/1000, obj.value);
 	},
 
-	observeSend: function(data)
+	observeSend: function observeSend(data)
 	{
 		var observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 		var observerSubject = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
@@ -137,48 +261,143 @@ var coomanPlus = {
 		observerService.notifyObservers(observerSubject, "coomanPlusWindow", null);
 	},
 
-	cookieInfoRowsReset: function()
+	cookieInfoRowsReset: function cookieInfoRowsReset()
 	{
 		this.observeSend("cookieInfoRowsReset");
 	},
 
-	templateReset: function(id)
+	templateReset: function templateReset(id)
 	{
-		document.getElementById("template" + id + "input").value = coomanPlusCommon.prefsDefault.getComplexValue("template" + id, Ci.nsISupportsString);
-		document.getElementById("prefpane").userChangedValue(document.getElementById("template" + id + "input"));
+		$("template" + id + "input").value = coomanPlusCore.prefsDefault.getComplexValue("template" + id, Ci.nsISupportsString);
+		$("prefpane").userChangedValue($("template" + id + "input"));
 	},
 
-	backupDecrypt: function()
+	backupDecrypt: function backupDecrypt()
 	{
 		this.backupRemovePassword();
 	},
 
-	backupEncrypt: function()
+	backupEncrypt: function backupEncrypt()
 	{
 		this.backupAddPassword();
 	},
+
+	dateFormatAdd: function dateFormatAdd(e)
+	{
+		let k = coomanPlus.getKeys(e);
+		if ((e.type == "click" && !e.button && e.detail > 1)
+				|| (e.type == "keydown" && (coomanPlus.matchKeys(k[0], ["SPACE"], 1)
+						|| coomanPlus.matchKeys(k[0], ["ENTER"], 1))))
+		{
+			var tree = $("dateList");
+			var start = new Object();
+			var end = new Object();
+			tree.view.selection.getRangeAt(0, start, end);
+			if (!tree.view.isContainer(start.value))
+			{
+				if (tree.view.getCellValue(tree.view.getParentIndex(start.value), tree.columns[0]) == "presets")
+				{
+					let val = tree.view.getCellValue(start.value, tree.columns[0]) == "default" ? "" : tree.view.getCellText(start.value, tree.columns[0]);
+					$("format").value = val;
+				}
+				else
+				{
+					var val = tree.view.getCellText(start.value, tree.columns[0]);
+					var start = $("format").selectionStart;
+					var end = $("format").selectionEnd;
+					$("format").value = $("format").value.substring(0, start) + val + $("format").value.substring(end);
+					$("format").selectionStart = start + val.length;
+					$("format").selectionEnd = start + val.length;
+				}
+				coomanPlus.test($("format"));
+				var event = document.createEvent("Events");
+				event.initEvent("change", true, true);
+				$("format").dispatchEvent(event);
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			return false;
+		}
+	},
+
+	dateListSize: function dateListSize(e)
+	{
+		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
+		if ($("dateListBox").collapsed)
+		{
+			$("coomanPlusWindowOptions").style.minHeight = "39em";
+		}
+		else
+		{
+			$("coomanPlusWindowOptions").style.minHeight = "50em";
+			let h = window.outerHeight;
+			window.resizeBy(0,-1);
+			if (h - window.outerHeight == 1)
+				window.resizeBy(0, 1);
+		}
+
+	},
+	
+	exportFilename: function exportFilename(e)
+	{
+		let file = this.getFilename(true, e.target.value);
+		$("backupfilenameTest").value = file;
+	},
+
+	mouseScroll: function mouseScroll(e)
+	{
+log.debug();
+		if (e.axis != e.VERTICAL_AXIS || e.timeStamp == coomanPlus.mouseScrollTimeStamp)
+			return true;
+
+		coomanPlus.mouseScrollTimeStamp = e.timeStamp;
+	/*
+
+	var t = "";
+	var a = e.target;
+	for(var i in a)
+		t = t + i + ": " + a[i] + "\n";
+	alert(t);
+	*/
+		if (e.target.id != coomanPlus.focused)
+		{
+	//		return true;
+			e.target.focus();
+		}
+		$("ifl_restoreselection").value = Number($("ifl_restoreselection").value) + (e.detail > 0 ? -1 : 1);
+		$("ifl_restoreselection")._fireChange();
+	},//mouseScroll()
+	
 }
 function srGetStrBundle()
 {
-	return document.getElementById("pippkiBundle");
+	return $("pippkiBundle");
 }
 
-if (coomanPlusCore.aWindowOptions)
+if (coomanPlusCore.cmpWindowOptions)
 {
-	coomanPlusCore.aWindowOptions.focus();
+	coomanPlusCore.cmpWindowOptions.focus();
 	window.close()
 }
-coomanPlusCore.aWindowOptions = window;
-if ("arguments" in window && window.arguments.length && "window" in window.arguments[0])
+coomanPlusCore.cmpWindowOptions = window;
+if ("arguments" in window && window.arguments.length && (!("standalone" in window.arguments[0]) || !window.arguments[0].standalone))
 {
-	coomanPlus.aWindowBackup = coomanPlusCore.aWindow;
-	coomanPlusCore.aWindow = window;
+	coomanPlus.cmpWindowBackup = coomanPlusCore.cmpWindow;
+	coomanPlusCore.cmpWindow = window;
 	coomanPlus.standalone = false;
 }
-
+log.debug("standalone " + coomanPlus.standalone);
 var xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
 						.getInterface(Components.interfaces.nsIWebNavigation)
 						.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
 						.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
 						.getInterface(Components.interfaces.nsIXULWindow);
 xulWin.zLevel = xulWin.raisedZ;
+if (coomanPlus.standalone)
+{
+	coomanPlusCore.async(function()
+	{
+		coomanPlusCore.openCMP({options: true});
+	});
+	window.close();
+}

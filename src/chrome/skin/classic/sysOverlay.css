@@ -23,17 +23,17 @@
 
 #coomanPlus_button
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec24.png");
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus24.png");
 	-moz-image-region: rect(0 24px 24px 0);
 }
 
 toolbar[iconsize="small"] #coomanPlus_button
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec16.png");
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus16.png");
 	-moz-image-region: rect(0 16px 16px 0);
 }
 #coomanPlus_menuitem,
 #coomanPlus_appmenu
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/anec16.png");
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus16.png");
 }

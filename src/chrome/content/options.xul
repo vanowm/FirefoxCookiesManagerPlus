@@ -6,6 +6,7 @@
 <!DOCTYPE window [
 	<!ENTITY % coomanPlusDTD SYSTEM "chrome://cookiesmanagerplus/locale/coomanPlusMain.dtd"> %coomanPlusDTD;
 	<!ENTITY % optionsDTD SYSTEM "chrome://cookiesmanagerplus/locale/coomanPlusOptions.dtd"> %optionsDTD;
+	<!ENTITY % systemDTD SYSTEM "chrome://cookiesmanagerplus/locale/sysOverlay.dtd"> %systemDTD;
 ]>
 
 
@@ -14,16 +15,19 @@
 				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 				onload="coomanPlus.load()"
 				onunload="coomanPlus.unload()"
-				persist="screenX screenY"
+				persist="screenX screenY width height"
+				xmlns:html="http://www.w3.org/1999/xhtml"
+				flex="1"
 >
 
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/options.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/common.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/commonFunc.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/export.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/date.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/libOut.js"/>
-	<script type="application/javascript" src="chrome://cookiesmanagerplus/content/base64.js"/>
+	<script type="application/javascript" src="common.js"/>
+	<script type="application/javascript" src="options.js"/>
+	<script type="application/javascript" src="libOut.js"/>
+	<script type="application/javascript" src="update.js"/>
+	<script type="application/javascript" src="commonFunc.js"/>
+	<script type="application/javascript" src="export.js"/>
+	<script type="application/javascript" src="date.js"/>
+	<script type="application/javascript" src="base64.js"/>
 	<stringbundle id="cookieBundle" src="chrome://browser/locale/preferences/preferences.properties"/>
 	<stringbundle id="pippkiBundle" src="chrome://pippki/locale/pippki.properties"/>
 	<script>
@@ -39,111 +43,583 @@
 			password_notset:									"&backup.password.notset;",
 			password_set:											"&backup.password.set;",
 			backup_protected:									"&backup.protected;",
+			export_openfolder:								"&export.openfolder;",
+			none:															"&options.none;",
+			all:															"&options.all;",
+			changesLog1:											"&options.showChangesLogNotif1;",
+			changesLog2:											"&options.showChangesLogNotif2;",
+			changesLog4:											"&options.showChangesLogFull;",
+			updated: 													"&cookiesmanagerplus.updated;",
+			changesLog:												"&cookiesmanagerplus.changesLog;",
+			changesLog_key:										"&cookiesmanagerplus.changesLog_key;",
+			menu_options:											"&cookiesmanagerplus.menu_options;",
+			menu_options_key:									"&cookiesmanagerplus.menu_options_key;",
 		};
 	</script>
+	<keyset>
+		<key key="L" modifiers="alt" oncommand="document.getElementById('dateList').focus();"/>
+	</keyset>
 	<prefpane id="prefpane" flex="1">
-		<preferences>
-			<preference id="delconf" name="extensions.cookiesmanagerplus.delconfirm" type="bool" />
-			<preference id="autofilter" name="extensions.cookiesmanagerplus.autofilter" type="bool" />
-			<preference id="topmost" name="extensions.cookiesmanagerplus.topmost" type="bool" />
-			<preference id="autoupdate" name="extensions.cookiesmanagerplus.autoupdate" type="bool" />
-			<preference id="dateformat" name="extensions.cookiesmanagerplus.dateformat" type="string" />
-			<preference id="simplehost" name="extensions.cookiesmanagerplus.simplehost" type="int" />
-			<preference id="expireprogress" name="extensions.cookiesmanagerplus.expireprogress" type="bool" />
-			<preference id="expirecountdown" name="extensions.cookiesmanagerplus.expirecountdown" type="bool" />
-			<preference id="cookieculler" name="extensions.cookiesmanagerplus.cookieculler" type="bool" />
-			<preference id="cookiecullerdelete" name="extensions.cookiesmanagerplus.cookiecullerdelete" type="bool" />
-			<preference id="templateclipboard" name="extensions.cookiesmanagerplus.templateclipboard" type="unichar" />
-			<preference id="templatefile" name="extensions.cookiesmanagerplus.templatefile" type="unichar" />
-			<preference id="backupencrypt" name="extensions.cookiesmanagerplus.backupencrypt" type="bool" />
-			<preference id="backupfilename" name="extensions.cookiesmanagerplus.backupfilename" type="unichar" />
-		</preferences>
-		<vbox>
-			<tabbox id="options">
+		<vbox id="main" flex="1">
+			<preferences>
+				<preference id="delconf" name="extensions.cookiesmanagerplus.delconfirm" type="bool" />
+				<preference id="autofilter" name="extensions.cookiesmanagerplus.autofilter" type="bool" />
+				<preference id="topmost" name="extensions.cookiesmanagerplus.topmost" type="bool" />
+				<preference id="autoupdate" name="extensions.cookiesmanagerplus.autoupdate" type="bool" />
+				<preference id="dateformat" name="extensions.cookiesmanagerplus.dateformat" type="string" />
+				<preference id="simplehost" name="extensions.cookiesmanagerplus.simplehost" type="int" />
+				<preference id="expireprogress" name="extensions.cookiesmanagerplus.expireprogress" type="bool" />
+				<preference id="expirecountdown" name="extensions.cookiesmanagerplus.expirecountdown" type="bool" />
+				<preference id="deleteprotected" name="extensions.cookiesmanagerplus.deleteprotected" type="bool" />
+				<preference id="templateclipboard" name="extensions.cookiesmanagerplus.templateclipboard" type="unichar" />
+				<preference id="templatefile" name="extensions.cookiesmanagerplus.templatefile" type="unichar" />
+				<preference id="backupencrypt" name="extensions.cookiesmanagerplus.backupencrypt" type="bool" />
+				<preference id="backupfilename" name="extensions.cookiesmanagerplus.backupfilename" type="unichar" />
+				<preference id="nativesync" name="extensions.cookiesmanagerplus.nativesync" type="bool" />
+				<preference id="showChangesLog" name="extensions.cookiesmanagerplus.showChangesLog" type="int" />
+				<preference id="deleteexpired" name="extensions.cookiesmanagerplus.deleteexpired" type="bool" />
+				<preference id="restoreselection" name="extensions.cookiesmanagerplus.restoreselection" type="int" />
+				<preference id="html5" name="extensions.cookiesmanagerplus.html5" type="bool" />
+			</preferences>
+			<tabbox id="options" persist="selectedIndex" flex="1">
 				<tabs>
-					<tab	id="general"	label="&options.tab.general;"	linkedpanel="panelGeneral" default="true"/>
-					<tab	id="export"		label="&options.tab.export;"	linkedpanel="panelExport"/>
-					<tab	id="changes"	label="&options.tab.changes;"	linkedpanel="panelChanges"/>
+					<tab	id="general"	label="&options.tab.general;"	accesskey="&options.tab.general.accesskey;" linkedpanel="panelGeneral"/>
+					<tab	id="export"		label="&options.tab.export;"	accesskey="&options.tab.export.accesskey;"	linkedpanel="panelExport"/>
 				</tabs>
-				<tabpanels>
+				<tabpanels flex="1">
 					<tabpanel id="panelGeneral" flex="1">
-						<vbox>
+						<vbox flex="1">
 							<hbox>
-								<checkbox preference="autofilter" label='&options.autofilter.label;' tooltiptext="&options.autofilter.info;" style="cursor: help" accessibleType="1003"/>
+								<checkbox preference="autofilter" label='&options.autofilter.label;' tooltiptext="&options.autofilter.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
-								<checkbox preference="autoupdate" label='&options.autoupdate.label;' tooltiptext="&options.autoupdate.info;" style="cursor: help" accessibleType="1003"/>
+								<checkbox preference="autoupdate" label='&options.autoupdate.label;' tooltiptext="&options.autoupdate.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
-								<checkbox preference="topmost" label='&options.topmost.label;' tooltiptext="&options.topmost.info;" style="cursor: help" accessibleType="1003"/>
+								<checkbox preference="topmost" label='&options.topmost.label;' tooltiptext="&options.topmost.info;" accessibleType="1003"/>
+							</hbox>
+							<hbox>
+								<checkbox preference="nativesync" label='&options.synchronize;' tooltiptext="&options.synchronize.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
 								<checkbox preference="delconf" label='&options.delconfirm.label;' accessibleType="1003"/>
 							</hbox>
-							<hbox id="cookiecullerbox">
-								<vbox>
-									<checkbox id="cookiecullerCheckbox" preference="cookieculler" label='&options.cookieculler.label;' accessibleType="1003"/>
-									<checkbox id="cookiecullerdeleteCheckbox" preference="cookiecullerdelete" label='&options.cookieculler.delete.label;' style="margin:0;margin-left: 16px;" accessibleType="1003"/>
-								</vbox>
+							<hbox>
+								<checkbox preference="deleteexpired" label='&options.deleteexpired.label;' tooltiptext="&options.deleteexpired.info;" accessibleType="1003"/>
 							</hbox>
-							<hbox tooltiptext="&options.simplehost.info;">
+							<hbox id="protectbox" collapsed="true">
+								<checkbox id="deleteprotectedCheckbox" preference="deleteprotected" label='&options.protect.delete.label;' accessibleType="1003"/>
+							</hbox>
+							<hbox collapsed="true" align="center" tooltiptext="&options.restoreselection.info;">
+								<label value="&options.restoreselection.label;" control="restoreselection"/>
+								<textbox	id="ifl_restoreselection"
+														label="&options.restoreselection.label;"
+														size="4"
+														preference="restoreselection"
+														maxLength="5"
+														min="-1"
+														max="99999"
+														type="number"
+														accessibleType="101B"
+									/>
+								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
+							</hbox>
+							<hbox id="html5box" collapsed="true">
+								<checkbox id="html5Checkbox" preference="html5" label='&options.html5.label;' accessibleType="1003"/>
+								<label value="&options.html5.warning;" control="restoreselection" class="info"/>
+							</hbox>
+							<hbox tooltiptext="&options.simplehost.info;" align="center">
+								<label value="&options.simplehost.label;" control="simplehostmenu"/>
+								<menulist id="simplehostmenu" preference="simplehost" flex="0" sizetopopup="none" style="cursor: pointer;" label="&options.simplehost.label;" accessibleType="100F">
+									<menupopup>
+										<menuitem value="0" label="&options.simplehost.no;" description=" (&options.simplehost.no.desc;)" accessibleType="100E"/>
+										<menuitem value="1" label="&options.simplehost.www;" description=" (&options.simplehost.www.desc;)" accessibleType="100E"/>
+										<menuitem value="2" label="&options.simplehost.root;" description=" (&options.simplehost.root.desc;)" accessibleType="100E"/>
+									</menupopup>
+								</menulist>
+							</hbox>
+							<hbox tooltiptext="&options.showChangesLog.desc;">
 								<groupbox flex="1">
 									<caption>
-										<label value="&options.simplehost.label;" style="cursor: help;" control="simplehostmenu"/>
+										<label value="&options.showChangesLog; (" control="showChangesLog" style="margin-right: 0"/>
+										<hbox pack="start" align="start">
+											<label id="showChangesLog_button"
+															class="text-link link"
+															value="&options.showChangesLog.button;"
+											/>
+										</hbox>
+										<label value=")" style="margin-left: 0"/>
 									</caption>
 									<hbox>
-										<menulist id="simplehostmenu" preference="simplehost" flex="0" sizetopopup="none" style="cursor: pointer;" label="&options.simplehost.label;" accessibleType="100F">
-											<menupopup>
-												<menuitem value="0" label="&options.simplehost.no;" description=" (&options.simplehost.no.desc;)" accessibleType="100E"/>
-												<menuitem value="1" label="&options.simplehost.www;" description=" (&options.simplehost.www.desc;)" accessibleType="100E"/>
-												<menuitem value="2" label="&options.simplehost.root;" description=" (&options.simplehost.root.desc;)" accessibleType="100E"/>
-											</menupopup>
-										</menulist>
+										<button id="changesLog" type="menu">
+											<panel position="after_start">
+												<vbox id="changesLogMenu">
+													<checkbox id="changes_1" value="1" type="checkbox" label="&options.showChangesLogNotif1;" tooltiptext="&options.showChangesLogNotif1.desc;"/>
+													<checkbox id="changes_2" value="2" type="checkbox" label="&options.showChangesLogNotif2;" tooltiptext="&options.showChangesLogNotif2.desc;"/>
+													<checkbox id="changes_4" value="4" type="checkbox" label="&options.showChangesLogFull;" tooltiptext="&options.showChangesLogFull.desc;"/>
+												</vbox>
+											</panel>
+										</button>
 									</hbox>
 								</groupbox>
 							</hbox>
-							<groupbox>
+							<groupbox id="formatBox" flex="1">
 								<caption>
-									<label value='&options.dateformat.label;' style="overflow:hidden;cursor: help" flex="0" tooltiptext="&options.dateformat.info;" control="format"/>
-									<text value="("/>
-									<button label="&options.dateformat.moreinfo;" oncommand="coomanPlus.openLink(event);" class="text-link link" accessibleType="100A"/>
-									<text value=")"/>
+									<label value='&options.dateformat.label;' style="overflow:hidden;margin-right: 0" flex="0" tooltiptext="&options.dateformat.info;" control="format"/>
+									<label value="(" style="margin-right: 0"/>
+									<hbox pack="start" align="start">
+										<label value="&options.dateformat.moreinfo;"
+														href="http://php.net/manual/en/function.date.php"
+														class="text-link link"
+														accessibleType="100A"
+										/>
+									</hbox>
+									<label value=")" style="margin-left: 0"/>
 								</caption>
-								<hbox flex="1">
-									<textbox id="format" preference="dateformat" onkeyup="coomanPlus.test(this)" label='&options.dateformat.label;'/>
-									<button id="presets" type="menu" class="menubutton" label="&options.dateformat.presets;" tooltiptext="&options.dateformat.presets;">
-										<menupopup id="preset" oncommand="coomanPlus.template(event)" control="test" accessibleType="100F">
-											<menuitem value="" default="true" accessibleType="100E"/>
-											<menuitem value="m-d-Y h:i:s a" accessibleType="100E"/>
-											<menuitem value="F d, Y h:i:s a" accessibleType="100E"/>
-											<menuitem value="l, F d, Y h:i:s a" accessibleType="100E"/>
-											<menuitem value="m/d/Y h:i:s a" accessibleType="100E"/>
-											<menuitem value="d-m-Y H:i:s" accessibleType="100E"/>
-											<menuitem value="d/m/Y H:i:s" accessibleType="100E"/>
-											<menuitem value="Y-m-d H:i:s" accessibleType="100E"/>
-											<menuitem value="Y/m/d H:i:s" accessibleType="100E"/>
-										</menupopup>
-									</button>
-								</hbox>
-								<hbox style="overflow:hidden; max-width: 20em; width: 20em; margin-right: 5px;" flex="1" align="center">
-									<textbox id="test" value="" tooltiptext="&result;" label="&result;" readonly="true" flex="1"/>
-								</hbox>
+								<vbox flex="1" style="overflow: hidden;">
+									<hbox>
+										<textbox id="format" preference="dateformat" onkeyup="coomanPlus.test(this);" label='&options.dateformat.label;' flex="1" accesskey="F"/>
+									</hbox>
+									<hbox style="overflow:hidden; margin-right: 5px;" align="center">
+										<label value="&result;:" style="margin-right:0"/>
+										<textbox id="test" value="" tooltiptext="&result;" label="&result;" readonly="true" flex="1"/>
+									</hbox>
+									<vbox id="dateListBox" flex="1" collapsed="true" persist="collapsed">
+										<tree id="dateList"
+													flex="1"
+													treelines="false"
+													label="&options.dateformat.tree;"
+													tooltiptext="&options.dateformat.tree;"
+													hidecolumnpicker="true"
+													seltype="single"
+													control="format"
+										>
+											<treecols>
+												<treecol id="dateFormat" label="&options.dateformat.format;" primary="true" flex="1"/>
+												<splitter class="tree-splitter"/>
+												<treecol label="&options.dateformat.description;" flex="3"/>
+												<splitter class="tree-splitter"/>
+												<treecol label="&options.dateformat.result;" flex="2"/>
+											</treecols>
+											<treechildren>
+												<treeitem id="datePresets" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="&options.dateformat.presets;" value="presets"/>
+													</treerow>
+													<treechildren>
+														<treeitem value="true">
+															<treerow>
+																<treecell label="default" value="default" properties="default"/>
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="F d, Y h:i:s a" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="l, F d, Y h:i:s a" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="m/d/Y h:i:s a" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="m-d-Y h:i:s a" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="d/m/Y H:i:s" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="d-m-Y H:i:s" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="Y/m/d H:i:s" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="Y-m-d H:i:s" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="YmdHis" />
+																<treecell label="Preset" />
+																<treecell label="" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateDay" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Day"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="d" />
+																<treecell label="Day of the month, 2 digits with leading zeros." />
+																<treecell label="01 to 31" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="D" />
+																<treecell label="A textual representation of a day, three letters." />
+																<treecell label="Mon through Sun" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="j" />
+																<treecell label="Day of the month without leading zeros." />
+																<treecell label="1 to 31" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="l" />
+																<treecell label="(lowercase 'L') A full textual representation of the day of the week." />
+																<treecell label="Sunday through Saturday" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="N" />
+																<treecell label="ISO-8601 numeric representation of the day of the week." />
+																<treecell label="1 (for Monday) through 7 (for Sunday)" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="S" />
+																<treecell label="English ordinal suffix for the day of the month, 2 characters." />
+																<treecell label="st, nd, rd or th. Works well with j" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="w" />
+																<treecell label="Numeric representation of the day of the week." />
+																<treecell label="0 (for Sunday) through 6 (for Saturday)" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="z" />
+																<treecell label="The day of the year (starting from 0)." />
+																<treecell label="0 through 365" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateWeek" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Week"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="W" />
+																<treecell label="ISO-8601 week number of year, weeks starting on Monday." />
+																<treecell label="Ex: 42 (the 42nd week in the year)" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateMonth" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Month"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="F" />
+																<treecell label="A full textual representation of a month, such as January or March." />
+																<treecell label="January through December" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="m" />
+																<treecell label="Numeric representation of a month, with leading zeros." />
+																<treecell label="01 through 12" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="M" />
+																<treecell label="A short textual representation of a month, three letters." />
+																<treecell label="Jan through Dec" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="n" />
+																<treecell label="Numeric representation of a month, without leading zeros." />
+																<treecell label="1 through 12" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="t" />
+																<treecell label="Number of days in the given month." />
+																<treecell label="28 through 31" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateYear" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Year"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="L" />
+																<treecell label="Whether it's a leap year" />
+																<treecell label="1 if it is a leap year, 0 otherwise." />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="o" />
+																<treecell label="ISO-8601 year number. This has the same value as Y, except that if the ISO week number (W) belongs to the previous or next year, that year is used instead." />
+																<treecell label="1999 or 2003" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="Y" />
+																<treecell label="A full numeric representation of a year, 4 digits." />
+																<treecell label="1999 or 2003" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="y" />
+																<treecell label="A two digit representation of a year." />
+																<treecell label="99 or 03" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateTime" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Time"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="a" />
+																<treecell label="Lowercase Ante meridiem and Post meridiem." />
+																<treecell label="am or pm" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="A" />
+																<treecell label="Uppercase Ante meridiem and Post meridiem." />
+																<treecell label="AM or PM" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="B" />
+																<treecell label="Swatch Internet time 	" />
+																<treecell label="000 through 999" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="g" />
+																<treecell label="12-hour format of an hour without leading zeros." />
+																<treecell label="1 through 12" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="G" />
+																<treecell label="24-hour format of an hour without leading zeros." />
+																<treecell label="0 through 23" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="h" />
+																<treecell label="12-hour format of an hour with leading zeros." />
+																<treecell label="01 through 12" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="H" />
+																<treecell label="24-hour format of an hour with leading zeros." />
+																<treecell label="00 through 23" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="i" />
+																<treecell label="Minutes with leading zeros." />
+																<treecell label="00 through 59" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="s" />
+																<treecell label="Seconds, with leading zeros." />
+																<treecell label="00 through 59" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="u" />
+																<treecell label="Microseconds." />
+																<treecell label="654321" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateTimezone" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Timezone"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="I" />
+																<treecell label="(capital i) Whether or not the date is in daylight saving time." />
+																<treecell label="1 if Daylight Saving Time, 0 otherwise." />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="O" />
+																<treecell label="Difference to Greenwich time (GMT) in hours." />
+																<treecell label="Ex: +0200" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="P" />
+																<treecell label="Difference to Greenwich time (GMT) with colon between hours and minutes." />
+																<treecell label="Ex: +02:00" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="Z" />
+																<treecell label="Timezone offset in seconds. The offset for timezones west of UTC is always negative, and for those east of UTC is always positive." />
+																<treecell label="-43200 through 50400" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+												<treeitem id="dateFullDate" container="true" open="true" persist="open">
+													<treerow>
+														<treecell label="Full Date/Time"/>
+													</treerow>
+													<treechildren>
+														<treeitem>
+															<treerow>
+																<treecell label="c" />
+																<treecell label="ISO 8601 date." />
+																<treecell label="Ex: 2004-02-12T15:19:21+00:00" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="r" />
+																<treecell label="RFC 2822 formatted date." />
+																<treecell label="Ex: Thu, 21 Dec 2000 16:01:07 +0200" />
+															</treerow>
+														</treeitem>
+														<treeitem>
+															<treerow>
+																<treecell label="U" />
+																<treecell label="Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)." />
+																<treecell label="Ex: 465465476" />
+															</treerow>
+														</treeitem>
+													</treechildren>
+												</treeitem>
+											</treechildren>
+										</tree>
+										<label id="dateFormatLabel" value="&options.dateformat.tree;" disabled="true"/>
+									</vbox>
+									<splitter id="dateListSplitter"
+														disabled="true"
+														class="dateList"
+														collapse="before"
+														oncommand="coomanPlus.dateListSize(event)"
+									>
+										<grippy style="-moz-user-focus: normal;"
+														label="&options.dateformat.showhide;"
+														onfocus="this.parentNode.setAttribute('focus', true)"
+														onblur="this.parentNode.setAttribute('focus', false)"
+										/>
+									</splitter>
+								</vbox>
 							</groupbox>
 						</vbox>
 					</tabpanel>
 					<tabpanel id="panelExport" orient="vertical" flex="1">
-						<tabbox flex="1">
+						<tabbox id="exportChildren" flex="1" persist="selectedIndex">
 							<tabs>
-								<tab id="backup" label="&option.export.tab.backup;" linkedpanel="panelBackup"/>
-								<tab id="clipboard" label="&option.export.tab.clipboard;" linkedpanel="panelClipboard"/>
-								<tab id="file" label="&option.export.tab.file;" linkedpanel="panelFile"/>
+								<tab id="backup" label="&option.export.tab.backup;" accesskey="&option.export.tab.backup.accesskey;" linkedpanel="panelBackup"/>
+								<tab id="clipboard" label="&option.export.tab.clipboard;" accesskey="&option.export.tab.clipboard.accesskey;" linkedpanel="panelClipboard"/>
+								<tab id="file" label="&option.export.tab.file;" accesskey="&option.export.tab.file.accesskey;" linkedpanel="panelFile"/>
 							</tabs>
 							<tabpanels flex="1">
 								<tabpanel id="panelBackup" flex="1" orient="vertical">
-									<hbox align="center">
-										<label value="&export.filename;" control="fieldBackupfilename" style="cursor: help;" tooltiptext="&export.filename.info;"/>
-										<textbox id="fieldBackupfilename" label="&export.filename;" preference="backupfilename" tooltiptext="&export.filename.info;" flex="1"/>
-									</hbox>
+									<grid>
+										<columns>
+											<column/>
+											<column flex="1"/>
+										</columns>
+										<rows>
+											<row align="center">
+												<label value="&export.filename;:" control="fieldBackupfilename" tooltiptext="&export.filename.info;. &export.filename.info2;"/>
+												<textbox id="fieldBackupfilename" label="&export.filename;" onkeyup="coomanPlus.exportFilename(event)" preference="backupfilename" tooltiptext="&export.filename.info;. &export.filename.info2;"/>
+											</row>
+											<row tooltiptext="&export.filename.info2;" pack="end">
+												<hbox pack="end">
+													<label value="&export.filename.result;" align="end"/>
+												</hbox>
+												<textbox id="backupfilenameTest" tabindex="-1" readonly="true" class="plain"/>
+											</row>
+										</rows>
+									</grid>
 									<hbox>
 										<checkbox preference="backupencrypt" label='&option.export.backup;' tooltiptext="&option.export.backup.info;" accessibleType="1003"/>
 									</hbox>
@@ -185,9 +661,6 @@
 								</tabpanel>
 							</tabpanels>
 						</tabbox>
-					</tabpanel>
-					<tabpanel id="panelChanges" orient="vertical" flex="1">
-						<textbox id="changesLog" label="&options.tab.changes;" readonly="true" flex="1" multiline="true" wrap="off"/>
 					</tabpanel>
 				</tabpanels>
 			</tabbox>

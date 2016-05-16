@@ -7,6 +7,7 @@
 tree
 {
 	min-height: 7em;
+	margin-bottom: 5px;
 }
 treecol:not([type="checkbox"]):not([id="colhid"])
 {
@@ -19,10 +20,12 @@ treecol#content
 	min-width: 4em;
 }
 
+#loadingCount,
 #expireProgressText[disabled="true"][progress="true"]
 {
 	text-shadow: 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog
 }
+#loadingCount,
 #expireProgressText[disabled="true"][progress="true"]:-moz-system-metric(windows-classic)
 {
 	text-shadow: 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog
@@ -33,10 +36,19 @@ treecol#content
 	font-style: italic;
 }
 
-#ifl_expires[expired="true"]:not([multi="true"]),
+#loadingCount
+{
+	color: -moz-FieldText;
+	text-align: center;
+}
+#ifl_expires[expired="true"]:not([multi="true"]):not([empty="true"]),
 #expireProgressText[disabled="true"][expired="true"]
 {
 	color: red;
+}
+#expireProgress[expired="true"]
+{
+	display: none;
 }
 /*
 progressmeter[text="true"] .progress-bar
@@ -105,12 +117,9 @@ treechildren::-moz-tree-row(even, selected) {
 	background-color: #E0E0E0;
 }
 */
-treechildren::-moz-tree-cell-text(protected)
-{
-	color: GrayText;
-}
 
 	/* css for checked cells */
+/*
 treechildren::-moz-tree-checkbox
 {
 	margin: 1px 3px;
@@ -132,51 +141,201 @@ treechildren::-moz-tree-checkbox(checked)
 	list-style-image: url("chrome://global/skin/checkbox/cbox-check.gif");
 
 }
+*/
 
+treechildren::-moz-tree-checkbox {
+	list-style-image: url("images/checkbox.png");
+	-moz-image-region: rect(0, 14px, 14px, 0);
+}
+
+treechildren::-moz-tree-checkbox(checked) {
+	-moz-image-region: rect(0, 28px, 14px, 14px);
+}
+
+treechildren::-moz-tree-checkbox(protected) {
+	-moz-image-region: rect(0, 42px, 14px, 28px);
+}
+
+treechildren::-moz-tree-checkbox(checked, protected) {
+	-moz-image-region: rect(0, 56px, 14px, 42px);
+}
+
+@media (-moz-windows-classic) {
+	treechildren::-moz-tree-checkbox {
+		list-style-image: url("images/checkbox.png");
+		-moz-image-region: rect(0, 16px, 16px, 0);
+	}
+
+	treechildren::-moz-tree-checkbox(checked) {
+		-moz-image-region: rect(0, 32px, 16px, 16px);
+	}
+}
+
+
+treechildren::-moz-tree-cell-text(selected),
+treechildren::-moz-tree-cell-text(selected, odd)
+{
+	color: highlighttext;
+}
 treechildren::-moz-tree-cell-text(updated)
 {
 	color: green;
 }
 
-treechildren::-moz-tree-row(selected),
-treechildren::-moz-tree-row(selected, focus)
+treechildren::-moz-tree-cell-text(expired)
 {
-	background-color: Highlight;
+	text-decoration: line-through;
+	color: red;
 }
-treechildren::-moz-tree-cell-text(selected),
-treechildren::-moz-tree-cell-text(selected, focus)
-{
-	color: Highlighttext;
-}
-treechildren::-moz-tree-cell-text(protected, selected),
-treechildren::-moz-tree-cell-text(protected, selected, focus)
-{
-	color: lightgrey;
-}
-treechildren::-moz-tree-row(current)
-{
-	border: 1px dashed black;
-}
-treechildren::-moz-tree-row(current, selected)
-{
-	border: 1px dotted black;
-}
-treechildren::-moz-tree-row(current, focus)
-{
-	border: 1px dashed Highlight;
-}
-treechildren::-moz-tree-row(current, focus, selected)
-{
-	border: 1px dotted Highlighttext;
-}
-
-.infofield[multi="true"]
+treechildren::-moz-tree-cell-text(protected)
 {
 	font-style: italic;
 	color: GrayText;
 }
+treechildren::-moz-tree-cell-text(expired, protected)
+{
+	color: brown;
+}
+/*
+treechildren::-moz-tree-cell-text(selected, expired)
+{
+	color: #FF5B5B;
+}
+*/
+/*treechildren::-moz-tree-cell-text(selected, expired, focus)*/
+treechildren::-moz-tree-cell-text(selected, expired)
+{
+	color: pink;
+}
+/*
+treechildren::-moz-tree-cell-text(protected, selected)
+{
+	color: Grey;
+}
+*/
+/*treechildren::-moz-tree-cell-text(protected, selected, focus)*/
+treechildren::-moz-tree-cell-text(protected, selected)
+{
+	color: lightgrey;
+}
+/*
+treechildren::-moz-tree-cell-text(protected, selected, expired)
+{
+	color: #FE6A50;
+}
+*/
+/*treechildren::-moz-tree-cell-text(protected, selected, expired, focus)*/
+treechildren::-moz-tree-cell-text(protected, selected, expired)
+{
+	color: #FFDFDF;
+}
+/*treechildren::-moz-tree-cell-text(selected, deleted2, focus)*/
+treechildren::-moz-tree-cell-text(selected, deleted2)
+{
+	color: -moz-cellhighlighttext;
+}
+/*
+treechildren::-moz-tree-row(current, focus),
+treechildren::-moz-tree-row(current, selected, focus),
+*/
+treechildren::-moz-tree-row(current),
+treechildren::-moz-tree-row(current, selected)
+{
+	border: 1px dotted black;
+}
+/*
+treechildren::-moz-tree-row(selected, focus),
+treechildren::-moz-tree-row(selected, odd, focus),
+treechildren::-moz-tree-cell(selected, focus),
+treechildren::-moz-tree-cell(selected, odd, focus)
+*/
+treechildren::-moz-tree-row(selected),
+treechildren::-moz-tree-row(selected, odd),
+treechildren::-moz-tree-cell(selected),
+treechildren::-moz-tree-cell(selected, odd)
+{
+	background-color: Highlight;
+}
+treechildren::-moz-tree-cell(insertbefore odd),
+treechildren::-moz-tree-cell(insertbefore selected),
+treechildren::-moz-tree-cell(insertbefore selected odd)
+{
+  -moz-border-start: 1px solid ThreeDShadow;
+  margin-left: -1px;
+}
 
-.infofield[empty="true"]
+treechildren::-moz-tree-cell(insertafter odd),
+treechildren::-moz-tree-cell(insertafter selected),
+treechildren::-moz-tree-cell(insertafter selected odd)
+{
+  -moz-border-end: 1px solid ThreeDShadow;
+  margin-right: -1px;
+}
+
+treechildren::-moz-tree-cell-text(deleted2)
+{
+	font-style: italic;
+	text-decoration: line-through;
+	font-weight: bold;
+	color: black;
+}
+
+treechildren::-moz-tree-cell-text(deleted1)
+{
+	font-weight: bold;
+	color: white
+}
+treechildren::-moz-tree-row(deleted2),
+treechildren::-moz-tree-cell(deleted2)
+{
+	background-color: pink;
+}
+treechildren::-moz-tree-row(deleted1),
+treechildren::-moz-tree-cell(deleted1)
+{
+	background-color: red;
+}
+treechildren::-moz-tree-row(deleted1)
+{
+	border: 1px solid pink;
+}
+
+treechildren::-moz-tree-progressmeter
+{
+	color: #00D228;
+}
+
+treechildren::-moz-tree-image(type1)
+{
+	-moz-image-region: rect(0, 16px, 16px, 0px);
+	list-style-image: url("images/type1.png");
+}
+treechildren::-moz-tree-image(type1, protected)
+{
+	-moz-image-region: rect(0, 32px, 16px, 16px);
+}
+treechildren::-moz-tree-image(type2)
+{
+	-moz-image-region: rect(0, 16px, 16px, 0px);
+	list-style-image: url("images/type2.png");
+}
+treechildren::-moz-tree-image(type2, protected)
+{
+	-moz-image-region: rect(0, 32px, 16px, 16px);
+}
+treechildren::-moz-tree-progressmeter(expired)
+{
+}
+
+treechildren::-moz-tree-progressmeter(session)
+{
+	border: 0;
+	background-color: transparent;
+}
+
+.infofield[multi="true"],
+.infofield[empty="true"],
+.infofield[na="true"]
 {
 	font-style: italic;
 	color: GrayText;
@@ -201,10 +360,12 @@ treecol[type="checkbox"] > label
 	min-height: 0;
 	margin: 0;
 	padding: 0;
+	background-color: transparent;
 }
-#filtermenu
+#filtermenu > hbox > dropmarker
 {
-	margin-left: -1px;
+	width: 16px;
+	height: 16px;
 }
 #lookupcriterium
 {
@@ -223,7 +384,7 @@ treecol[type="checkbox"] > label
 	min-height: 16px;
 }
 
-#ifl_isProtected
+#ifl_isProtected:not([empty="true"]):not([multi="true"])
 {
 	width: 0;
 }
@@ -232,40 +393,44 @@ treecol[type="checkbox"] > label
 	padding:0;
 }
 
+.options > .menu-iconic-left > .menu-iconic-icon
+{
+	list-style-image: url("images/options16x16.png");
+}
+
+.sortmenu[checked="true"][sortDirection="ascending"] > .menu-iconic-left > .menu-iconic-icon,
+.sortmenu[checked="true"][sortDirection="descending"] > .menu-iconic-left > .menu-iconic-icon,
+.sortmenu[checked="true"][sortDirection="ascending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon,
+.sortmenu[checked="true"][sortDirection="descending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon
+{
+	display: -moz-box;
+	width: 9px;
+	height: 9px;
+	list-style-image: url("images/sort.png");
+}
 
 .sortmenu[checked="true"][sortDirection="ascending"] > .menu-iconic-left,
 .sortmenu[checked="true"][sortDirection="descending"] > .menu-iconic-left
 {
 	-moz-appearance: menuimage;
 }
-.sortmenu[checked="true"][sortDirection="ascending"] > .menu-iconic-left > .menu-iconic-icon {
-	width: 9px;
-	height: 5px;
-  list-style-image: url("chrome://global/skin/tree/sort-asc.png");
+.sortmenu[checked="true"][sortDirection="ascending"] > .menu-iconic-left > .menu-iconic-icon,
+.sortmenu[checked="true"][sortDirection="ascending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon
+{
+	-moz-image-region: rect(0px, 9px, 9px, 0px);
+
 }
 
-.sortmenu[checked="true"][sortDirection="ascending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon {
-	width: 9px;
-	height: 5px;
-  list-style-image: url("chrome://global/skin/tree/sort-asc-classic.png");
-}
-
-.sortmenu[checked="true"][sortDirection="descending"] > .menu-iconic-left > .menu-iconic-icon {
-	width: 9px;
-	height: 5px;
-  list-style-image: url("chrome://global/skin/tree/sort-dsc.png");
-}
-
-.sortmenu[checked="true"][sortDirection="descending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon {
-	width: 9px;
-	height: 5px;
-  list-style-image: url("chrome://global/skin/tree/sort-dsc-classic.png");
+.sortmenu[checked="true"][sortDirection="descending"] > .menu-iconic-left > .menu-iconic-icon,
+.sortmenu[checked="true"][sortDirection="descending"]:-moz-system-metric(windows-classic) > .menu-iconic-left > .menu-iconic-icon
+{
+	-moz-image-region: rect(8px, 9px, 17px, 0px);
 }
 
 .contentPane
 {
-	margin-top: 0;
-	padding-top: 0;
+	margin: 0 5px 5px 5px;
+	padding: 0;
 }
 
 toolbox
@@ -278,3 +443,111 @@ toolbox
 {
 	-moz-padding-start: 1em;
 }
+
+row
+{
+	border: 1px dotted transparent;
+}
+row[highlight="true"][first="true"],
+row[highlight="true"][last="true"],
+row[highlight="true"]
+{
+	border-color: Highlight;
+}
+
+menulist:not([disabled="true"])
+{
+	cursor: pointer;
+}
+/*
+row[highlight="true"] > .inforowdataheader
+{
+	border: 1px dotted Highlight;
+	border-width: 1px 0 1px 1px;
+	margin: -1px 0 -1px -1px;
+	padding: 0;
+}
+row[highlight="true"] > .inforowdata
+{
+	border: 1px dotted Highlight;
+	border-width: 1px 1px 1px 0;
+	margin: -1px -1px -1px 0;
+	padding: 0;
+}
+*/
+
+
+menuitem[indeterminate] .menu-iconic-left
+{
+	filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale");
+}
+menuitem[indeterminate]
+{
+	font-style: italic;
+}
+
+*[hidden="true"]
+{
+	display: none;
+}
+
+#ifl_value
+{
+	min-height: 3em;
+}
+#ifl_value,
+#ifl_value *
+{
+	height: 100%;
+}
+#infoSplitter
+{
+	margin-left: 5px;
+	margin-right: 5px;
+	border: 0;
+	cursor: row-resize;
+}
+#infoSplitter > *
+{
+	height: 1px;
+	background-color: threedshadow;
+}
+
+#type
+{
+	min-width: 24px;
+	width: 24px;
+}
+#img_type
+{
+	margin-right: 3px;
+}
+#img_type[type="1"]
+{
+	-moz-image-region: rect(0, 16px, 16px, 0px);
+	list-style-image: url("images/type1.png");
+}
+#img_type[type="2"]
+{
+	-moz-image-region: rect(0, 16px, 16px, 0px);
+	list-style-image: url("images/type2.png");
+}
+#row_type[na="true"] #img_type,
+#row_type[multi="true"] #img_type,
+#row_type[empty="true"] #img_type
+{
+	display: none;
+}
+
+#loading > vbox > vbox
+{
+	padding: 2em;
+	background-color: white;
+	color: black;
+	visibility: hidden;
+}
+#loadingProgress
+{
+	height: 1.5em;
+}
+

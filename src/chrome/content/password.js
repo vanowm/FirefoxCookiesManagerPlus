@@ -2,7 +2,7 @@ Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
 coomanPlusCore.lastKeyDown = [];
 
 var coomanPlus = {
-	_aWindow: null,
+	_cmpWindow: null,
 	_params: null,
 
 	load: function()
@@ -13,12 +13,17 @@ var coomanPlus = {
 	init: function()
 	{
 		this._params = window.arguments[0];
-		this._aWindow = coomanPlusCore.aWindow;
-		coomanPlusCore.aWindow = window;
+		this._cmpWindow = coomanPlusCore.cmpWindow;
+		coomanPlusCore.cmpWindow = window;
 
 		if (this._params.title)
 			document.title = this._params.title;
 
+//let fails in FF15???
+		var file = document.getElementById("file");
+		file.parentNode.collapsed = !this._params.file;
+		file.value = this._params.file;
+		file.tooltipText = this._params.file;
 		document.getElementById("msg").value = this._params.msg;
 		document.getElementById("msg").collapsed = !this._params.msg;
 
@@ -34,15 +39,16 @@ var coomanPlus = {
 
 	check: function()
 	{
-		document.documentElement.getButton("accept").disabled = (this._params.newPass && (document.getElementById("password").value == "" || document.getElementById("password").value != document.getElementById("password2").value))
+		document.documentElement.getButton("accept").disabled = (this._params.newPass && document.getElementById("password").value != document.getElementById("password2").value)
 	},
 
 	action: function(b)
 	{
-		coomanPlusCore.aWindow = this._aWindow;
+		coomanPlusCore.cmpWindow = this._cmpWindow;
 
 		if (b)
 			this._params.return = document.getElementById("password").value;
+
 		window.close();
 	}
 }

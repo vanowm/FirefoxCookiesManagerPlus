@@ -46,20 +46,28 @@ var coomanPlus = {
 		var cookieBundle = document.getElementById("cookieBundle");
 		document.title = cookieBundle.getString("promptDelete.window.title");
 		document.getElementById("warning_left").value = cookieBundle.getString("promptDelete.label.warning.left");
-		document.getElementById("warning_name").value = this._params.params[0] + ' @ ' + this._params.params[1];
+		document.getElementById("warning_name").value = this._params.name + ' @ ' + this._params.host;
 		document.getElementById("warning_right").value = cookieBundle.getString("promptDelete.label.warning.right");
 		document.getElementById("dontshow").label = cookieBundle.getString("promptDelete.label.dontshow");
 		document.getElementById("dontshow").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.dontshow.key"));
-		document.getElementById("block").label = cookieBundle.getString("promptDelete.label.block").replace("#", this._params.params[1]);
+		document.getElementById("block").label = cookieBundle.getString("promptDelete.label.block").replace("#", this._params.host);
 		document.getElementById("block").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.block.key"));
 		document.getElementById("block").checked = this._params.block === true;
-		if (this._params.params[2] == 1)
+		if (this._params.num == 1)
 		{
-			document.documentElement.getButton("extra1").hidden = true;
-			document.documentElement.getButton("accept").hidden = true;
+			if (this._params.total > 1)
+			{
+				document.documentElement.getButton("extra1").disabled = true;
+				document.documentElement.getButton("accept").disabled = true;
+			}
+			else
+			{
+				document.documentElement.getButton("extra1").collapsed = true;
+				document.documentElement.getButton("accept").collapsed = true;
+			}
 		}
 		document.documentElement.getButton("extra2").label = cookieBundle.getString("promptDelete.button.Delete");
-		document.documentElement.getButton("accept").label = cookieBundle.getString("promptDelete.button.DeleteAll") + " (" + this._params.params[2] + ")";
+		document.documentElement.getButton("accept").label = cookieBundle.getString("promptDelete.button.DeleteAll") + " (" + this._params.num + ")";
 		document.documentElement.getButton("extra1").label = cookieBundle.getString("promptDelete.button.DoNotDelete");
 		document.documentElement.getButton("help").label = cookieBundle.getString("promptDelete.button.Cancel");
 

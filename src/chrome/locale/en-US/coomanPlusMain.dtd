@@ -1,27 +1,39 @@
 <!ENTITY		tree.picker																							"Show/hide columns">
 
-<!ENTITY		WindowedCookieEditor.Options.label											"Options">
-<!ENTITY		WindowedCookieEditor.Options.accesskey									"O">
-<!ENTITY		WindowedCookieEditor.FirefoxCM.label										"Native Firefox Cookies Viewer">
-<!ENTITY		WindowedCookieEditor.FirefoxCM.accesskey								"N">
-<!ENTITY		WindowedCookieEditor.close.label												"Close">
-<!ENTITY		WindowedCookieEditor.toolbox_box.selectAllShown.label		"Select All">
-<!ENTITY		WindowedCookieEditor.toolbox_box.invertSelection.label	"Invert selected">
-<!ENTITY		WindowedCookieEditor.toolbox_box.edit.label							"Edit">
-<!ENTITY		WindowedCookieEditor.toolbox_box.add.label							"Add">
-<!ENTITY		WindowedCookieEditor.toolbox_box.delete.label						"Delete">
-<!ENTITY		WindowedCookieEditor.toolbox_box.delete.block.label			"Delete and block">
-<!ENTITY		WindowedCookieEditor.toolbox_box.edit.accesskey					"E">
-<!ENTITY		WindowedCookieEditor.toolbox_box.add.accesskey					"A">
-<!ENTITY		WindowedCookieEditor.toolbox_box.delete.accesskey				"D">
-<!ENTITY		WindowedCookieEditor.toolbox_box.delete.block.accesskey	"K">
-<!ENTITY		WindowedCookieEditor.toolbox_box.select.tooltip 				"Select All / Invert (right click)">
-<!ENTITY		WindowedCookieEditor.filter.label 											"Search filter">
-<!ENTITY		WindowedCookieEditor.filter.name 												"Name">
-<!ENTITY		WindowedCookieEditor.filter.host 												"Host">
-<!ENTITY		WindowedCookieEditor.filter.content 										"Content">
-<!ENTITY		WindowedCookieEditor.filter.case												"Case sensitive">
-<!ENTITY		WindowedCookieEditor.cookiesPermissions.label						"Cookies Permissions">
+<!ENTITY		menu.Options.label																			"Options">
+<!ENTITY		menu.Options.accesskey																	"O">
+<!ENTITY		menu.FirefoxCM.label																		"Native Firefox Cookies Viewer">
+<!ENTITY		menu.FirefoxCM.accesskey																"N">
+<!ENTITY		menu.close.label																				"Close">
+<!ENTITY		menu.selectAllShown.label																"Select All">
+<!ENTITY		menu.invertSelection.label															"Invert selected">
+<!ENTITY		menu.edit.label																					"Edit">
+<!ENTITY		menu.edit.accesskey																			"E">
+<!ENTITY		menu.new.label																					"New Cookie">
+<!ENTITY		menu.new.accesskey																			"N">
+<!ENTITY		menu.delete.label																				"Delete">
+<!ENTITY		menu.delete.accesskey																		"D">
+<!ENTITY		menu.delete.block.label																	"Delete and block">
+<!ENTITY		menu.delete.block.accesskey															"K">
+<!ENTITY		menu.delete.expired.label																"Delete expired">
+<!ENTITY		menu.delete.expired.accesskey														"X">
+<!ENTITY		menu.delete.more.label																	"Delete ...">
+<!ENTITY		menu.delete.more.accesskey															"L">
+<!ENTITY		menu.select.tooltip 																		"Select All / Invert (right click)">
+<!ENTITY		menu.filter.label 																			"Search filter">
+<!ENTITY		menu.filter.name 																				"Name">
+<!ENTITY		menu.filter.host 																				"Domain">
+<!ENTITY		menu.filter.content 																		"Content">
+<!ENTITY		menu.filter.case																				"Case sensitive">
+<!ENTITY		menu.cookiesPermissions.label														"Cookies Permissions">
+
+<!ENTITY		menu.filter.hostType																		"Domain match">
+<!ENTITY		menu.filter.normal																			"Normal">
+<!ENTITY		menu.filter.normal.info																	"Searching for domain.com will include subdomains">
+<!ENTITY		menu.filter.relaxed																			"Relaxed">
+<!ENTITY		menu.filter.relaxed.info																"Searching for sub2.sub1.domain.com will match .domain.com as well as .sub1.domain.com (starts with dot)">
+<!ENTITY		menu.filter.exact																				"Exact">
+<!ENTITY		menu.filter.exact.info																	"Exact match only: domain.com will not match .domain.com (starts with dot)">
 
 <!ENTITY		export.button																						"Export">
 <!ENTITY		export.button.accesskey																	"X">
@@ -30,6 +42,7 @@
 <!ENTITY		export.file																							"Save to file">
 <!ENTITY		export.file.accesskey																		"F">
 <!ENTITY		export.success																					"File successfully saved.">
+<!ENTITY		export.openfolder																				"Open folder with saved file?">
 
 <!ENTITY		backup																									"Backup">
 <!ENTITY		backup.accesskey																				"B">
@@ -50,11 +63,13 @@
 <!ENTITY		restore.none																						"No cookies restored">
 
 <!ENTITY		button.edit.accesskey																		"E">
-<!ENTITY		button.add.accesskey																		"A">
+<!ENTITY		button.new.accesskey																		"N">
 <!ENTITY		button.invert.accesskey																	"I">
 <!ENTITY		button.all.accesskey																		"A">
 <!ENTITY		button.delete.accesskey																	"D">
 
+<!ENTITY		cookiedomain.label																			"Domain">
+<!ENTITY		cookiedomain.accesskey																	"O">
 <!ENTITY		cookiename.label																				"Name">
 <!ENTITY		cookievalue.label																				"Content">
 <!ENTITY		cookiepath.label																				"Path">
@@ -78,6 +93,8 @@
 <!ENTITY		cookieisHttpOnly.label																	"Http Only">
 <!ENTITY		cookiepolicy.label																			"Policy">
 <!ENTITY		cookiestatus.label																			"Status">
+<!ENTITY		cookiesisSecure.label																		"Secure">
+<!ENTITY		cookietype.label																				"Type">
 
 <!ENTITY		datepickerwindow.title.label														"Date Picker">
 <!ENTITY		datepickerwindow.button.label														"Calendar">
@@ -87,33 +104,35 @@
 <!ENTITY		props.lastAccessed.label																"Last Accessed:">
 <!ENTITY		props.isHttpOnly.label																	"Http Only:">
 <!ENTITY		props.creationTime.label																"Created:">
+<!ENTITY		props.type.label																				"Type:">
 
 <!ENTITY		props.name.accesskey																		"M">
 <!ENTITY		props.value.accesskey																		"N">
-<!ENTITY		props.domain.accesskey																	"O">
-<!ENTITY		props.path.accesskey																		"H">
+<!ENTITY		props.path.accesskey																		"A">
 <!ENTITY		props.secure.accesskey																	"F">
 <!ENTITY		props.expires.accesskey																	"X">
 <!ENTITY		props.policy.accesskey																	"I">
 <!ENTITY		props.status.accesskey																	"U">
 <!ENTITY		props.lastAccessed.accesskey														"S">
-<!ENTITY		props.isHttpOnly.accesskey															"Y">
+<!ENTITY		props.isHttpOnly.accesskey															"H">
 <!ENTITY		props.creationTime.accesskey														"R">
 <!ENTITY		props.isProtected.accesskey															"T">
+<!ENTITY		props.type.accesskey																		"Y">
 
 <!ENTITY		infoRow.select																					"Select">
 <!ENTITY		infoRow.copy																						"Copy to clipboard">
 <!ENTITY		infoRow.move.up																					"Move up">
 <!ENTITY		infoRow.move.down																				"Move down">
 <!ENTITY		infoRow.reset																						"Reset Info Rows Order">
+<!ENTITY		infoRow.wrap																						"Wrap text">
 
-<!ENTITY		cookieculler.protect																		"Protect">
-<!ENTITY		cookieculler.protect.accesskey													"P">
-<!ENTITY		cookieculler.unprotect																	"Unprotect">
-<!ENTITY		cookieculler.unprotect.accesskey												"U">
-<!ENTITY		cookieculler.isProtected																"Protected">
-<!ENTITY		cookieculler.open																				"Open Cookie Culler window">
-<!ENTITY		cookieculler.open.accesskey															"L">
+<!ENTITY		protect.protect																					"Protect">
+<!ENTITY		protect.protect.accesskey																"P">
+<!ENTITY		protect.unprotect																				"Unprotect">
+<!ENTITY		protect.unprotect.accesskey															"U">
+<!ENTITY		protect.isProtected																			"Protected">
+<!ENTITY		protect.open																						"Open $NAME$">
+<!ENTITY		protect.open.accesskey																	"N">
 
 <!ENTITY		menu.file																								"File">
 <!ENTITY		menu.file.accesskey																			"F">
@@ -134,8 +153,10 @@
 <!ENTITY		menu.expirecountdown.label															'Expires countdown'>
 <!ENTITY		menu.expireprogress.label																'Expires progress bar'>
 <!ENTITY		menu.expireprogress.info																'Visual representative of cookie&#39;s life time.'>
+<!ENTITY		menu.changes																						"Changes log">
+<!ENTITY		menu.changes.accesskey																	"C">
+<!ENTITY		menu.realHost.label																			'Show raw domain'>
 
-<!ENTITY		fields.note																							"Enabling this field might decrease performance.">
 <!ENTITY		columnSort.label																				"Sort by">
 <!ENTITY		columnSort.accesskey																		"S">
 <!ENTITY		restoreColumnOrder.label																"Restore Column Order">
@@ -147,3 +168,36 @@
 
 <!ENTITY		options.topmost.label																		'Always on top'>
 <!ENTITY		options.topmost.info																		'The window will stay on top of other "normal" Firefox windows'>
+
+
+<!ENTITY		policy0																									"no information available">
+<!ENTITY		policy1																									"no policy about storing identifiable information">
+<!ENTITY		policy2																									"stores identifiable information without any user consent">
+<!ENTITY		policy3																									"stores identifiable information unless user opts out">
+<!ENTITY		policy4																									"stores identifiable information if user opts in">
+<!ENTITY		policy5																									"does not store identifiable information">
+
+<!ENTITY		status0																									"no information available">
+<!ENTITY		status1																									"The cookie was accepted.">
+<!ENTITY		status2																									"The cookie was accepted but downgraded to a session cookie.">
+<!ENTITY		status3																									"The cookie was not accepted.">
+<!ENTITY		status4																									"The cookie was rejected.">
+<!ENTITY		yesno0																									"No">
+<!ENTITY		yesno1																									"Yes">
+<!ENTITY		multipleSelection																				"multiple values">
+<!ENTITY		empty																										"empty">
+<!ENTITY		stats																										"showing NN of TT, selected SS">
+
+
+<!ENTITY		filter.refresh																					"Refresh">
+<!ENTITY		filter.search																						"Search">
+<!ENTITY		export.file.save																				"Save file as">
+<!ENTITY		n.a																											"n/a">
+<!ENTITY		cookieType1																							"Cookie">
+<!ENTITY		cookieType2																							"Local storage">
+<!ENTITY		menu.supportSite																				"Support Website">
+<!ENTITY		menu.supportSite.accesskey															"W">
+<!ENTITY		menu.supportEmail																				"Support Email">
+<!ENTITY		menu.supportEmail.accesskey															"e">
+<!ENTITY		loading																									"Please Wait. Loading cookies.">
+<!ENTITY		fields.note																							"Enabling this field might decrease performance.">

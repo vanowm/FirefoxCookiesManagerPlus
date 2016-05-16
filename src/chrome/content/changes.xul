@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://cookiesmanagerplus/skin/changes.css" type="text/css"?>
+
+<!DOCTYPE bindings [
+	<!ENTITY % changesLogDTD SYSTEM "chrome://cookiesmanagerplus/locale/changesLog.dtd" >
+	%changesLogDTD;
+	<!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd" >
+	%textcontextDTD;
+]>
+<dialog	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+				id="changesLogWindow"
+				title="&changesLog.title;"
+				onload="changesLog.onload()"
+				buttons="accept"
+				buttoniconaccept="close"
+				width="520"
+				height="400"
+				flex="1"
+>
+	<hbox align="center">
+		<label id="changesLogTitle" value="&changesLog.title;" class="title"/>
+		<vbox id="changesLogSupport" flex="1" align="start" pack="center">
+			<description flex="1" align="start" pack="center">
+				&changesLog.support;
+				<label	id="supportSite"
+								class="text-link link"
+								context="changesLogLink"
+								onmouseover="changesLog.mouseOver(event)"
+								onmouseout="changesLog.mouseOut(event)"
+				>
+					&changesLog.support.website;
+				</label>
+				&changesLog.support.via;
+				<label	id="supportEmail"
+								class="text-link link"
+								context="changesLogLink"
+								onmouseover="changesLog.mouseOver(event)"
+								onmouseout="changesLog.mouseOut(event)"
+								
+				>
+					&changesLog.support.email;
+				</label>
+				.
+				&changesLog.more;
+				<label	id="supportHomepage"
+								class="text-link link"
+								context="changesLogLink"
+								onmouseover="changesLog.mouseOver(event)"
+								onmouseout="changesLog.mouseOut(event)"
+				>
+					&changesLog.here;
+				</label>
+			</description>
+		</vbox>
+		<hbox flex="1" pack="end">
+			<button type="menu" id="changesLogMenu" label="&changesLog.options;">
+				<panel id="changesLogOptions" position="after_end">
+					<vbox>
+						<checkbox id="changesLogHightlight" label="&changesLog.menu.hightlight;" value="1" persist="value" oncommand="changesLog.highlight(event);"/>
+						<checkbox id="changesLogWrap" label="&changesLog.menu.wrap;" value="1" persist="value" oncommand="changesLog.wrap(event);"/>
+						<checkbox id="changesLogAltBg" label="&changesLog.menu.altbg;" value="0" persist="value" oncommand="changesLog.altbg(event);"/>
+						<checkbox id="changesLogLegend" label="&changesLog.menu.legend;" value="1" persist="value" oncommand="changesLog.legend(event);"/>
+						<checkbox id="changesLogCopyIssueUrl" label="&changesLog.menu.copyIssueUrl;" tooltiptext="&changesLog.menu.copyIssueUrl.desc;" value="0" persist="value" oncommand="changesLog.copyIssueUrl(event);"/>
+						<button id="changeLogAddonOptions" label="&changesLog.options.addon;" oncommand="changesLog.openOptions(event)"/>
+					</vbox>
+				</panel>
+			</button>
+		</hbox>
+	</hbox>
+	<vbox id="changesLogBox" flex="1">
+		<hbox flex="1">
+			<vbox id="changesLog" flex="1" context="changesLogContext"/>
+		</hbox>
+	</vbox>
+	<popupset>
+		<menupopup id="changesLogLink" oncommand="changesLog.copyMenu(event);">
+			<menuitem id="changesLogLinkCopy" label="&copyCmd.label;" accesskey="&copyCmd.accesskey;" class="menuitem-iconic changesLog_copy_link"/>
+		</menupopup>
+		<menupopup id="changesLogContext" oncommand="changesLog.context(event);" onpopupshowing="changesLog.popup(event)">
+			<menuitem id="changesLogCopy" label="&copyCmd.label;" accesskey="&copyCmd.accesskey;" class="menuitem-iconic changesLog_copy"/>
+			<menuitem id="changesLogCopyLink" label="" accesskey="" class="menuitem-iconic changesLog_copy_link"/>
+			<menuseparator/>
+			<menuitem id="changesLogSelectAll" label="&selectAllCmd.label;" accesskey="&selectAllCmd.accesskey;"/>
+		</menupopup>
+	</popupset>
+	<script type="application/javascript" src="common.js"/>
+	<script type="application/javascript" src="changes.js"/>
+	<script type="application/javascript" src="libOut.js"/>
+</dialog>

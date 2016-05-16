@@ -27,7 +27,7 @@
 
 	<!-- Popup that holds the picker -->
 
-	<panel onpopupshowing="return oeDatePicker.onpopupshowing(this)" id="oe-date-picker-popup" >
+	<panel id="oe-date-picker-popup" onpopupshowing="return oeDatePicker.onpopupshowing(this)" >
 
 	<!-- Box with insides of the picker -->
 
@@ -40,8 +40,7 @@
 						 <box flex="1" id="oe-date-picker-year-previous-button" onclick="oeDatePicker.previousYearCommand()">
 								<image/>
 						 </box>
-
-						 <label id="oe-date-picker-year-title-text" value="" />
+						 <textbox id="oe-date-picker-year-title-text" value="" class="plain" align="center" onkeydown="return coomanPlus.numbersOnly(event);" oninput="coomanPlus.datepickerSelectYear(event);"/>
 
 						 <box flex="1" id="oe-date-picker-year-next-button" onclick="oeDatePicker.nextYearCommand()" >
 								<image/>
