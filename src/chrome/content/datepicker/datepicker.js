@@ -48,7 +48,7 @@ oeDatePicker.onpopupshowing = function( popup )
 	// draw the month based on the selected date
 
 	var month = oeDatePicker.gSelectedDate.getMonth() + 1;
-	var selectedMonthBoxItem = document.getElementById( "oe-date-picker-year-month-" + month + "-box"  );
+	var selectedMonthBoxItem = $( "oe-date-picker-year-month-" + month + "-box"  );
 
 
 	oeDatePicker.selectMonthItem( selectedMonthBoxItem );
@@ -64,28 +64,27 @@ oeDatePicker.onpopupshowing = function( popup )
 */
 
 
-oeDatePicker.clickDay = function( newDayItemNumber )
+oeDatePicker.clickDay = function oeDatePicker_clickDay( newDayItemNumber )
 {
-	coomanPlus.changeYear(document.getElementById("oe-date-picker-year-title-text"));
-	oeDatePicker.gSelectedDate.setFullYear( document.getElementById("oe-date-picker-year-title-text").value );
 	// get the clicked day
 
-	var dayNumberItem = document.getElementById( "oe-date-picker-month-day-text-" + newDayItemNumber );
+	var dayNumberItem = $( "oe-date-picker-month-day-text-" + newDayItemNumber );
+	if (dayNumberItem.disabled)
+		return false;
 
 	var dayNumber = dayNumberItem.getAttribute( "value" );
 
-	// they may have clicked an unfilled day, if so ignore it and leave the picker up
+	$("oe-date-picker-year-title-text").value = Number($("oe-date-picker-year-title-text").value) + dayNumberItem.year;
+//	oeDatePicker.gSelectedDate.setFullYear( dayNumberItem.year );
 
-	if( !dayNumberItem.disabled )
-	{
-			// set the selected date to what they cliked on
+	oeDatePicker.clickMonth($("oe-date-picker-year-month-" + (dayNumberItem.month + 1) + "-box"), dayNumberItem.month + 1);
 
-			oeDatePicker.gSelectedDate.setDate( dayNumber );
+	// set the selected date to what they cliked on
 
-			oeDatePicker.selectDate();
+	oeDatePicker.gSelectedDate.setDate( dayNumber );
+	oeDatePicker.selectYear();
 
-			oeDatePicker.gPopup.hidePopup();
-	}
+	oeDatePicker.gPopup.hidePopup();
 }
 
 
@@ -129,10 +128,10 @@ oeDatePicker.selectDate = function()
 * Called when a month box is clicked
 */
 
-oeDatePicker.clickMonth = function( newMonthItem, newMonthNumber )
+oeDatePicker.clickMonth = function oeDatePicker_clickMonth( newMonthItem, newMonthNumber )
 {
 	// already selected, return
-
+log.debug();
 	if( oeDatePicker.gSelectedMonthItem  == newMonthItem )
 	{
 			return;
@@ -179,7 +178,7 @@ oeDatePicker.previousYearCommand = function()
 
 	var min = (new Date().getFullYear());
 	var oldYear = oeDatePicker.gSelectedDate.getFullYear();
-	if (oldYear < min)
+	if (oldYear <= min)
 		return;
 	oeDatePicker.gSelectedDate.setFullYear( oldYear - 1 );
 
@@ -218,12 +217,12 @@ oeDatePicker.nextYearCommand = function()
 
 oeDatePicker.redrawYear = function()
 {
-	var yearTitleItem = document.getElementById( "oe-date-picker-year-title-text" );
+	var yearTitleItem = $( "oe-date-picker-year-title-text" );
 	var year = oeDatePicker.gSelectedDate.getFullYear();
 	yearTitleItem.setAttribute( "value", year );
 	yearTitleItem.value = year;
 	var today = new Date();
-	document.getElementById( "oe-date-picker-year-month-" + (today.getMonth()+1) + "-box"  ).setAttribute("today", (today.getFullYear() == oeDatePicker.gSelectedDate.getFullYear()))
+	$( "oe-date-picker-year-month-" + (today.getMonth()+1) + "-box"  ).setAttribute("today", (today.getFullYear() == oeDatePicker.gSelectedDate.getFullYear()))
 }
 
 
@@ -287,82 +286,134 @@ oeDatePicker.redrawDays = function( )
 {
 	// Write in all the day numbers
 
-	var firstDate = new Date( oeDatePicker.gSelectedDate.getFullYear(), oeDatePicker.gSelectedDate.getMonth(), 1 );
+	let month = oeDatePicker.gSelectedDate.getMonth(),
+			monthNew = month,
+			year = oeDatePicker.gSelectedDate.getFullYear(),
+			yearNew = 0;
+
+	var firstDate = new Date( year, month, 1 );
 	var firstDayOfWeek = firstDate.getDay();
 
-	var lastDayOfMonth = DateUtils.getLastDayOfMonth( oeDatePicker.gSelectedDate.getFullYear(), oeDatePicker.gSelectedDate.getMonth() )
-	var lastDayOfPrevMonth = DateUtils.getLastDayOfMonth( oeDatePicker.gSelectedDate.getFullYear() - (oeDatePicker.gSelectedDate.getMonth() == 1 ? 1 : 0), oeDatePicker.gSelectedDate.getMonth()-1 )
+	var lastDayOfMonth = DateUtils.getLastDayOfMonth( year, month )
+	var lastDayOfPrevMonth = DateUtils.getLastDayOfMonth( year - (month == 1 ? 1 : 0), month-1 )
 
 	// clear the selected day item
-	var today = new Date();
-	today = (today.getFullYear() == oeDatePicker.gSelectedDate.getFullYear() && today.getMonth() == oeDatePicker.gSelectedDate.getMonth()) ? today.getDate() : null;
+	var today = new Date(),
+			todayYear = today.getFullYear();
+	today = (todayYear == year && today.getMonth() == month) ? today.getDate() : null;
 	oeDatePicker.selectDayItem( null );
 
 	// redraw each day bax in the 7 x 6 grid
 
 	var dayNumber = 1;
 	var dayNumberPrevMonth = lastDayOfPrevMonth - firstDayOfWeek
-	var value, disabled;
+	let value, disabled, outside;
 	for( var dayIndex = 0; dayIndex < 42; ++dayIndex )
 	{
 		// get the day text box
 
-		var dayNumberItem = document.getElementById( "oe-date-picker-month-day-text-" + (dayIndex + 1) );
+		var dayNumberItem = $( "oe-date-picker-month-day-text-" + (dayIndex + 1) );
 
 		// if it is an unfilled day ( before first or after last ), just set its value to "",
 		// and don't increment the day number.
 
+		disabled = false;
 		if( dayIndex < firstDayOfWeek)
 		{
 			dayNumberPrevMonth++;
 			value = dayNumberPrevMonth;
-			disabled = true;
+			outside = true;
+			if (month < 1)
+			{
+				monthNew = 11;
+				yearNew =  -1;
+				if (year <= todayYear)
+				{
+					disabled = true;
+				}
+			}
+			else
+				monthNew = month - 1
 
 		}
 		else if(dayNumber > lastDayOfMonth)
 		{
 			value = (dayNumber - lastDayOfMonth);
-			disabled = true;
+			outside = true;
 			++dayNumber;
+			if (month > 10)
+			{
+				monthNew = 0;
+				yearNew = +1;
+			}
+			else
+				monthNew = month + 1;
 		}
 		else
 		{
 			// set the value to the day number
 
 			value = dayNumber;
-			disabled = false;
+			outside = false;
+			monthNew = month;
+			yearNew = 0;
 			// draw the day as selected
 			if( dayNumber == oeDatePicker.gSelectedDate.getDate() )
 			{
-					var dayNumberBoxItem = document.getElementById( "oe-date-picker-month-day-" + (dayIndex + 1) + "-box"  );
+					var dayNumberBoxItem = $( "oe-date-picker-month-day-" + (dayIndex + 1) + "-box"  );
 					oeDatePicker.selectDayItem( dayNumberBoxItem );
 			}
-			document.getElementById( "oe-date-picker-month-day-" + (dayIndex + 1) + "-box"  ).setAttribute("today", (dayNumber == today));
+			$( "oe-date-picker-month-day-" + (dayIndex + 1) + "-box"  ).setAttribute("today", (dayNumber == today));
 			// advance the day number
 
 			++dayNumber;
 		}
 		dayNumberItem.setAttribute( "value" , value );
+		dayNumberItem.month = monthNew;
+		dayNumberItem.year = yearNew;
 		dayNumberItem.disabled = disabled;
 		dayNumberItem.parentNode.setAttribute( "disabled" , disabled);
+		dayNumberItem.setAttribute( "outside", outside);
+		dayNumberItem.parentNode.setAttribute( "outside" , outside);
 	}
 
 }
 oeDatePicker.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-coomanPlus.datepickerSelectYear = function(e, t)
+
+oeDatePicker.selectYear = function oeDatePicker_selectYear()
 {
-	if (!t)
-		oeDatePicker.timer.init({observe: function(){if (!coomanPlus) return; coomanPlus.changeYear(e.target);coomanPlus.datepickerSelectYear(e, true); 	oeDatePicker.redrawYear();
-	oeDatePicker.redrawDays();
-oeDatePicker.selectDate();}}, 2000, Ci.nsITimer.TYPE_ONE_SHOT);
+//	oeDatePicker.timer.cancel();
 
-	var y = oeDatePicker.gSelectedDate.getFullYear();
+	if (!coomanPlus)
+		return;
 
-	oeDatePicker.gSelectedDate.setFullYear( e.target.value );
+	let obj = $("oe-date-picker-year-title-text");
+
+	coomanPlus.changeYear(obj);
+
+	let y = oeDatePicker.gSelectedDate.getFullYear(),
+			thisYear = (new Date()).getFullYear();
+
+	oeDatePicker.gSelectedDate.setFullYear( obj.value );
 	if (isNaN(oeDatePicker.gSelectedDate))
 		oeDatePicker.gSelectedDate.setFullYear( y );
+
+	if (oeDatePicker.gSelectedDate.getFullYear() < thisYear)
+		oeDatePicker.gSelectedDate.setFullYear(thisYear);
 
 	oeDatePicker.redrawYear();
 	oeDatePicker.redrawDays();
 	oeDatePicker.selectDate();
+}
+oeDatePicker.selectYearDelayed = function(t)
+{
+	oeDatePicker.timer = coomanPlusCore.async(oeDatePicker.selectYear, 2000, oeDatePicker.timer);
+}
+
+oeDatePicker.checkYear = function(e)
+{
+	if (e.keyCode == KeyEvent.DOM_VK_RETURN)
+		oeDatePicker.selectYear()
+
+	return coomanPlus.numbersOnly(e);
 }

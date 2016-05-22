@@ -30,7 +30,7 @@
 						extends="chrome://cookiesmanagerplus/skin/spinbuttons.xml#spinbuttonsH-baseline"
 	>
 		<resources>
-			<stylesheet src="chrome://cookiesmanagerplus/skin/editCookie.css"/>
+			<stylesheet src="editCookie.css"/>
 		</resources>
 	</binding>
 
@@ -50,7 +50,7 @@
 						extends="chrome://cookiesmanagerplus/skin/spinbuttons.xml#spinbuttonsV-baseline"
 	>
 		<resources>
-			<stylesheet src="chrome://cookiesmanagerplus/skin/editCookie.css"/>
+			<stylesheet src="editCookie.css"/>
 		</resources>
 	</binding>
 

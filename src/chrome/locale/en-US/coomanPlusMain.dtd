@@ -68,33 +68,34 @@
 <!ENTITY		button.all.accesskey																		"A">
 <!ENTITY		button.delete.accesskey																	"D">
 
-<!ENTITY		cookiedomain.label																			"Domain">
-<!ENTITY		cookiedomain.accesskey																	"O">
-<!ENTITY		cookiename.label																				"Name">
-<!ENTITY		cookievalue.label																				"Content">
-<!ENTITY		cookiepath.label																				"Path">
-<!ENTITY		cookieexpire.label																			"Expires">
-<!ENTITY		cookieexpired																						"This cookie is expired">
-<!ENTITY		cookieexpire.progress																		"Will expire in #">
-<!ENTITY		cookieexpire.progress.life															"#&#37; life left">
-<!ENTITY		cookieexpire.years																			"years">
-<!ENTITY		cookieexpire.year																				"year">
-<!ENTITY		cookieexpire.days																				"days">
-<!ENTITY		cookieexpire.day																				"day">
-<!ENTITY		cookieexpire.hours																			"hours">
-<!ENTITY		cookieexpire.hour																				"hour">
-<!ENTITY		cookieexpire.minutes																		"minutes">
-<!ENTITY		cookieexpire.minute																			"minute">
-<!ENTITY		cookieexpire.seconds																		"seconds">
-<!ENTITY		cookieexpire.second																			"second">
-<!ENTITY		cookieisSecure.label																		"Send for">
-<!ENTITY		cookiecreationTime.label																"Created">
-<!ENTITY		cookielastAccessed.label																"Accessed">
-<!ENTITY		cookieisHttpOnly.label																	"Http Only">
-<!ENTITY		cookiepolicy.label																			"Policy">
-<!ENTITY		cookiestatus.label																			"Status">
-<!ENTITY		cookiesisSecure.label																		"Secure">
-<!ENTITY		cookietype.label																				"Type">
+<!ENTITY		cookie.domain.label																			"Domain">
+<!ENTITY		cookie.domain.accesskey																	"O">
+<!ENTITY		cookie.name.label																				"Name">
+<!ENTITY		cookie.value.label																			"Content">
+<!ENTITY		cookie.path.label																				"Path">
+<!ENTITY		cookie.expire.label																			"Expires">
+<!ENTITY		cookie.expired																					"This cookie is expired">
+<!ENTITY		cookie.expire.progress																	"Will expire in #">
+<!ENTITY		cookie.expire.progress.life															"#&#37; life left">
+<!ENTITY		cookie.expire.years																			"years">
+<!ENTITY		cookie.expire.year																			"year">
+<!ENTITY		cookie.expire.days																			"days">
+<!ENTITY		cookie.expire.day																				"day">
+<!ENTITY		cookie.expire.hours																			"hours">
+<!ENTITY		cookie.expire.hour																			"hour">
+<!ENTITY		cookie.expire.minutes																		"minutes">
+<!ENTITY		cookie.expire.minute																		"minute">
+<!ENTITY		cookie.expire.seconds																		"seconds">
+<!ENTITY		cookie.expire.second																		"second">
+<!ENTITY		cookie.isSecure.label																		"Send for">
+<!ENTITY		cookie.creationTime.label																"Created">
+<!ENTITY		cookie.lastAccessed.label																"Accessed">
+<!ENTITY		cookie.isHttpOnly.label																	"Http Only">
+<!ENTITY		cookie.policy.label																			"Policy">
+<!ENTITY		cookie.status.label																			"Status">
+<!ENTITY		cookie.secure.label																			"Secure">
+<!ENTITY		cookie.type.label																				"Type">
+<!ENTITY		cookie.size.label																				"Size">
 
 <!ENTITY		datepickerwindow.title.label														"Date Picker">
 <!ENTITY		datepickerwindow.button.label														"Calendar">
@@ -105,6 +106,7 @@
 <!ENTITY		props.isHttpOnly.label																	"Http Only:">
 <!ENTITY		props.creationTime.label																"Created:">
 <!ENTITY		props.type.label																				"Type:">
+<!ENTITY		props.size.label																				"Size:">
 
 <!ENTITY		props.name.accesskey																		"M">
 <!ENTITY		props.value.accesskey																		"N">
@@ -118,6 +120,7 @@
 <!ENTITY		props.creationTime.accesskey														"R">
 <!ENTITY		props.isProtected.accesskey															"T">
 <!ENTITY		props.type.accesskey																		"Y">
+<!ENTITY		props.size.accesskey																		"Z">
 
 <!ENTITY		infoRow.select																					"Select">
 <!ENTITY		infoRow.copy																						"Copy to clipboard">
@@ -193,8 +196,8 @@
 <!ENTITY		filter.search																						"Search">
 <!ENTITY		export.file.save																				"Save file as">
 <!ENTITY		n.a																											"n/a">
-<!ENTITY		cookieType1																							"Cookie">
-<!ENTITY		cookieType2																							"Local storage">
+<!ENTITY		cookie.Type1																						"Cookie">
+<!ENTITY		cookie.Type2																						"Local storage">
 <!ENTITY		menu.supportSite																				"Support Website">
 <!ENTITY		menu.supportSite.accesskey															"W">
 <!ENTITY		menu.supportEmail																				"Support Email">

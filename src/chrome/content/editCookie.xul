@@ -88,7 +88,7 @@
 						/>
 						<vbox id="valueMenuBox" collapsed="true" pack="center">
 							<button id="valueMenu"
-											type="menu"
+											type="panel"
 											class="menubutton"
 											sizetopopup="none"
 											tooltiptext="&value.select.info;"
@@ -97,6 +97,8 @@
 											onfocus="this.parentNode.setAttribute('focus', true);"
 											onblur="this.parentNode.removeAttribute('focus');"
 											onkeypress="return coomanPlus.valueKeypress(event);"
+											pack="center"
+											align="center"
 											flex="1"
 							>
 								<menupopup id="valuePopup" position="after_end"/>
@@ -107,7 +109,7 @@
 				<row id="value_options" align="center">
 					<hbox/>
 					<hbox>
-						<button id="json" oncommand="coomanPlus.setJSON(event)" checked="false" persist="checked" control="ifl_value" label="&json1;" tabindex="53"/>
+						<button id="json" oncommand="coomanPlus.setJSON(event)" checked="true" control="ifl_value" label="&json1;" tabindex="53"/>
 						<checkbox id="wrap" oncommand="coomanPlus.setWrap(event)" checked="true" persist="checked" control="ifl_value" label="&wrap;" tabindex="56"/>
 					</hbox>
 				</row>
@@ -181,25 +183,28 @@
 								<textbox id="ifl_expires_date" label="&options.expire.date.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" oninput="coomanPlus.fixDate(true)" onblur="coomanPlus.fixDate()" flex="1" tabindex="160" accessibleType="101B"/>
 								<hbox>
 									<vbox flex="0">
-										<menulist id="ifl_expires_Month" label="&options.expire.date.months;" oncommand="coomanPlus.setDateField();" tabindex="180">
-											<menupopup accessibleType="100F">
-												<menuitem  label="&months.january.label;" value="January" accessibleType="100E"/>
-												<menuitem  label="&months.february.label;" value="February" accessibleType="100E"/>
-												<menuitem  label="&months.march.label;" value="March" accessibleType="100E"/>
-												<menuitem  label="&months.april.label;" value="April" accessibleType="100E"/>
-												<menuitem  label="&months.may.label;" value="May" accessibleType="100E"/>
-												<menuitem  label="&months.june.label;" value="June" accessibleType="100E"/>
-												<menuitem  label="&months.july.label;" value="July" accessibleType="100E"/>
-												<menuitem  label="&months.august.label;" value="August" accessibleType="100E"/>
-												<menuitem  label="&months.september.label;" value="September" accessibleType="100E"/>
-												<menuitem  label="&months.october.label;" value="October" accessibleType="100E"/>
-												<menuitem  label="&months.november.label;" value="November" accessibleType="100E"/>
-												<menuitem  label="&months.december.label;" value="December" accessibleType="100E"/>
-											</menupopup>
-										</menulist>
+										<hbox>
+											<menulist id="ifl_expires_Month" label="&options.expire.date.months;" oncommand="coomanPlus.setDateField();" tabindex="180">
+												<menupopup accessibleType="100F">
+													<menuitem  label="&months.january.label;" value="January" accessibleType="100E"/>
+													<menuitem  label="&months.february.label;" value="February" accessibleType="100E"/>
+													<menuitem  label="&months.march.label;" value="March" accessibleType="100E"/>
+													<menuitem  label="&months.april.label;" value="April" accessibleType="100E"/>
+													<menuitem  label="&months.may.label;" value="May" accessibleType="100E"/>
+													<menuitem  label="&months.june.label;" value="June" accessibleType="100E"/>
+													<menuitem  label="&months.july.label;" value="July" accessibleType="100E"/>
+													<menuitem  label="&months.august.label;" value="August" accessibleType="100E"/>
+													<menuitem  label="&months.september.label;" value="September" accessibleType="100E"/>
+													<menuitem  label="&months.october.label;" value="October" accessibleType="100E"/>
+													<menuitem  label="&months.november.label;" value="November" accessibleType="100E"/>
+													<menuitem  label="&months.december.label;" value="December" accessibleType="100E"/>
+												</menupopup>
+											</menulist>
+											<spinbuttonsV id="Month-spinButtons" onup="coomanPlus.spinEvent(event)" ondown="coomanPlus.spinEvent(event)"/>
+										</hbox>
 									</vbox>
 									<vbox flex="0">
-										<hbox>
+										<hbox align="center">
 											<textbox	id="ifl_expires_Day"
 																label="&options.expire.date.day;"
 																size="1"
@@ -221,7 +226,6 @@
 										<hbox>
 											<textbox	id="ifl_expires_Year"
 																label="&options.expire.date.year;"
-																size="2"
 																tabindex="200"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																maxLength="4"
@@ -234,8 +238,7 @@
 											<spinbuttonsV id="Year-spinButtons" onup="coomanPlus.spinEvent(event)" ondown="coomanPlus.spinEvent(event)"/>
 										</hbox>
 									</vbox>
-									<vbox id="vbox_pop">
-										<label class="lbl_pop"/>
+									<vbox id="vbox_pop" pack="center">
 										<image class="calendar" onmousedown="coomanPlus.calendarSet()" popup="oe-date-picker-popup" position="after_start" />
 									</vbox>
 								</hbox>
@@ -319,34 +322,36 @@
 				
 			</rows>
 		</grid>
-		<vbox pack="end">
-			<hbox pack="end">
-				<button	id="editCookieNew"
-								label="&CookieEditDlg.saveNew.label;"
-								oncommand="coomanPlus.saveCookie(true)"
-								accesskey="&CookieEditDlg.saveNew.accesskey;"
-								hidden="true"
-								tabindex="250"
-								accessibleType="1002"
-				/>
-				<spacer/>
-				<button	id="editCookie"
-								label="&CookieEditDlg.save.label;"
-								oncommand="coomanPlus.saveCookie()"
-								accesskey="&CookieEditDlg.save.accesskey;"
-								hidden="false"
-								style="font-weight:bold;"
-								tabindex="260"
-								accessibleType="1002"
-				/>
-				<spacer/>
-				<button	label="&CookieEditDlg.close.label;"
-								oncommand="window.close()"
-								accesskey="&CookieEditDlg.close.accesskey;"
-								tabindex="270"
-								accessibleType="1002"
-				/>
-				<resizer dir="bottomend"/>
+		<vbox align="end" pack="end">
+			<hbox align="end" pack="end">
+				<hbox id="buttons">
+					<button	id="editCookieNew"
+									label="&CookieEditDlg.saveNew.label;"
+									oncommand="coomanPlus.saveCookie(true)"
+									accesskey="&CookieEditDlg.saveNew.accesskey;"
+									hidden="true"
+									tabindex="250"
+									accessibleType="1002"
+					/>
+					<spacer/>
+					<button	id="editCookie"
+									label="&CookieEditDlg.save.label;"
+									oncommand="coomanPlus.saveCookie()"
+									accesskey="&CookieEditDlg.save.accesskey;"
+									hidden="false"
+									style="font-weight:bold;"
+									tabindex="260"
+									accessibleType="1002"
+					/>
+					<spacer/>
+					<button	label="&CookieEditDlg.close.label;"
+									oncommand="window.close()"
+									accesskey="&CookieEditDlg.close.accesskey;"
+									tabindex="270"
+									accessibleType="1002"
+					/>
+				</hbox>
+				<resizer id="resizer" dir="bottomend"/>
 			</hbox>
 		</vbox>
 	</vbox>

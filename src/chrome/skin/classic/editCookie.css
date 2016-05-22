@@ -14,6 +14,9 @@ checkbox[right="true"]
 {
 	-moz-binding: url("checkboxright.xml#checkbox");
 }
+checkbox:focus > .checkbox-label-box {
+	border: 1px dotted ThreeDDarkShadow;
+}
 
 .spinbutton,
 .spinbutton[disabled="true"]
@@ -61,9 +64,10 @@ checkbox[right="true"]
 	margin: 0 !important;
 }
 
-#vbox_pop
+#vbox_pop > image
 {
-	font-weight: bold;
+	padding-left: 0.3em;
+	padding-right: 0.1em;
 }
 
 .lbl_pop
@@ -121,12 +125,12 @@ checkbox[right="true"]
 
 #main
 {
-	min-width: 520px;
+	min-width: 525px;
 }
 
 #main:-moz-system-metric(windows-classic)
 {
-	min-width: 515px;
+	min-width: 520px;
 }
 #ifl_value
 {
@@ -136,6 +140,8 @@ checkbox[right="true"]
 {
 	display:none;
 }
+/*
+
 #valueMenu,
 #valueMenu > hbox,
 #valueMenu > hbox > dropmarker
@@ -150,6 +156,32 @@ checkbox[right="true"]
 {
 	width: 10px;
 }
+
+*/
+
+#ifl_value[type="multi"]
+{
+	margin-right: 0;
+}
+#valueMenu
+{
+	width: 1em;
+	list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif");
+	min-width: 0;
+	margin-left: 0;
+	margin-bottom: 1px;
+	margin-top: 1px;
+	padding: 0;
+	display: block;
+}
+#valueMenu dropmarker
+{
+	display: none;
+}
+
+
+
+
 
 textbox[readonly="true"]
 {
@@ -174,6 +206,40 @@ textbox[readonly="true"]
 #valuePopup > menuitem, menupopup > menu
 {
 	max-width: none;
+}
+
+#valuePopup autorepeatbutton
+{
+	display: none;
+}
+
+#valuePopup scrollbox
+{
+	overflow-y: auto !important;
+}
+
+#ifl_expires_Year
+{
+	width: 3em;
+}
+
+#buttons
+{
+	margin-bottom: 5px;
+	margin-right: 0;
+}
+#buttons>button:last-child
+{
+	margin-right: 0;
+}
+#resizer
+{
+	margin-left: 0;
+}
+
+#oe-date-picker-popup
+{
+	margin: 1em;
 }
 
 @keyframes shake-rotate {

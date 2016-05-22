@@ -15,6 +15,7 @@
 				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 				onload="coomanPlus.load()"
 				onunload="coomanPlus.unload()"
+				buttons="accept,cancel"
 				persist="screenX screenY width height"
 				xmlns:html="http://www.w3.org/1999/xhtml"
 				flex="1"
@@ -95,7 +96,7 @@
 							<hbox>
 								<checkbox preference="autoupdate" label='&options.autoupdate.label;' tooltiptext="&options.autoupdate.info;" accessibleType="1003"/>
 							</hbox>
-							<hbox>
+							<hbox id="topmostBox">
 								<checkbox preference="topmost" label='&options.topmost.label;' tooltiptext="&options.topmost.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
@@ -146,6 +147,7 @@
 											<label id="showChangesLog_button"
 															class="text-link link"
 															value="&options.showChangesLog.button;"
+															accessibleType="100A"
 											/>
 										</hbox>
 										<label value=")" style="margin-left: 0"/>

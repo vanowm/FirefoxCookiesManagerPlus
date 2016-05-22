@@ -66,6 +66,16 @@ var	self = this,
 		}
 	},//openCMP()
 
+	openOptions: function(args)
+	{
+		args = typeof(args) == "undefined" ? {} : args
+
+		args.wrappedJSObject = args;
+
+	//	this._openDialog("options.xul", "", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {standalone: standalone ? true : false});
+		this.window.openDialog("chrome://cookiesmanagerplus/content/options.xul", "options", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no"), args);
+	},
+
 	pref: function (key, val, noCache, noAsync)
 	{
 		let pref = coomanPlusCore.pref;

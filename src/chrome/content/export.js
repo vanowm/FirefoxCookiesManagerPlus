@@ -1,7 +1,7 @@
 Cu.import("resource://gre/modules/FileUtils.jsm");
 coomanPlus.prefTemplateClipboard = {value: "", extra: false}
 coomanPlus.prefTemplateFile = {value: "", extra: false};
-coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT_RAW}", extra: false};
+coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT}", extra: false};
 coomanPlus.restoreTemplate = [["host", "string"],["isDomain", "bool"],["path", "string"],["isSecure", "bool"],["expires", "int"],["name", "string"],["value", "string"],["isProtected", "bool"]];
 coomanPlus.exportGetData = function(t, s, a, u, j)
 {
@@ -29,26 +29,34 @@ coomanPlus.exportGetData = function(t, s, a, u, j)
 
 coomanPlus.exportEscape = function(text)
 {
-	return text
-					.replace(/\n/g, "_CMP_N__CMP__")
-					.replace(/\r/g, "_CMP_R__CMP__")
-					.replace(/\t/g, "_CMP_T__CMP__")
+	try
+	{
+		text = encodeURIComponent(text);
+	}
+	catch(e){}
+	return	text.replace(/\n/g, "_CMP_N__CMP__")
+							.replace(/\r/g, "_CMP_R__CMP__")
+							.replace(/\t/g, "_CMP_T__CMP__")
+	
 }
 coomanPlus.exportUnescape = function(text)
 {
-	return text
-					.replace(/_CMP_N__CMP__/g, "\n")
-					.replace(/_CMP_R__CMP__/g, "\r")
-					.replace(/_CMP_T__CMP__/g, "\t")
+	try
+	{
+		text = decodeURIComponent(text);
+	}
+	catch(e){}
+	return	text.replace(/_CMP_N__CMP__/g, "\n")
+							.replace(/_CMP_R__CMP__/g, "\r")
+							.replace(/_CMP_T__CMP__/g, "\t")
+
 }
 
 coomanPlus.exportClipboard = function()
 {
 	let data = this.exportGetData(this.prefTemplateClipboard, undefined, undefined, false, ""),
-			str = Cc["@mozilla.org/supports-string;1"]
-						.createInstance(Ci.nsISupportsString),
-			trans = Cc["@mozilla.org/widget/transferable;1"]
-							.createInstance(Ci.nsITransferable),
+			str = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString),
+			trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable),
 			clip = Cc["@mozilla.org/widget/clipboard;1"].getService(Ci.nsIClipboard);
 	str.data = data;
 	trans.addDataFlavor("text/unicode");
@@ -90,8 +98,9 @@ coomanPlus.exportTemplate = function(aCookie, t)
 			tags = "",
 			data = {
 				NAME:					this.exportEscape(aCookie.name),
-				CONTENT:			this.exportEscape(aCookie.value),
-				CONTENT_RAW:	this.exportEscape(aCookie.value),
+				NAME_RAW:			aCookie.name,
+				CONTENT:			this.exportEscape(aCookie.valueRaw),
+				CONTENT_RAW:	aCookie.valueRaw,
 				HOST:					this.exportEscape(aCookie.host),
 				PATH:					this.exportEscape(aCookie.path),
 				ISSECURE:			aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
@@ -104,12 +113,13 @@ coomanPlus.exportTemplate = function(aCookie, t)
 				ISDOMAIN_RAW:	aCookie.isDomain,
 				TYPE:					this.string("cookieType" + (typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type)),
 				TYPE_RAW:			aCookie.type,
-		
+
 				//exceptions
 				CAPABILITY:		aCookie.capability,
 				EXPIRETIME:		aCookie.expireTime,
 				EXPIRETYPE:		aCookie.expireType,
 			}
+
 	if (this.protect.enabled)
 	{
 		data.ISPROTECTED =			this.string("yesno"+ (aCookie.isProtected ? 1 : 0));
@@ -358,7 +368,8 @@ coomanPlus.backupRemovePassword = function()
 coomanPlus.promptPassword = function(msg, title, newPass, set, file)
 {
 	let r = {return: null, msg: msg, title: title, newPass: newPass, set: set, file: file};
-	this._openDialog("password.xul", "", "chrome,resizable=no,centerscreen," + (this.isMac ? "dialog=no" : "modal"), r);
+//	this._openDialog("password.xul", "", "chrome,resizable=no,centerscreen," + (this.isMac ? "dialog=no" : "modal"), r);
+	this._openDialog("password.xul", "", "chrome,resizable=no,centerscreen,dialog=no,modal", r);
 	return r.return;
 }
 
@@ -499,6 +510,7 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 			obj.policy = 0;
 			let aCookie = new this.cookieObject(obj);
 
+			aCookie.value = aCookie.valueRaw;
 			if (!("isProtected" in obj))
 				obj.isProtected = null;
 

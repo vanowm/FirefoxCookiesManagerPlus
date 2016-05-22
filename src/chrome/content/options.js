@@ -60,10 +60,11 @@ var coomanPlus = {
 												.getBoolPref("browser.preferences.instantApply");
 
 		coomanPlus.protect.init();
-		var tree = $("dateList");
-		var p = null;
-		var t = (new Date()).getTime() / 1000;
-		for(var i = 0; i < tree.view.rowCount; i++)
+		$("topmostBox").collapsed = !this.isWin;
+		let tree = $("dateList"),
+				p = null,
+				t = (new Date()).getTime() / 1000;
+		for(let i = 0; i < tree.view.rowCount; i++)
 		{
 			if (p == null)
 			{
@@ -76,11 +77,11 @@ var coomanPlus = {
 			if (tree.view.getParentIndex(i) != p)
 				break;
 
-			var val = tree.view.getCellValue(i, tree.columns[0]) != "default" ? tree.view.getCellText(i, tree.columns[0]) : "";
+			let val = tree.view.getCellValue(i, tree.columns[0]) != "default" ? tree.view.getCellText(i, tree.columns[0]) : "";
 
 			tree.view.setCellText(i, tree.columns[2], ("Ex: " + this.getExpiresString(t, val)));
 		}
-		for(var i = 0; i < t.length; i++)
+		for(let i = 0; i < t.length; i++)
 		{
 			if (!t[i].label)
 				t[i].label = this.getExpiresString((new Date()).getTime()/1000, t[i].value);
@@ -166,8 +167,10 @@ var coomanPlus = {
 	{
 
 		coomanPlusCore.cmpWindowOptions = null;
+/*
 		if (!coomanPlus.standalone)
 			coomanPlusCore.cmpWindow = coomanPlus.cmpWindowBackup;
+*/
 
 		if (coomanPlus.inited)
 		{
@@ -241,7 +244,7 @@ var coomanPlus = {
 	template: function template(e)
 	{
 		$("format").value = e.originalTarget.value;
-		var event = document.createEvent("Events");
+		let event = document.createEvent("Events");
 		event.initEvent("change", true, true);
 		$("format").dispatchEvent(event);
 		this.test(e.originalTarget);
@@ -255,8 +258,8 @@ var coomanPlus = {
 
 	observeSend: function observeSend(data)
 	{
-		var observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-		var observerSubject = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+		let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
+				observerSubject = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
 		observerSubject.data = data;
 		observerService.notifyObservers(observerSubject, "coomanPlusWindow", null);
 	},
@@ -289,28 +292,28 @@ var coomanPlus = {
 				|| (e.type == "keydown" && (coomanPlus.matchKeys(k[0], ["SPACE"], 1)
 						|| coomanPlus.matchKeys(k[0], ["ENTER"], 1))))
 		{
-			var tree = $("dateList");
-			var start = new Object();
-			var end = new Object();
+			let tree = $("dateList"),
+					start = new Object(),
+					end = new Object();
+
 			tree.view.selection.getRangeAt(0, start, end);
 			if (!tree.view.isContainer(start.value))
 			{
 				if (tree.view.getCellValue(tree.view.getParentIndex(start.value), tree.columns[0]) == "presets")
 				{
-					let val = tree.view.getCellValue(start.value, tree.columns[0]) == "default" ? "" : tree.view.getCellText(start.value, tree.columns[0]);
-					$("format").value = val;
+					$("format").value = tree.view.getCellValue(start.value, tree.columns[0]) == "default" ? "" : tree.view.getCellText(start.value, tree.columns[0]);
 				}
 				else
 				{
-					var val = tree.view.getCellText(start.value, tree.columns[0]);
-					var start = $("format").selectionStart;
-					var end = $("format").selectionEnd;
+					let val = tree.view.getCellText(start.value, tree.columns[0]);
+					start = $("format").selectionStart;
+					end = $("format").selectionEnd;
 					$("format").value = $("format").value.substring(0, start) + val + $("format").value.substring(end);
 					$("format").selectionStart = start + val.length;
 					$("format").selectionEnd = start + val.length;
 				}
 				coomanPlus.test($("format"));
-				var event = document.createEvent("Events");
+				let event = document.createEvent("Events");
 				event.initEvent("change", true, true);
 				$("format").dispatchEvent(event);
 			}
@@ -380,10 +383,14 @@ if (coomanPlusCore.cmpWindowOptions)
 	window.close()
 }
 coomanPlusCore.cmpWindowOptions = window;
-if ("arguments" in window && window.arguments.length && (!("standalone" in window.arguments[0]) || !window.arguments[0].standalone))
+var args = "arguments" in window && window.arguments.length ? window.arguments[0] : {};
+if (typeof(args) == "object" && args.wrappedJSObject)
+	args = args.wrappedJSObject;
+
+if (args.standalone)
 {
-	coomanPlus.cmpWindowBackup = coomanPlusCore.cmpWindow;
-	coomanPlusCore.cmpWindow = window;
+//	coomanPlus.cmpWindowBackup = coomanPlusCore.cmpWindow;
+//	coomanPlusCore.cmpWindow = window;
 	coomanPlus.standalone = false;
 }
 log.debug("standalone " + coomanPlus.standalone);
@@ -392,12 +399,13 @@ var xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
 						.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
 						.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
 						.getInterface(Components.interfaces.nsIXULWindow);
-xulWin.zLevel = xulWin.raisedZ;
+xulWin.zLevel = xulWin.highestZ;
 if (coomanPlus.standalone)
 {
 	coomanPlusCore.async(function()
 	{
-		coomanPlusCore.openCMP({options: true});
+		coomanPlusCore.openOptions({standalone: true});
 	});
+log.debug();
 	window.close();
 }

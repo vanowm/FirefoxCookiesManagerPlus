@@ -18,10 +18,10 @@ coomanPlus.clone = function(o)
 
 coomanPlus.getExpiresString = function(expires, format)
 {
-	var format = format || this.prefDateFormat
+	format = typeof(format) == "undefined" ? this.pref("dateformat") : format;
 	if (expires)
 	{
-		var date;
+		let date;
 		if (format)
 		{
 			date = this.date(format,  expires);
@@ -96,11 +96,32 @@ coomanPlus._cookieGetExtraInfo = function(aCookie)
 
 coomanPlus.cookieObject = function(aCookie, sel, updated)
 {
-	this._aCookie			= aCookie;
+	if (!"_aCookie" in aCookie)
+		this._aCookie = aCookie._aCookie;
+	else
+		this._aCookie			= aCookie;
 
-
-	this.name					= aCookie.name;
-	this.value				= aCookie.value;
+/*
+	this.nameRaw			= aCookie.name;
+	try
+	{
+//		this.name				= decodeURIComponent(aCookie.name);
+	}
+	catch(e)
+	{
+		this.name 			= aCookie.name;
+	}
+*/
+	this.name 			= aCookie.name;
+	this.valueRaw			= aCookie.value;
+	try
+	{
+		this.value			= decodeURIComponent(aCookie.value);
+	}
+	catch(e)
+	{
+		this.value 			= aCookie.value;
+	}
 	this.isDomain			= aCookie.isDomain;
 	this.host					= aCookie.host;
 	this.rawHost			= aCookie.rawHost ? aCookie.rawHost : coomanPlus.getRawHost(aCookie.host);
@@ -120,6 +141,10 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	this.isProtected	= coomanPlus.protect.enabled ? coomanPlus.protect.obj.isProtected(this) : false;
 	this.updated			= typeof(updated) == "undefined" ? null : updated;
 	this.type 				= coomanPlusCore.COOKIE_NORMAL;
+	this.valueSize 		= coomanPlus.getByteSize(this.value);
+	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
+	this.size 				= coomanPlus.getByteSize(this.name + "=" + this.value);
+	this.sizeText			= coomanPlus.getByteSizeText(this.size);
 }
 
 coomanPlus.resizeWindow = function(f)
@@ -163,39 +188,46 @@ coomanPlus.left = function(str, n)
 		return String(str).substring(0,n);
 }
 
-coomanPlus._openDialog = function(a, b, c, arg)
+coomanPlus._openDialog = function(url, b, c, arg)
 {
 
-	var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
-	var browsers = wm.getZOrderDOMWindowEnumerator('', false);
-	if (!a.match("/"))
-		a = "chrome://cookiesmanagerplus/content/" + a;
+	let wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator),
+			wins = wm.getZOrderDOMWindowEnumerator('', false),
+			win;
+	if (!url.match("/"))
+		url = "chrome://cookiesmanagerplus/content/" + url;
 
-	var browser;
-	while (browser = browsers.getNext())
-	{
-		if (browser.location.href.toString() == a)
-		{
-			browser.focus();
-			return;
-		}
-	}
 	if (typeof(arg) == "undefined")
-		var arg = {};
+		arg = {};
 
 	arg.window = window;
 	arg.document = document;
+	arg.wrappedJSObject = arg;
+	while (win = wins.getNext())
+	{
+		if (win.location.href.toString() == url)
+		{
+			if (!arg.multiple)
+			{
+				win.focus();
+				if (win.coomanPlus && win.coomanPlus.focus)
+					win.coomanPlus.focus(arg)
+
+				return;
+			}
+		}
+	}
 /*
 	Cc["@mozilla.org/embedcomp/window-watcher;1"]
 		.getService(Ci.nsIWindowWatcher)
 		.openWindow(null, a, b, c, arg);
 */
-	window.openDialog(a, b, c, arg);
+	window.openDialog(url, b, c, arg);
 }
 
 coomanPlus.alert = function(msg, title)
 {
-	var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
+	let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
 											.getService(Ci.nsIPromptService);
 	promptService.alert(window, title || msg, msg);
 }
@@ -482,10 +514,8 @@ log.debug("protect observer added");
 				self.OBS_STARTUP = CookieKeeper.OBS_STARTUP;
 				self.OBS_SHUTDOWN = CookieKeeper.OBS_SHUTDOWN;
 				let obj = $("protect_menu");
-log(obj);
 				if (obj)
 				{
-log(self.name);
 					obj.label = obj.getAttribute("_label").replace("$NAME$", self.name)
 					obj.setAttribute("image", self.icon);
 				}
@@ -798,15 +828,30 @@ coomanPlus.escape = function escape(str)
 	catch(e)
 	{
 		r = r.replace(/\n/g, "%0A")
-					.replace(/\r/g, "%0D")
-					.replace(/\t/g, "%09");
+				.replace(/\r/g, "%0D")
+				.replace(/\t/g, "%09");
 	}
 	return r;
 }
+
+coomanPlus.getByteSize = function getByteSize(s)
+{
+  return encodeURIComponent('' + s).length;
+}
+
+coomanPlus.getByteSizeText = function getByteSizeText(b)
+{
+	if (!b)
+		return "0 B";
+
+	let i = Math.floor(Math.log(b) / Math.log(1024));
+	return parseFloat((b / Math.pow(1024, i)).toFixed(2)) + " " + ["B", "KB", "MB", "GB", "TB", "PB"][i];
+}
+
 coomanPlus.os = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS;
 coomanPlus.appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 coomanPlus.isMac = coomanPlus.os == "Darwin";
-
+coomanPlus.isWin = coomanPlus.os == "WINNT";
 (coomanPlus.observer = {
 	_observerService: Cc["@mozilla.org/observer-service;1"]
 														.getService(Ci.nsIObserverService),

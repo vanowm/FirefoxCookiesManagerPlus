@@ -7,12 +7,34 @@ Legend:
 * = Changed
 - = Removed
 
-
 Changes log:
+
+v1.9 (2016-05-22)
+	+ cookie size information shows as NN (XX), where NN is total size when transmitted to/from website in name=value format and XX is size of content value
+	+ [+]/[-] buttons to month selection in edit window
+	+ detailed information about the cookie in delete confirmation prompt
+	+ password peek button for password fields
+	+ date picker can now select date from prev/next month
+	* expand/compact button is no longer persistent
+	* F5 (refresh) now works anywhere in the window
+	* buttons in delete confirmation are now centered and window has consistent size
+	* Mac OS has issues with modal non-dialog windows, therefore made all modal windows as dialog type
+	* edit and options windows are no longer modal
+	* cookies list columns now keep it's width when resizing other columns, allowing resize beyond the window size showing horizontal scrollbar when needed (there is a bug that might give unexpected result: https://bugzilla.mozilla.org/show_bug.cgi?id=1274862)
+	! delete doesn't work on Mac (issue #70)
+	! cancel button in delete confirmation dialog not shown on Mac
+	! checkboxes cut off on Mac (issue #71)
+	! cookies data with UNICODE/UTF-8 content not properly saved
+	! date format has no effect (issue #72)
+	! search filter button incorrectly displayed on Mac
+	! refresh would show different results if filter set for current website
+	! manually entering year in date picker would be lost if withing 2 seconds after changing it clicked on a day number
+	- "Always on top" option on non-Windows OS
+
 v1.8 (2016-05-17)
 	+ invert selection via right click on "select all" checkbox at tree column header
-	+ backup selected (unencrypted) cookies by drag'n drop cookies from the list to a folder (tested only on Windows 10)
-	+ restore multiple backups by drag'n drop files into CM+ window (tested only on Windows 10)
+	+ backup selected (unencrypted) cookies by drag'n drop cookies from the list to a folder (tested on Windows 10 and Mac OS X 10.11)
+	+ restore multiple backups by drag'n drop files into CM+ window (tested only on Windows 10 and Mac OS X 10.11)
 	* moving info rows with ALT + UP/DOWN instead of CTRL + UP/DOWN
 	* saving cookies doesn't compact automatically the content
 	! incorrect tooltip shown on tree headers

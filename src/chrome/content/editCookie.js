@@ -48,18 +48,18 @@ var coomanPlus = {
 	pref: coomanPlusCore.pref,
 	prefs: coomanPlusCore.prefs,
 	mouseScrollTimeStamp: 0,
-
+	inited: false,
 	load: function load()
 	{
-		coomanPlus.init();
+		coomanPlus.init(window.arguments[0]);
 	},
 
-	init: function init()
+	init: function init(params)
 	{
-		this._cmpWindow = coomanPlusCore.cmpWindow;
-		coomanPlusCore.cmpWindow = window;
+//		this._cmpWindow = coomanPlusCore.cmpWindow;
+//		coomanPlusCore.cmpWindow = window;
 
-		this._params = window.arguments[0];
+		this._params = params.wrappedJSObject;
 		this._parent = this._params.document;
 
 		this._addFlag = this._params.type == "new";
@@ -72,7 +72,7 @@ var coomanPlus = {
 		{
 			this._multi = (this._params.cookies.length > 1);
 //			var aCookie = this.clone(this._cookieGetExtraInfo(this._params.cookies[0]));
-			var aCookie = this.clone(this._params.cookies[0]);
+			let aCookie = this.clone(this._params.cookies[0]);
 			if (this._addFlag)
 			{
 				aCookie.name = "";
@@ -80,10 +80,12 @@ var coomanPlus = {
 			}
 
 			this._curCookie = new this.cookieObject(aCookie);
+//			this._curCookie.name = this._curCookie.nameRaw;
+			this._curCookie.value = this._curCookie.valueRaw;
 		}
 		else
 			this._curCookie = new this.cookieObject({
-								name: "",
+				name: "",
 				value: "",
 				host: "",
 				path: "",
@@ -97,50 +99,65 @@ var coomanPlus = {
 		$("ifl_host").readonly = this._multi;
 		$("ifl_path").readonly = this._multi;
 //		this.setType();
+		if (!this.inited)
+			this.title = document.title;
+
+		document.title = this.title;
+		$("c_name").disabled = this._multi;
+		$("c_host").disabled = this._multi;
+		$("c_path").disabled = this._multi;
+		$("multiSelect").collapsed = !this._multi;
+		$("valueMenuBox").collapsed = !this._multi;
 		if (this._multi)
 		{
-			$("c_name").disabled = this._multi;
-			$("c_host").disabled = this._multi;
-			$("c_path").disabled = this._multi;
 			this.backup("c_name", "checked", $("c_name").checked);
 			this.backup("c_host", "checked", $("c_host").checked);
 			this.backup("c_path", "checked", $("c_path").checked);
 			$("c_name").checked = false;
 			$("c_host").checked = false;
 			$("c_path").checked = false;
+
 			document.title += " (" + this._params.cookies.length + " " + this.string("cookies") + ")";
 			$("ifl_value").setAttribute("type", "multi");
-			$("multiSelect").collapsed = false;
-			$("valueMenuBox").collapsed = false;
-			Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer).init({observe: function(){coomanPlus.loadMenu()}}, 0, Ci.nsITimer.TYPE_ONE_SHOT);
+			coomanPlusCore.async(coomanPlus.loadMenu);
 			window.onresize = this.valueMenuSize;
+		}
+		else
+		{
+			$("ifl_value").removeAttribute("type");
+		}
+		function addEventListener(obj, type, func, bubble)
+		{
+			if (this.inited)
+				return;
+
+			obj.addEventListener(type, func, bubble);
 		}
 		for(let i in this._curCookie)
 		{
 			if (!$("c_" + i))
 				continue;
 
-			if (this._addFlag)
-				$("c_" + i).disabled = true;
+			$("c_" + i).disabled = this._addFlag;
 
 			$("c_" + i).setAttribute("checked", !this._multi && this._addFlag ? true : $("c_" + i).checked);
-			$("c_" + i).addEventListener("CheckboxStateChange", this.enableDisable, false);
+			addEventListener($("c_" + i), "CheckboxStateChange", this.enableDisable, false);
 			this.enableDisableChildren($("c_" + i));
 		}
 /*
-		$("ifl_expires_date").addEventListener("change", this.fixDate, true);
-		$("ifl_expires_time").addEventListener("change", this.fixTime, true);
+		addEventListener($("ifl_expires_date"), "change", this.fixDate, true);
+		addEventListener($("ifl_expires_time"), "change", this.fixTime, true);
 */
-		$("main").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("main"), "DOMMouseScroll", this.mouseScroll, true);
 /*
-		$("ifl_expires_Year").addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		$("ifl_expires_Month").addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		$("ifl_expires_Day").addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		$("ifl_expires_Hours").addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		$("ifl_expires_Minutes").addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		$("ifl_expires_Seconds").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Year"), "DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Month"), "DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Day"), "DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Hours"), "DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Minutes"), "DOMMouseScroll", this.mouseScroll, true);
+		addEventListener($("ifl_expires_Seconds"), "DOMMouseScroll", this.mouseScroll, true);
 */
-		window.addEventListener("focus", this.onFocus, true);
+		addEventListener(window, "focus", this.onFocus, true);
 		if (this._addFlag)
 		{
 			document.title = this.string("titleAdd");
@@ -165,14 +182,17 @@ var coomanPlus = {
 		this.setFieldProps();
 		this.showNew();
 		this.setWrap();
-		this.setJSON();
+		//we used persist in previous versions, now we must reset manually :(
+		$("json").setAttribute("checked", true);
+		this.setJSON(false, true);
+		this.inited = true;
 	},//init()
 
 	loadMenu: function loadMenu()
 	{
 log.debug();
-		var c = this._params.cookies;
-		for(var i = 0; i < c.length; i++)
+		let c = coomanPlus._params.cookies;
+		for(let i = 0; i < c.length; i++)
 		{
 			let v = c[i].name + " @ " + c[i].host + c[i].path;
 			if (!i)
@@ -198,7 +218,7 @@ log.debug();
 	uninit: function uninit()
 	{
 
-		coomanPlusCore.cmpWindow = this._cmpWindow;
+//		coomanPlusCore.cmpWindow = this._cmpWindow;
 
 		for(var i in this._curCookie)
 		{
@@ -249,7 +269,10 @@ log.debug("finished");
 			});
 		}
 		else
+		{
 			window.focus();
+			coomanPlus.init(args);
+		}
 	},
 
 	setAttribute: function setAttribute(obj, attr, value, remove)
@@ -335,7 +358,7 @@ log.debug();
 
 		var props = [
 			{id: "ifl_name", value: this._curCookie.name, readonly: true, hidden: false },
-			{id: "ifl_value", value: this.unescape(this._curCookie.value), readonly: false, hidden: false },
+			{id: "ifl_value", value: this._curCookie.value, readonly: false, hidden: false },
 			{id: "ifl_host", value: this._curCookie.host, readonly: true, hidden: false },
 			{id: "ifl_path", value: this._curCookie.path, readonly: true, hidden: false },
 			{id: "ifl_isSecure",
@@ -455,6 +478,17 @@ log.debug();
 				path = this.trim($("ifl_path").value),
 				isHttpOnly = ($("ifl_isHttpOnly").value == "true");
 
+		try
+		{
+//			name = encodeURIComponent(name);
+		}
+		catch(e){}
+		try
+		{
+			value = encodeURIComponent(value);
+		}
+		catch(e){}
+
 		if (check)
 		{
 			let isValidURI = this.test_url(host, path);
@@ -487,9 +521,11 @@ log.debug();
 												policy: this._curCookie.policy,
 												isHttpOnly: isHttpOnly
 											});
+		this._newCookie.name = name;
+		this._newCookie.value = value;
 		return true;
 
-	},
+	},//createNewCookie()
 
 	cookieMerge: function cookieMerge(a, b)
 	{
@@ -548,9 +584,12 @@ log.debug();
 			}
 			selected.push(aCookie);
 		}
-		this._params.window.coomanPlus._selected = selected;
-		this._params.window.coomanPlus.loadCookies(this._parent.getElementById('lookupcriterium').getAttribute("filter"));
-		this._params.window.coomanPlus.cookieSelected();
+		if (this._params.window.coomanPlus.inited)
+		{
+			this._params.window.coomanPlus._selected = selected;
+			this._params.window.coomanPlus.loadCookies(this._parent.getElementById('lookupcriterium').getAttribute("filter"));
+			this._params.window.coomanPlus.cookieSelected();
+		}
 
 	//out_d2("Cookie Manager::SaveCookie::END");
 		window.close();
@@ -585,8 +624,8 @@ log.debug();
 		}
 		catch(e){}
 		let e = (!ok
-							|| !this.trim($('ifl_name').value)
-							||	!this.trim($('ifl_host').value)
+							|| this.trim($('ifl_name').value) === ""
+							||	!this.trim($('ifl_host').value) === ""
 							||	(!$('c_name').checked
 										&& !$('c_host').checked
 										&& !$('c_path').checked
@@ -643,6 +682,8 @@ log.debug();
 	showDefaultSelect: function showDefaultSelect(e)
 	{
 		this._curCookie = new this.cookieObject(this._params.cookies[e.target.value]);
+//		this._curCookie.name = this._curCookie.nameRaw;
+		this._curCookie.value = this._curCookie.valueRaw;
 		this.setFieldProps();
 	},
 	
@@ -704,7 +745,7 @@ log.debug();
 		$("ifl_value").setAttribute("wrap", $("wrap").getAttribute("checked") == "true" ? "" : "off");
 	},
 
-	setJSON: function setJSON(e)
+	setJSON: function setJSON(e, init)
 	{
 log.debug();
 		let ok = true,
@@ -733,12 +774,12 @@ log.debug();
 					e.target.removeAttribute("error");
 				}, 1000, coomanPlus.setJSON.timer)
 			}
-			else
-			{
+//			else
+//			{
 				e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
-			}
+//			}
 		}
-		if (val != $("ifl_value").value)
+		if (!init && val != $("ifl_value").value)
 		{
 			$("ifl_value").value = val;
 		}	

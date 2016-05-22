@@ -4,27 +4,54 @@ coomanPlus.spinEvent = function (spinevent, element, spin)
 //	alert(objSpinButton.id + '\n' + spinevent);
 
 //	var element = objSpinButton.id.replace('-spinButtons','');
-	var element = element || spinevent.target;
+	element = element || spinevent.target;
 	if (element.getAttribute("disabled") == "true")
 		return false;
 
 	element = element.id.replace('-spinButtons','');
-	var spin = spin || spinevent.target.getAttribute('class');
+	spin = spin || spinevent.target.getAttribute('class');
 
-	var objControl = document.getElementById('ifl_expires_' + element);
+	let objControl = document.getElementById('ifl_expires_' + element);
 	if (objControl.disabled)
 		return false;
+
 	if (spin=='up')
-			this.changeValue(objControl, parseInt(objControl.value, 10) + 1);
+	{
+		switch(objControl.tagName)
+		{
+			case "menulist":
+				let i = objControl.selectedIndex;
+				if (++i >= objControl.itemCount)
+					i = 0;
+
+				objControl.selectedIndex = i;
+				break;
+			default:
+				this.changeValue(objControl, parseInt(objControl.value, 10) + 1);
+		}
+	}
 
 	if (spin=='down')
-			this.changeValue(objControl, parseInt(objControl.value, 10) - 1);
+	{
+		switch(objControl.tagName)
+		{
+			case "menulist":
+				let i = objControl.selectedIndex;
+				if (--i < 0)
+					i = objControl.itemCount - 1;
+
+				objControl.selectedIndex = i;
+				break;
+			default:
+				this.changeValue(objControl, parseInt(objControl.value, 10) - 1);
+		}
+	}
 
 	this.spinFunc[element](objControl);
 
 	switch (element.toLowerCase())
 	{
-		case 'day': case 'year':
+		case 'day': case 'month': case 'year':
 			this.setDateField();
 			break;
 		case 'hours': case 'minutes': case 'seconds':
@@ -46,10 +73,10 @@ coomanPlus.calendarSet = function()
 
 coomanPlus.calendarSave = function(datepopup)
 {
-	var newDate = datepopup.value;
+	let newDate = datepopup.value,
 //	var tempSrc = document.getElementById("start-date-text");
-	var tempSrc = document.getElementById("ifl_expires_date");
-	var getMonth = newDate.getMonth();
+			tempSrc = document.getElementById("ifl_expires_date"),
+			getMonth = newDate.getMonth();
 
 	this.changeValue(tempSrc, this.getMonth(getMonth) + ' ' + newDate.getDate() + ", " +  newDate.getFullYear());
 	this.fixDate();
@@ -61,7 +88,7 @@ coomanPlus.changeSeconds = function(objText)
 {
 	coomanPlus.validateSeconds(objText);
 
-	var v = objText.value;
+	let v = objText.value;
 	if (v.length < 1 )
 		v = document.getElementById('ifl_expires_time').value.substring(6,8);
 
@@ -74,7 +101,7 @@ coomanPlus.changeSeconds = function(objText)
 
 coomanPlus.validateSeconds = function(objText)
 {
-	var v = this.numberClean(objText.value);
+	let v = this.numberClean(objText.value);
 
 	if (v.length > 2)
 		v = this.left(v,2)
@@ -92,7 +119,7 @@ coomanPlus.changeMinutes = function(objText)
 {
 	coomanPlus.validateMinutes(objText);
 
-	var v = objText.value;
+	let v = objText.value;
 	if (v.length < 1)
 		v = document.getElementById('ifl_expires_time').value.substring(3,5);
 
@@ -105,7 +132,7 @@ coomanPlus.changeMinutes = function(objText)
 
 coomanPlus.validateMinutes = function(objText)
 {
-	var v = this.numberClean(objText.value);
+	let v = this.numberClean(objText.value);
 
 	if (v.length > 2)
 		v = this.left(v,2)
@@ -122,7 +149,7 @@ coomanPlus.validateMinutes = function(objText)
 coomanPlus.changeHours = function(objText)
 {
 	coomanPlus.validateHours(objText);
-	var v = objText.value;
+	let v = objText.value;
 	if (v.length < 1)
 		v = document.getElementById('ifl_expires_time').value.substring(0,2);
 
@@ -136,7 +163,7 @@ coomanPlus.changeHours = function(objText)
 
 coomanPlus.validateHours = function(objText)
 {
-	var v = this.numberClean(objText.value);
+	let v = this.numberClean(objText.value);
 
 	if (v.length > 2)
 		v = this.left(v, 2)
@@ -154,7 +181,7 @@ coomanPlus.changeDay = function(objText)
 {
 	coomanPlus.validateDay(objText);
 
-	var v = objText.value;
+	let v = objText.value;
 	if (v.length == 1)
 			v = coomanPlus.right('00' + v,2)
 
@@ -168,12 +195,38 @@ coomanPlus.changeDay = function(objText)
 
 coomanPlus.validateDay = function(objText)
 {
-	var v = this.numberClean(objText.value);
+	let v = this.numberClean(objText.value),
+			year = $('ifl_expires_Year').value,
+			month = this.monthToNumber($('ifl_expires_Month').value),
+			days = new Array(31, ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
 
-	var d = document;
-	var year = d.getElementById('ifl_expires_Year').value;
-	var month = this.monthToNumber(d.getElementById('ifl_expires_Month').value);
-	var days = new Array(31, ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+	if (v > days[month])
+		v = "01";
+
+	if (v < 1)
+		v = days[month];
+
+	this.changeValue(objText, v);
+}
+
+coomanPlus.changeMonth = function(objText)
+{
+	coomanPlus.validateDay(objText);
+
+	let month = coomanPlus.monthToNumber(objText.value);
+
+	if (month < 0)
+		month = 0;
+
+	coomanPlus.changeValue(objText, coomanPlus.getMonth(month));
+}
+
+coomanPlus.validateMonth = function(objText)
+{
+	let v = this.numberClean(objText.value),
+			year = $('ifl_expires_Year').value,
+			month = this.monthToNumber($('ifl_expires_Month').value),
+			days = new Array(31, ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0 ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
 
 	if (v > days[month])
 		v = "01";
@@ -197,9 +250,9 @@ coomanPlus.changeYear = function(objText)
 
 coomanPlus.validateYear = function(objText)
 {
-	var v = this.numberClean(objText.value);
+	let v = this.numberClean(objText.value),
+			min = (new Date().getFullYear()) - 1;
 
-	var min = (new Date().getFullYear()) - 1;
 	if (v <= min)
 		v = min;
 
@@ -216,22 +269,22 @@ coomanPlus.setTimeField = function()
 
 coomanPlus.setDateField = function()
 {
-	var d = document;
-	var t = new Date(	d.getElementById('ifl_expires_Month').value + ' ' +
-										d.getElementById('ifl_expires_Day').value + ', ' +
-										d.getElementById('ifl_expires_Year').value + ' ' +
-										d.getElementById('ifl_expires_Hours').value + ':' +
-										d.getElementById('ifl_expires_Minutes').value + ':' +
-										d.getElementById('ifl_expires_Seconds').value
+	
+	let t = new Date(	$('ifl_expires_Month').value + ' ' +
+										$('ifl_expires_Day').value + ', ' +
+										$('ifl_expires_Year').value + ' ' +
+										$('ifl_expires_Hours').value + ':' +
+										$('ifl_expires_Minutes').value + ':' +
+										$('ifl_expires_Seconds').value
 	);
 	this.changeValue("ifl_expires_date",	this.getMonth(t.getMonth()) + ' ' +
 																				this.right("00" + t.getDate(), 2) + ', ' +
 																				t.getFullYear());
 /*
 
-	if (d.getElementById('ifl_expires_date').value != d.getElementById('ifl_expires_Month').value + ' ' +
-																										this.right("00" + d.getElementById('ifl_expires_Day').value,2) + ', ' +
-																										d.getElementById('ifl_expires_Year').value)
+	if ($('ifl_expires_date').value != $('ifl_expires_Month').value + ' ' +
+																										this.right("00" + $('ifl_expires_Day').value,2) + ', ' +
+																										$('ifl_expires_Year').value)
 	{
 //		this.fixDate();
 	}
@@ -245,8 +298,9 @@ coomanPlus.changeValue = function(o, value)
 	if (typeof(o) == "string")
 		o = document.getElementById(o);
 
-	var s = o.selectionStart;
-	var e = o.selectionEnd;
+	let s = o.selectionStart,
+			e = o.selectionEnd;
+
 	o.value = value;
 	o.selectionEnd = e;
 	o.selectionStart = s;
@@ -254,16 +308,17 @@ coomanPlus.changeValue = function(o, value)
 
 coomanPlus.showWarning = function()
 {
-	var t = this.getExpireSelection() * 1000;
-	var d = new Date(t);
+	let t = this.getExpireSelection() * 1000,
+			d = new Date(t);
+
 	document.getElementById("warning").hidden = !(t && !isNaN(d) && d < (new Date()));
 }
 
 coomanPlus.fixDate = function(nofix)
 {
-	var d = document;
-	var expr_date = this.fixDateTime();
-	d.getElementById("ifl_expires_Month").value	= this.getMonth(expr_date.getMonth());
+	
+	let expr_date = this.fixDateTime();
+	$("ifl_expires_Month").value	= this.getMonth(expr_date.getMonth());
 	this.changeValue("ifl_expires_Day", this.right("00" + expr_date.getDate(), 2))
 	this.changeValue("ifl_expires_Year", expr_date.getFullYear());
 	this.showWarning();
@@ -273,35 +328,35 @@ coomanPlus.fixDate = function(nofix)
 
 coomanPlus.fixDateTime = function()
 {
-	var d = document;
-	var expr_date = (new Date(d.getElementById('ifl_expires_date').value + " " + d.getElementById('ifl_expires_time').value));
+	
+	let expr_date = (new Date($('ifl_expires_date').value + " " + $('ifl_expires_time').value));
 	if (isNaN(expr_date))
 	{
-		if (d.getElementById('ifl_expires_date').prevDate)
-			expr_date = new Date(d.getElementById('ifl_expires_date').prevDate);
+		if ($('ifl_expires_date').prevDate)
+			expr_date = new Date($('ifl_expires_date').prevDate);
 		else
-			expr_date = d.getElementById('ifl_expires').value ? new Date(d.getElementById('ifl_expires').value*1000) : this.dateAdd((new Date()), "d", 1);
+			expr_date = $('ifl_expires').value ? new Date($('ifl_expires').value*1000) : this.dateAdd((new Date()), "d", 1);
 	}
-	d.getElementById('ifl_expires_date').prevDate = expr_date / 1000;
+	$('ifl_expires_date').prevDate = expr_date / 1000;
 	return expr_date;
 }
 
 coomanPlus.fixTime = function(nofix)
 {
-	var d = document;
+	
 
-//	var expr_time = (new Date( 'Thursday, January 01, 1970 ' +d.getElementById('ifl_expires_time').value));
-	var expr_time = this.fixDateTime();
+//	let expr_time = (new Date( 'Thursday, January 01, 1970 ' +$('ifl_expires_time').value));
+	let expr_time = this.fixDateTime();
 
 	this.changeValue("ifl_expires_Hours", this.right("00" + expr_time.getHours(), 2));
 	this.changeValue("ifl_expires_Minutes", this.right("00" + expr_time.getMinutes(), 2));
 	this.changeValue("ifl_expires_Seconds", this.right("00" + expr_time.getSeconds(), 2));
 /*
-	var expr_time = d.getElementById('ifl_expires_time').value;
+	let expr_time = $('ifl_expires_time').value;
 
-	d.getElementById('ifl_expires_Hours').value 					= expr_time.substring(0,2);
-	d.getElementById('ifl_expires_Minutes').value 				= expr_time.substring(3,5);
-	d.getElementById('ifl_expires_Seconds').value 				= expr_time.substring(6,8);
+	$('ifl_expires_Hours').value 					= expr_time.substring(0,2);
+	$('ifl_expires_Minutes').value 				= expr_time.substring(3,5);
+	$('ifl_expires_Seconds').value 				= expr_time.substring(6,8);
 */
 	this.showWarning();
 	if (!nofix)
@@ -317,7 +372,6 @@ coomanPlus.getDay = function(ii)
 //------------------------------------------------------------------
 coomanPlus.getMonth = function(i)
 {
-	var MonthArray = new Array();
 	return ["January", "February", "March",
 					"April", "May", "June",
 					"July", "August", "September",
@@ -328,32 +382,15 @@ coomanPlus.getMonth = function(i)
 //------------------------------------------------------------------
 coomanPlus.monthToNumber = function(strMonth)
 {
-	try
-	{
-		return {january: 0,
-						february: 1,
-						march: 2,
-						april: 3,
-						may: 4,
-						june: 5,
-						july: 6,
-						august: 7,
-						september: 8,
-						october: 9,
-						november: 10,
-						december: 11
-		}[strMonth.toLowerCase()];
-	}
-	catch(e)
-	{
-		return -1;
-	}
+	return ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+					.indexOf(strMonth.toLowerCase());
 }
 
 coomanPlus.getDateStr = function(datestr)
 {
-	var dStr = new Date(datestr);
-	var year = dStr.getYear();
+	let dStr = new Date(datestr),
+			year = dStr.getYear();
+
 	if(year<1000)
 		year+=1900;
 	
@@ -362,7 +399,7 @@ coomanPlus.getDateStr = function(datestr)
 
 coomanPlus.getTimeStr = function(datestr)
 {
-	var dStr = new Date(datestr);
+	let dStr = new Date(datestr);
 	return this.right('00' + dStr.getHours(),2) + ':' + this.right('00' + dStr.getMinutes(),2) + ":" + this.right('00' + dStr.getSeconds(),2);
 }
 
@@ -372,20 +409,20 @@ coomanPlus.dateAdd = function(start, interval, number)
 {
 
 	// Create 3 error messages, 1 for each argument.
-	var startMsg = "Sorry the start parameter of the dateAdd function\n"
+	let startMsg = "Sorry the start parameter of the dateAdd function\n"
 			startMsg += "must be a valid date format.\n\n"
-			startMsg += "Please try again." ;
+			startMsg += "Please try again.",
 
-	var intervalMsg = "Sorry the dateAdd function only accepts\n"
+			intervalMsg = "Sorry the dateAdd function only accepts\n"
 			intervalMsg += "d, h, m OR s intervals.\n\n"
-			intervalMsg += "Please try again." ;
+			intervalMsg += "Please try again." ,
 
-	var numberMsg = "Sorry the number parameter of the dateAdd function\n"
+			numberMsg = "Sorry the number parameter of the dateAdd function\n"
 			numberMsg += "must be numeric.\n\n"
-			numberMsg += "Please try again." ;
+			numberMsg += "Please try again." ,
 
 	// get the milliseconds for this Date object.
-	var buffer = Date.parse( start ) ;
+			buffer = Date.parse( start ) ;
 
 	// check that the start parameter is a valid Date.
 	if ( isNaN (buffer) )
@@ -438,9 +475,9 @@ coomanPlus.dateAdd = function(start, interval, number)
 
 coomanPlus.numbersOnly = function(e, ex)
 {
-	var r = true;
-	var ex = ex || [];
-	for(var i = 0; i < ex.length; i++)
+	let r = true;
+	ex = ex || [];
+	for(let i = 0; i < ex.length; i++)
 	{
 		if (e.keyCode == ex[i][0])
 		{
@@ -453,16 +490,17 @@ coomanPlus.numbersOnly = function(e, ex)
 
 	if (e.keyCode == KeyEvent.DOM_VK_RETURN)
 	{
-		var f = e.target.id.replace("ifl_expires_", "");
+		let f = e.target.id.replace("ifl_expires_", "");
 		if (coomanPlus.spinFunc[f])
 		{
 			coomanPlus.spinFunc[f](e.target);
 			coomanPlus.setTimeField();
 		}
 	}
-	var start = e.target.selectionStart;
-	var end = e.target.selectionEnd;
-	var m = e.target.value.substring(start, end).match(/:/);
+	let start = e.target.selectionStart,
+			end = e.target.selectionEnd,
+			m = e.target.value.substring(start, end).match(/:/);
+
 	if (e.keyCode == 8 || e.keyCode == 46) //backspace, delete
 	{
 		if (start == end)
@@ -482,7 +520,7 @@ coomanPlus.numbersOnly = function(e, ex)
 
 	if (e.keyCode == 38)
 	{
-		var s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
+		let s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
 		if (!s.length)
 			s = e.target.parentNode.getElementsByTagName("spinbuttonsV");
 
@@ -491,7 +529,7 @@ coomanPlus.numbersOnly = function(e, ex)
 	}
 	else if (e.keyCode == 40)
 	{
-		var s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
+		let s = e.target.parentNode.getElementsByTagName("spinbuttonsH");
 		if (!s.length)
 			s = e.target.parentNode.getElementsByTagName("spinbuttonsV");
 
@@ -504,6 +542,7 @@ coomanPlus.numbersOnly = function(e, ex)
 
 coomanPlus.spinFunc = {
 	Year: coomanPlus.changeYear,
+	Month: coomanPlus.changeMonth,
 	Day: coomanPlus.changeDay,
 	Hours: coomanPlus.changeHours,
 	Minutes: coomanPlus.changeMinutes,

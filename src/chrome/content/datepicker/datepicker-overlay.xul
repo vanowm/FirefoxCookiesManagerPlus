@@ -27,7 +27,7 @@
 
 	<!-- Popup that holds the picker -->
 
-	<panel id="oe-date-picker-popup" onpopupshowing="return oeDatePicker.onpopupshowing(this)" >
+	<panel id="oe-date-picker-popup" onpopupshowing="return oeDatePicker.onpopupshowing(this)" flex="1">
 
 	<!-- Box with insides of the picker -->
 
@@ -35,14 +35,13 @@
 
 
 			 <!-- Year controls -->
-					<hbox id="oe-date-picker-year-controls-box"  >
+					<hbox id="oe-date-picker-year-controls-box"  flex="1">
 
-						 <box flex="1" id="oe-date-picker-year-previous-button" onclick="oeDatePicker.previousYearCommand()">
+						 <box flex="20" id="oe-date-picker-year-previous-button" onclick="oeDatePicker.previousYearCommand()">
 								<image/>
 						 </box>
-						 <textbox id="oe-date-picker-year-title-text" value="" class="plain" align="center" onkeydown="return coomanPlus.numbersOnly(event);" oninput="coomanPlus.datepickerSelectYear(event);"/>
-
-						 <box flex="1" id="oe-date-picker-year-next-button" onclick="oeDatePicker.nextYearCommand()" >
+						 <textbox id="oe-date-picker-year-title-text" value="" class="plain" align="center" onkeydown="return oeDatePicker.checkYear(event);" oninput="oeDatePicker.selectYearDelayed(event);" size="" flex="1"/>
+						 <box flex="20" id="oe-date-picker-year-next-button" onclick="oeDatePicker.nextYearCommand()" >
 								<image/>
 						 </box>
 
@@ -167,7 +166,7 @@
 												<vbox class="oe-date-picker-month-days-box-header-class" id="oe-date-picker-month-day-6-header-box">
 														<label class="oe-date-picker-month-days-header-class" value="&day.6.DDD;" />
 												</vbox>
-												<vbox class="oe-date-picker-month-days-box-header-class" id="oe-date-picker-month-day-7-header-box">
+												<vbox class="oe-date-picker-month-days-header-class-red" id="oe-date-picker-month-day-7-header-box">
 														<label class="oe-date-picker-month-days-header-class" value="&day.7.DDD;" />
 												</vbox>
 										</row>

@@ -57,7 +57,7 @@ var coomanPlus = {
 	prefExpireProgress: false,
 	prefExpireCountdown: true,
 	prefViewOrder: "",
-	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|type|isProtected",
+	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|type|isProtected|size",
 
 	accel: "CONTROL",
 	keysList: null,
@@ -113,6 +113,9 @@ var coomanPlus = {
 
 				case "rawHost":
 				 return coomanPlus._cookies[row][coomanPlus.pref("showrealhost") ? "host" : "rawHost"];
+
+				case "size":
+				 return coomanPlus._cookies[row].sizeText + " (" + coomanPlus._cookies[row].valueSizeText + ")";
 
 				case "expires":
 					return coomanPlus.getExpiresString(coomanPlus._cookies[row]["expires"]);
@@ -214,50 +217,49 @@ var coomanPlus = {
 			if (!coomanPlus._cookies[row])
 				return;
 
-			let old = typeof(props) != "undefined",
-					aserv;
-			if (old)
-				aserv=Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-			else
-				props = "";
-
-			if (coomanPlus.protect.enabled && coomanPlus._cookies[row]['isProtected'])
-				if (old)
+			if (typeof(props) != "undefined")
+			{
+				let aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+				if (coomanPlus.protect.enabled && coomanPlus._cookies[row]['isProtected'])
 					props.AppendElement(aserv.getAtom("protected"));
-				else
+
+				if (coomanPlus._cookies[row].deleted)
+					props.AppendElement(aserv.getAtom("deleted" + coomanPlus._cookies[row].deleted));
+
+				if (!coomanPlus._cookies[row]['expires'])
+					props.AppendElement(aserv.getAtom("session"));
+
+				if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] != -1 && coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
+					props.AppendElement(aserv.getAtom("expired"));
+
+				if (col.type == col.TYPE_CHECKBOX && this.selection.isSelected(row))
+					props.AppendElement(aserv.getAtom("checked"));
+
+//				if (coomanPlus._cookies[row]['updated'] && coomanPlus._cookies[row]['updated'] + 60000 < (new Date()).getTime())
+//					props.AppendElement(aserv.getAtom("updated"));
+			}
+			else
+			{
+				props = "";
+				if (coomanPlus.protect.enabled && coomanPlus._cookies[row]['isProtected'])
 					props = "protected";
 
-			if (coomanPlus._cookies[row].deleted)
-				if (old)
-					props.AppendElement(aserv.getAtom("deleted" + coomanPlus._cookies[row].deleted));
-				else
+				if (coomanPlus._cookies[row].deleted)
 					props += " deleted" + coomanPlus._cookies[row].deleted;
 
-			if (!coomanPlus._cookies[row]['expires'])
-				if (old)
-					props.AppendElement(aserv.getAtom("session"));
-				else
+				if (!coomanPlus._cookies[row]['expires'])
 					props += " session";
 
-			if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] != -1 && coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
-				if (old)
-					props.AppendElement(aserv.getAtom("expired"));
-				else
+				if (coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] != -1 && coomanPlus._cookies[row]['expires'] && coomanPlus._cookies[row]['expires'] *1000 < (new Date()).getTime())
 					props += " expired";
 
-			if (col.type == col.TYPE_CHECKBOX && this.selection.isSelected(row))
-				if (old)
-					props.AppendElement(aserv.getAtom("checked"));
-				else
+				if (col.type == col.TYPE_CHECKBOX && this.selection.isSelected(row))
 					props += " checked";
 
-/*
-			if (coomanPlus._cookies[row]['updated'] && coomanPlus._cookies[row]['updated'] + 60000 < (new Date()).getTime())
-				if (old)
-					props.AppendElement(aserv.getAtom("updated"));
-				else
-					props += " updated";
-*/
+//				if (coomanPlus._cookies[row]['updated'] && coomanPlus._cookies[row]['updated'] + 60000 < (new Date()).getTime())
+//					props += " updated";
+			}
+
 			return props;
 		},
 		isEditable: function isEditable(row, col){ return col.editable; },
@@ -273,6 +275,8 @@ var coomanPlus = {
 
 	start: function start()
 	{
+log.debug.startTime = new Date();
+log.debug("start");
 		if (!coomanPlusCore.addon)
 			return;
 
@@ -311,8 +315,8 @@ var coomanPlus = {
 
 		}
 		coomanPlusCore.lastKeyDown = [];
-		$("cookiesTree").addEventListener("keydown", this.onKeyDown, true);
-		$("cookiesTree").addEventListener("keyup", this.onKeyUp, true);
+		$("main").addEventListener("keydown", this.onKeyDown, true);
+		$("main").addEventListener("keyup", this.onKeyUp, true);
 		$("cookiesTree").addEventListener("scroll", this.treeScroll, true);
 		$("cookiesTree").addEventListener("select", this.cookieSelectedEvent, true);
 		$("cookiesTree").addEventListener("mousedown", this.cookieSelectMouse, true);
@@ -358,7 +362,7 @@ var coomanPlus = {
 		$("infoRowDown").label += " (" + k + " + " + $("localeKeys").getString("VK_DOWN") + ")";
 		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[0].label = $("infoRowUp").label;
 		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[1].label = $("infoRowDown").label;
-		$("sel").width = $("sel").boxObject.height;
+		$("sel").width = $("sel").boxObject.height + 2;
 		let treecolpicker = document.getAnonymousElementByAttribute(document.getAnonymousNodes($("treecols"))[1], "anonid", "popup");
 		treecolpicker.addEventListener("command", this.treeViewSelectColpicker, true)
 		treecolpicker.addEventListener("popupshowing", this.treeViewColpicker, true)
@@ -370,7 +374,8 @@ var coomanPlus = {
 		if (document.width < w || document.height < h)
 			window.sizeToContent();
 */
-	},
+log.debug("end",1);
+	},//start()
 
 	cookieSelectMouse: function cookieSelectMouse(e)
 	{
@@ -405,8 +410,8 @@ log.debug();
 		}catch(e){log.error(e)}
 		try
 		{
-			$("cookiesTree").removeEventListener("keydown", this.onKeyDown, true);
-			$("cookiesTree").removeEventListener("keyup", this.onKeyUp, true);
+			$("main").removeEventListener("keydown", this.onKeyDown, true);
+			$("main").removeEventListener("keyup", this.onKeyUp, true);
 			$("cookiesTree").removeEventListener("scroll", this.treeScroll, true);
 			$("cookiesTree").removeEventListener("select", this.cookieSelectedEvent, true);
 			$("cookiesTree").removeEventListener("mousedown", this.cookieSelectMouse, true);
@@ -447,10 +452,12 @@ log.debug();
 			}
 		}
 		catch(e){}
+		coomanPlus.inited = false;
 	},
 
 	onPrefChangeDo: function onPrefChangeDo()
 	{
+log.debug();
 		coomanPlus.onPrefChange.do();
 	},
 
@@ -467,6 +474,7 @@ log.debug();
 		},
 		do: function onPrefChange_do(subject, topic, key)
 		{
+log.debug();
 			subject = typeof(subject) == "undefined" ? null : subject;
 			topic = typeof(topic) == "undefined" ? null : topic;
 			key = typeof(key) == "undefined" ? null : key;
@@ -524,6 +532,7 @@ log.debug();
 
 	loadCookies: function loadCookies(criterium, noresort, selected, updated, deleteExpired)
 	{
+log.debug(this.loadCookies.started);
 		if (this.loadCookies.started)
 			return;
 
@@ -603,13 +612,14 @@ log.debug("unprotect");
 		this.sortTreeData(this._cookiesTree, this._cookies);
 		this._cookiesTreeView.rowCount = this._cookies.length;
 		this._cookiesTree.treeBoxObject.view = this._cookiesTreeView;
-		this.selectLastCookie(noresort);
 		this._noselectevent = false;
+		this.selectLastCookie(noresort);
 		this.loadCookies.started = false;
 	},
 
 	_updateCookieData: function _updateCookieData(aCookie, selections)
 	{
+log.debug();
 		selections = typeof(selections) == "undefined" ? this.getTreeSelections(this._cookiesTree) : selections;
 		let multi = "<" + this.string("multipleSelection") + ">",
 				na = "--",//"<" + this.string("na") + ">",
@@ -663,6 +673,7 @@ log.debug("unprotect");
 			{id: "isHttpOnly", value: [fixed.isHttpOnly[1] ? fixed.isHttpOnly[0] : this.string("yesno"+(fixed.isHttpOnly[0]?1:0)), fixed.isHttpOnly[1]]},
 			{id: "isProtected", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
 			{id: "isProtected2", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
+			{id: "size", value: [fixed.size[1] ? fixed.size[0] : fixed.sizeText[2] + " (" + (fixed.valueSizeText[1] ? fixed.valueSizeText[2][2] : fixed.valueSizeText[2]) + ")", fixed.size[1]]},
 
 		];
 		this.showedExpires = aCookie.expires == -1 ? -1 : fixed.expires[0] * 1000;
@@ -710,16 +721,19 @@ log.debug("unprotect");
 			if (!props[i].value[0].length)
 			{
 				field.value = "";
+				field.setAttribute("value", "<" + this.string("empty") + ">");
 				field.setAttribute("placeholder", "<" + this.string("empty") + ">");
 			}
 			else if(props[i].value[1])
 			{
 				field.value = "";
+				field.setAttribute("value", multi);
 				field.setAttribute("placeholder", multi);
 			}
 			else if(props[i].value[3])
 			{
 				field.value = "";
+				field.setAttribute("value", props[i].value[0]);
 				field.setAttribute("placeholder", props[i].value[0]);
 			}
 			else
@@ -912,7 +926,7 @@ log.debug();
 		let properties = ["name","value","host","path","isSecure",
 											"expires", "expires2","policy", "isHttpOnly",
 											"lastAccessed", "creationTime", "status",
-											"isProtected", "isProtected2", "type"];
+											"isProtected", "isProtected2", "type", "size"];
 		l = typeof(l) == "undefined" ? 0 : l;
 		l = (l == 0) ? this.string("noCookieSelected") : "";
 		for (let prop = 0; prop < properties.length; prop++)
@@ -922,8 +936,8 @@ log.debug();
 
 			if (field)
 			{
-				field.setAttribute("value", l);
 				field.value = "";
+				field.setAttribute("value", l);
 				field.setAttribute("placeholder", l);
 				field.removeAttribute("multi");
 				field.setAttribute("empty", true);
@@ -969,6 +983,7 @@ log.debug();
 
 	clearFilter: function clearFilter()
 	{
+log.debug();
 		$('lookupcriterium').value = "";
 		$('lookupcriterium').setAttribute("filter", "");
 		this.loadCookies();
@@ -981,6 +996,7 @@ log.debug();
 
 	observe: function observe(aCookie, aTopic, aData)
 	{
+log.debug();
 		if (this._noObserve || !this.pref("autoupdate") || aTopic != "cookie-changed")
 			return;
 
@@ -1017,6 +1033,7 @@ log.debug();
 
 	_handleCookieAdded: function _handleCookieAdded(aCookie)
 	{
+log.debug();
 		this.observe.timer = coomanPlusCore.async(function()
 		{
 			coomanPlus.loadCookies($('lookupcriterium').getAttribute("filter"), false, undefined, (new Date()).getTime());
@@ -1025,6 +1042,7 @@ log.debug();
 
 	_handleCookieDeleted: function _handleCookieDeleted(aCookie)
 	{
+log.debug();
 		this.observe.timer = coomanPlusCore.async(function()
 		{
 			coomanPlus.loadCookies();
@@ -1033,6 +1051,7 @@ log.debug();
 
 	_handleCookieChanged: function _handleCookieChanged(aCookie)
 	{
+log.debug();
 		let self = this;
 		this.observe.timer = coomanPlusCore.async(function()
 		{
@@ -1060,45 +1079,49 @@ log.debug();
 
 	onKeyDown: function onKeyDown(e)
 	{
-		var keys = coomanPlus.getKeys(e);
+log.debug();
+		let keys = coomanPlus.getKeys(e);
 		if (coomanPlus.matchKeys(coomanPlusCore.lastKeyDown, keys[0], keys[0].length) || !("className" in e.target) || e.target.className == "hotkey") //prevent repeats
 			return true;
 
 		coomanPlusCore.lastKeyDown = keys[0];
-		var r = true;
-		if (coomanPlus.matchKeys(keys[0], ["RETURN"], 1))
-		{
-			coomanPlus.openEdit();
-		}
-		else if (coomanPlus.matchKeys(keys[0], ["DELETE"], 1))
-		{
-			coomanPlus.deleteCookies();
-		}
-		else if (coomanPlus.matchKeys(keys[0], ["SHIFT", "DELETE"], 2))
-		{
-			coomanPlus.deleteCookies(true);
-		}
-		else if (coomanPlus.matchKeys(keys[0], ["F5"], 1))
+		let r = true;
+		if (coomanPlus.matchKeys(keys[0], ["F5"], 1))
 		{
 			coomanPlus.loadCookies($('lookupcriterium').getAttribute("filter"), true);
 		}
-		else if (coomanPlus.matchKeys(keys[0], ["ACCEL", "A"], 2))
+		else if (e.target == coomanPlus._cookiesTree)
 		{
-			coomanPlus.selectAllShown();
-		}
-		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.string("protect_protect_accesskey")], 2))
-		{
-			e.preventDefault();
-			e.stopPropagation();
-			coomanPlus.protect.obj.protect();
-			return false;
-		}
-		else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.string("protect_unprotect_accesskey")], 2))
-		{
-			e.preventDefault();
-			e.stopPropagation();
-			coomanPlus.protect.obj.unprotect();
-			return false;
+			if (coomanPlus.matchKeys(keys[0], ["RETURN"], 1))
+			{
+				coomanPlus.openEdit();
+			}
+			else if (coomanPlus.matchKeys(keys[0], ["DELETE"], 1))
+			{
+				coomanPlus.deleteCookies();
+			}
+			else if (coomanPlus.matchKeys(keys[0], ["SHIFT", "DELETE"], 2))
+			{
+				coomanPlus.deleteCookies(true);
+			}
+			else if (coomanPlus.matchKeys(keys[0], ["ACCEL", "A"], 2))
+			{
+				coomanPlus.selectAllShown();
+			}
+			else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.string("protect_protect_accesskey")], 2))
+			{
+				e.preventDefault();
+				e.stopPropagation();
+				coomanPlus.protect.obj.protect();
+				return false;
+			}
+			else if (coomanPlus.matchKeys(keys[0], ["ALT", coomanPlus.string("protect_unprotect_accesskey")], 2))
+			{
+				e.preventDefault();
+				e.stopPropagation();
+				coomanPlus.protect.obj.unprotect();
+				return false;
+			}
 		}
 		return true;
 	},
@@ -1206,7 +1229,7 @@ log.debug();
 		if (coomanPlus.pref('autofilter') && coomanPlus.checkFilter())
 			coomanPlus.autofilter.timer = coomanPlusCore.async(function()
 			{
-				coomanPlus.doLookup();
+				coomanPlus.doLookup(undefined, false);
 			}, 250, coomanPlus.autofilter.timer)
 
 	},
@@ -1217,6 +1240,7 @@ log.debug();
 		if (this.loadCookies.started)
 			return false;
 
+		website = typeof(website) == "undefined" ? this.website : website;
 		if (!website)
 			this.website = false;
 
@@ -1299,6 +1323,7 @@ log.debug([noresort, this._noselectevent]);
 
 	cookieColumnSort: function cookieColumnSort(column, noresort)
 	{
+log.debug();
 		this._currentIndex = this._cookiesTree.view.selection.currentIndex;
 		this.sortTree( this._cookiesTree, this._cookies, column);
 		this.selectLastCookie(noresort);
@@ -1306,6 +1331,7 @@ log.debug([noresort, this._noselectevent]);
 
 	UI_EnableCookieBtns: function UI_EnableCookieBtns(flag, flag2)
 	{
+log.debug();
 		$('deleteCookie').disabled = !flag;
 		$('editCookie').disabled = !flag2;
 		$('menu_delete').disabled = !flag;
@@ -1320,6 +1346,7 @@ log.debug([noresort, this._noselectevent]);
 
 	deleteCookies: function deleteCookies(block)
 	{
+log.debug();
 		let deletedCookies = this.deleteSelectedItemFromTree(this._cookiesTree, this._cookies, block);
 		if (!this._cookies.length)
 			this.clearCookieProperties(0, true);
@@ -1360,6 +1387,7 @@ log.debug();
 
 	deleteSelectedItemFromTree: function deleteSelectedItemFromTree(tree, table, block, selected, DeleteAll)
 	{
+log.debug();
 		block = typeof(block) == "undefined" ? false : block;
 		let uChoice = {button:0, block:block},
 				prefDeleteConf = this.pref("delconfirm"),
@@ -1397,6 +1425,7 @@ log.debug();
 				uChoice = this.promptDelete({
 					name: table[i].name,
 					host: table[i].host,
+					path: table[i].path,
 					num: selections.length - s,
 					total: selections.length,
 					button: 0,
@@ -1497,6 +1526,7 @@ log.debug();
 
 	finalizeCookieDeletions: function finalizeCookieDeletions(deletedCookies)
 	{
+log.debug();
 		for (let c = 0; c < deletedCookies.length; c++)
 		{
 			if (deletedCookies[c].isProtected)
@@ -1509,6 +1539,7 @@ log.debug();
 
 	cookieClickEvent: function cookieClickEvent(e)
 	{
+log.debug();
 		if (e.type == "click" && e.target.id == "sel")
 		{
 			coomanPlus.selectAllToggle(e.button);
@@ -1518,12 +1549,14 @@ log.debug();
 
 	selectAllShown: function selectAllShown()
 	{
+log.debug();
 		this._cookiesTree.view.selection.selectAll();
 //		this._cookiesTree.focus();
 	},
 
 	selectAllToggle: function selectAllToggle(button)
 	{
+log.debug();
 		if (button == 2)
 			return this.invertSelection();
 
@@ -1557,6 +1590,7 @@ log.debug();
 
 	invertSelection: function invertSelection()
 	{
+log.debug();
 		let sel = this._cookiesTree.view.selection,
 				cnt = this._cookiesTree.view.rowCount;
 		this._cookiesTree.view.selection.selectEventsSuppressed = true;
@@ -1593,6 +1627,17 @@ log.debug();
 		this.prefFiltersearchtype1 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_NORMAL;
 		this.prefFiltersearchtype2 = this.prefFiltersearchtype & coomanPlusCore.COOKIE_HTML5;
 
+/*
+		if (this.website)
+		{
+			this.pref("searchcontent", false);
+			this.pref("searchhost", true);
+			this.pref("searchname", false);
+			this.pref("searchcase", false);
+			this.pref("searchhosttype", 1);
+			this.pref("searchtype", coomanPlusCore.COOKIE_NORMAL + coomanPlusCore.COOKIE_HTML5);
+		}
+*/
 		this.setChecked("searchcontent");
 		this.setChecked("searchhost");
 		this.setChecked("searchname");
@@ -1613,7 +1658,7 @@ log.debug();
 			this.prefFiltersearchhosttype = 1;
 			this.prefFiltersearchtype = coomanPlusCore.COOKIE_NORMAL + coomanPlusCore.COOKIE_HTML5;
 		}
-		this.website = false;
+//		this.website = false;
 		if (!this.prefFiltersearchcontent && !this.prefFiltersearchhost && !this.prefFiltersearchname)
 		{
 			var k = (topic == "nsPref:changed" && "prefFilter" + key in this) ? key : "searchhost";
@@ -1630,14 +1675,13 @@ log.debug();
 
 	setChecked: function setChecked(id)
 	{
-log.debug();
 		if (this["prefFilter" + id])
 			$(id).setAttribute("checked", true);
 		else
 			$(id).removeAttribute("checked");
 
-//		if (this.website && id != "searchhost")
-		if (this["prefFilter" + id] && this.website && id != "searchhost")
+		if (this.website && id != "searchhost")
+//		if (this["prefFilter" + id] && this.website && id != "searchhost")
 			$(id).setAttribute("indeterminate", true);
 		else
 			$(id).removeAttribute("indeterminate");
@@ -1647,8 +1691,9 @@ log.debug();
 	{
 log.debug();
 		let obj = e.originalTarget;
-		if (obj.hasAttribute("indeterminate"))
+		if (this.website)
 		{
+			this.website = false;
 			this.doLookup();
 			return;
 		}
@@ -1712,38 +1757,54 @@ log.debug();
 
 	setSort: function setSort(subject, topic, key)
 	{
+log.debug();
 		this.prefSimpleHost = this.pref("simplehost");
 		if (topic == "nsPref:changed" && key == "simplehost")
 			this.sortTree(this._cookiesTree, this._cookies);
 	},
 
-	openEdit: function openEdit()
+	openEdit: function openEdit(add)
 	{
-		let s = this.getTreeSelections(this._cookiesTree);
-		if (!s.length)
+log.debug();
+		let cookies,
+				type = "edit";
+		if (add)
 		{
-			this.openAdd();
-			return;
+			cookies = this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null;
+			type = "new";
 		}
-		let selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
-		selIndex = s[((selIndex == -1) ? 0 : selIndex)]
+		else
+		{
+			let s = this.getTreeSelections(this._cookiesTree);
+			if (!s.length)
+			{
+				this.openAdd();
+				return;
+			}
+			let selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
+			selIndex = s[((selIndex == -1) ? 0 : selIndex)]
 
-		let cookies = [this._cookies[selIndex]];
-		for(let i = 0; i < s.length; i++)
-		{
-			if (s[i] != selIndex)
-				cookies[cookies.length] = this._cookies[s[i]];
+			cookies = [this._cookies[selIndex]];
+			for(let i = 0; i < s.length; i++)
+			{
+				if (s[i] != selIndex)
+					cookies[cookies.length] = this._cookies[s[i]];
+			}
 		}
-		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "edit", cookies: cookies});
+//		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "edit", cookies: cookies});
+		this._openDialog("editCookie.xul", "_blank", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no"), {type: type, cookies: cookies});
 	},
 
 	openAdd: function openAdd()
 	{
-		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "new", cookies: this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null});
+log.debug();
+//		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "new", cookies: this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null});
+		this.openEdit(true);
 	},
 
 	openCookies: function openCookies()
 	{
+log.debug();
 		let cm = "chrome://browser/content/preferences/cookies.xul",
 				wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator),
 				browsers = wm.getZOrderDOMWindowEnumerator('', false),
@@ -1768,12 +1829,15 @@ log.debug();
 
 	promptDelete: function promptDelete(args)
 	{
-		this._openDialog("promptDelete.xul", "promptDelete", "chrome,resizable=no,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), args);
+log.debug();
+//		this._openDialog("promptDelete.xul", "promptDelete", "chrome,resizable=no,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), args);
+		this._openDialog("promptDelete.xul", "promptDelete", "chrome,resizable=no,centerscreen,modal,dialog" + (this.isMac ? "" : "=no"), args);
 		return args;
 	},
 
 	openCookiesPermissions: function openCookiesPermissions()
 	{
+log.debug();
 		var cm = "chrome://browser/content/preferences/permissions.xul";
 		var wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator);
 		var browsers = wm.getZOrderDOMWindowEnumerator('', false);
@@ -1800,6 +1864,7 @@ log.debug();
 
 	infoRowsShow: function infoRowsShow(resize)
 	{
+log.debug();
 		$("protect_menu").collapsed = !this.protect.enabled;
 		resize = typeof(resize) == "undefined" ? false : resize
 		this.prefExpireCountdown = !$("expireProgressText").collapsed; //this.pref("expirecountdown");
@@ -1817,6 +1882,7 @@ log.debug();
 		this.prefView_policy = !$("row_policy").collapsed;
 		this.prefView_status = !$("row_status").collapsed;
 		this.prefView_isProtected = !$("row_isProtected").collapsed;
+		this.prefView_size = !$("row_size").collapsed;
 
 //EXTRA
 //		this.prefShowExtra = this.prefView_creationTime || this.prefView_lastAccessed || this.prefView_isHttpOnly || this.prefView_status || this.prefExpireProgress;
@@ -1866,6 +1932,7 @@ log.debug();
 
 	infoRowsSort: function infoRowsSort(order)
 	{
+log.debug();
 		if (typeof(order) == "undefined")
 			order = this.prefViewOrder.split("|");//$("cookieInfoRows").getAttribute("order").split("|");
 
@@ -1917,6 +1984,7 @@ log.debug();
 
 	infoRowCopyToClipboard: function infoRowCopyToClipboard(e)
 	{
+log.debug();
 		if (e.button)
 			return false;
 
@@ -2486,22 +2554,22 @@ log.debug();
 				d = false;
 			}
 
-			if (!currElement.hasAttribute("ignoreincolumnpicker") && !currElement.collapsed)
-			{
-				let popupChild = document.createElement("menuitem");
-				popupChild.setAttribute("type", "checkbox");
-				popupChild.setAttribute("closemenu", "none");
-				let columnName = currElement.getAttribute("display") ||
-												 currElement.getAttribute("label");
+			if (currElement.hasAttribute("ignoreincolumnpicker") || currElement.collapsed)
+				continue;
 
-				popupChild.setAttribute("label", columnName);
-				popupChild.setAttribute("colindex", currCol.index);
-				if (currElement.getAttribute("hidden") != "true")
-					popupChild.setAttribute("checked", "true");
-				if (currCol.primary)
-					popupChild.setAttribute("disabled", "true");
-				aPopup.insertBefore(popupChild, refChild);
-			}
+			let popupChild = document.createElement("menuitem");
+			popupChild.setAttribute("type", "checkbox");
+			popupChild.setAttribute("closemenu", "none");
+			let columnName = currElement.getAttribute("display") ||
+											 currElement.getAttribute("label");
+
+			popupChild.setAttribute("label", columnName);
+			popupChild.setAttribute("colindex", currCol.index);
+			if (currElement.getAttribute("hidden") != "true")
+				popupChild.setAttribute("checked", "true");
+			if (currCol.primary)
+				popupChild.setAttribute("disabled", "true");
+			aPopup.insertBefore(popupChild, refChild);
 		}
 		let treeViewReset = aPopup.getElementsByAttribute("anonid", isColpicker ? "menuitem" : "treeViewReset")[0]
 		if (treeViewReset)
@@ -2655,7 +2723,7 @@ log.debug();
 	openAbout: function openAbout()
 	{
 		openDialog("chrome://mozapps/content/extensions/about.xul",
-							 "", "chrome,centerscreen,modal", coomanPlusCore.addon);
+							 "", "chrome,centerscreen,modal,dialog" + (this.isMac ? "" : "=no"), coomanPlusCore.addon);
 	},
 
 	dblClickEdit: function dblClickEdit(e)
@@ -2664,7 +2732,7 @@ log.debug();
 		{
 			let col={};
 			e.rangeParent.treeBoxObject.getCellAt(e.clientX, e.clientY, {}, col, {});
-			if (!col.value || col.value.id == 'sel')
+			if (!col.value || col.value.id == "sel")
 				return;
 
 			coomanPlus.openEdit();
@@ -2673,6 +2741,7 @@ log.debug();
 
 	focus: function focus(args, submit)
 	{
+log.debug();
 		if(!args)
 			return;
 
@@ -2818,4 +2887,5 @@ while (browsers.hasMoreElements())
 		window.close();
 	}
 }
+
 

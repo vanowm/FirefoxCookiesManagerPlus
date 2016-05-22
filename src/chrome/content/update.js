@@ -73,7 +73,9 @@ Object.defineProperty(coomanPlus, "getOpenURL", {get: function getOpenURL()
 }});
 coomanPlus.options = function(standalone)
 {
-	this._openDialog("options.xul", "", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {standalone: standalone ? true : false});
+	coomanPlusCore.openOptions({standalone: standalone ? true : false});
+//	this._openDialog("options.xul", "", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {standalone: standalone ? true : false});
+//	this._openDialog("options.xul", "options", "chrome,resizable=yes,centerscreen,dialog" + (this.isMac ? "" : "=no"), {standalone: standalone ? true : false});
 }
 
 coomanPlus._openDialog = function(a, b, c, arg)

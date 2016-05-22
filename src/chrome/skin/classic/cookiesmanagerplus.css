@@ -2,7 +2,6 @@
 
 #cookieInfoBox
 {
-	border: 1px solid black;
 }
 tree
 {
@@ -143,11 +142,26 @@ treechildren::-moz-tree-checkbox(checked)
 }
 */
 
+treecol[type="checkbox"] > label
+{
+	display: none;
+}
+
+/*
+treecol[type="checkbox"] > label
+{
+	display: block;
+	-moz-appearance: checkbox;
+}
+*/
+
+treecol[type="checkbox"] > image,
 treechildren::-moz-tree-checkbox {
 	list-style-image: url("images/checkbox.png");
 	-moz-image-region: rect(0, 14px, 14px, 0);
 }
 
+treecol[type="checkbox"][checked="true"] > image,
 treechildren::-moz-tree-checkbox(checked) {
 	-moz-image-region: rect(0, 28px, 14px, 14px);
 }
@@ -256,6 +270,7 @@ treechildren::-moz-tree-cell(selected, odd)
 {
 	background-color: Highlight;
 }
+treechildren::-moz-tree-cell(insertbefore),
 treechildren::-moz-tree-cell(insertbefore odd),
 treechildren::-moz-tree-cell(insertbefore selected),
 treechildren::-moz-tree-cell(insertbefore selected odd)
@@ -264,6 +279,7 @@ treechildren::-moz-tree-cell(insertbefore selected odd)
   margin-left: -1px;
 }
 
+treechildren::-moz-tree-cell(insertafter),
 treechildren::-moz-tree-cell(insertafter odd),
 treechildren::-moz-tree-cell(insertafter selected),
 treechildren::-moz-tree-cell(insertafter selected odd)
@@ -340,33 +356,22 @@ treechildren::-moz-tree-progressmeter(session)
 	font-style: italic;
 	color: GrayText;
 }
-
-treecol[type="checkbox"] > *
+#filtermenu
 {
-	display: none;
-}
-
-treecol[type="checkbox"] > label
-{
-	display: block;
-	-moz-appearance: checkbox;
-}
-
-#filtermenu,
-#filtermenu > hbox,
-#filtermenu > hbox > dropmarker
-{
+	width: 2em;
+	height: 2em;
+	list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif");
 	min-width: 0;
 	min-height: 0;
 	margin: 0;
 	padding: 0;
-	background-color: transparent;
+	display: block;
 }
-#filtermenu > hbox > dropmarker
+#filtermenu dropmarker
 {
-	width: 16px;
-	height: 16px;
+	display: none;
 }
+
 #lookupcriterium
 {
 	margin-right: 0;
@@ -439,7 +444,8 @@ toolbox
 	-moz-appearance: none;
 }
 
-.offset .menu-text
+.offset .menu-text,
+.offset .menu-iconic-text
 {
 	-moz-padding-start: 1em;
 }
@@ -476,14 +482,15 @@ row[highlight="true"] > .inforowdata
 }
 */
 
-
-menuitem[indeterminate] .menu-iconic-left
+menuitem[indeterminate] *
 {
 	filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale");
 }
-menuitem[indeterminate]
+menuitem[indeterminate],
+menuitem[indeterminate] *
 {
 	font-style: italic;
+	opacity: 0.7;
 }
 
 *[hidden="true"]
@@ -551,3 +558,13 @@ menuitem[indeterminate]
 	height: 1.5em;
 }
 
+#sel
+{
+	width: 26px;
+}
+#flexcol
+{
+	width: 0px;
+	min-width: 0px;
+	max-width: 0px;
+}

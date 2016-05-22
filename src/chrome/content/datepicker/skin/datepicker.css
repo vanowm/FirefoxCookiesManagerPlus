@@ -1,7 +1,8 @@
 #oe-date-picker-overlay-box
 {
 	background-color: #F8F8F8;
-	font-size				: 8px;
+	font-size				: 1em;
+	width: 1em;
 }
 
 
@@ -19,8 +20,14 @@
 	color				: #FFFFFF;
 	font-weight	: bold;
 	text-align: center;
+	width: 100%;
+	min-width: 5em !important;
 }
-
+#oe-date-picker-year-title-text[focused="true"]
+{
+	background-color: white;
+	color: black;
+}
 
 #oe-date-picker-year-previous-button,
 #oe-date-picker-year-next-button
@@ -182,7 +189,13 @@
 	color: black;
 }
 
-.oe-date-picker-month-days-box-header-class
+#oe-date-picker-month-days-header-box > vbox
+{
+	min-width: 3em;
+}
+
+.oe-date-picker-month-days-box-header-class,
+.oe-date-picker-month-days-header-class-red
 {
 	-moz-box-align: center;
 }
@@ -190,4 +203,13 @@
 .oe-date-picker-year-month-name-class
 {
 	color: black;
+}
+
+*[outside="true"]
+{
+	opacity: 0.5;
+}
+*[outside="true"][disabled="true"]
+{
+	cursor: not-allowed;
 }

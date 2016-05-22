@@ -28,6 +28,14 @@
 Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
 coomanPlusCore.lastKeyDown = [];
 
+function $(id)
+{
+	return document.getElementById(id);
+}
+function $b(id)
+{
+	return document.documentElement.getButton(id);
+}
 var coomanPlus = {
 	_aWindow: null,
 	_params: null,
@@ -43,39 +51,41 @@ var coomanPlus = {
 		this._aWindow = coomanPlusCore.aWindow;
 		coomanPlusCore.aWindow = window;
 
-		var cookieBundle = document.getElementById("cookieBundle");
+		var cookieBundle = $("cookieBundle");
 		document.title = cookieBundle.getString("promptDelete.window.title");
-		document.getElementById("warning_left").value = cookieBundle.getString("promptDelete.label.warning.left");
-		document.getElementById("warning_name").value = this._params.name + ' @ ' + this._params.host;
-		document.getElementById("warning_right").value = cookieBundle.getString("promptDelete.label.warning.right");
-		document.getElementById("dontshow").label = cookieBundle.getString("promptDelete.label.dontshow");
-		document.getElementById("dontshow").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.dontshow.key"));
-		document.getElementById("block").label = cookieBundle.getString("promptDelete.label.block").replace("#", this._params.host);
-		document.getElementById("block").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.block.key"));
-		document.getElementById("block").checked = this._params.block === true;
+		$("warning").value = cookieBundle.getString("promptDelete.label.warning");
+		$("warning_host").value = this._params.host;
+		$("warning_name").value = this._params.name;
+		$("warning_path").value = this._params.path;
+		$("dontshow").label = cookieBundle.getString("promptDelete.label.dontshow");
+		$("dontshow").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.dontshow.key"));
+		$("block").label = cookieBundle.getString("promptDelete.label.block").replace("#", this._params.host);
+		$("block").setAttribute("accesskey", cookieBundle.getString("promptDelete.label.block.key"));
+		$("block").checked = this._params.block === true;
 		if (this._params.num == 1)
 		{
 			if (this._params.total > 1)
 			{
-				document.documentElement.getButton("extra1").disabled = true;
-				document.documentElement.getButton("accept").disabled = true;
+//				$b("extra1").disabled = true;
+//				$b("accept").disabled = true;
 			}
 			else
 			{
-				document.documentElement.getButton("extra1").collapsed = true;
-				document.documentElement.getButton("accept").collapsed = true;
+				$b("extra1").collapsed = true;
+				$b("accept").collapsed = true;
 			}
 		}
-		document.documentElement.getButton("extra2").label = cookieBundle.getString("promptDelete.button.Delete");
-		document.documentElement.getButton("accept").label = cookieBundle.getString("promptDelete.button.DeleteAll") + " (" + this._params.num + ")";
-		document.documentElement.getButton("extra1").label = cookieBundle.getString("promptDelete.button.DoNotDelete");
-		document.documentElement.getButton("help").label = cookieBundle.getString("promptDelete.button.Cancel");
+		$b("extra2").label = cookieBundle.getString("promptDelete.button.Delete");
+		$b("accept").label = cookieBundle.getString("promptDelete.button.DeleteAll") + " (" + this._params.num + ")";
+		$b("extra1").label = cookieBundle.getString("promptDelete.button.DoNotDelete");
+		$b("disclosure").label = cookieBundle.getString("promptDelete.button.Cancel");
 
-		document.documentElement.getButton("extra2").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.Delete.key"));
-		document.documentElement.getButton("accept").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.DeleteAll.key"));
-		document.documentElement.getButton("extra1").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.DoNotDelete.key"));
-		document.documentElement.getButton("help").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.Cancel.key"));
-		document.documentElement.getButton("extra2").focus();
+		$b("extra2").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.Delete.key"));
+		$b("accept").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.DeleteAll.key"));
+		$b("extra1").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.DoNotDelete.key"));
+		$b("disclosure").setAttribute("accesskey", cookieBundle.getString("promptDelete.button.Cancel.key"));
+//		$b("disclosure").parentNode.appendChild($b("disclosure"));
+		$b("extra2").focus();
 	},
 
 	action: function(b)
@@ -85,11 +95,11 @@ var coomanPlus = {
 		this._params.button = b;
 
 		// delete = 1, delete all = 2, do not delete = 4, cancel = 3, close window = 0
-		if (b != 3 && b != 0 && document.getElementById("dontshow").checked)
+		if (b != 3 && b != 0 && $("dontshow").checked)
 			this._params.window.coomanPlus.prefs.setBoolPref("delconfirm", false);
 
 		if (b != 3 && b != 0)
-			this._params.block = document.getElementById("block").checked;
+			this._params.block = $("block").checked;
 
 		window.close();
 	}

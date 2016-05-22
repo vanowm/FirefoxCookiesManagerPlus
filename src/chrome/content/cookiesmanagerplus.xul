@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/content/xul.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/toolbarbutton.css" type="text/css"?>
 <?xml-stylesheet href="chrome://cookiesmanagerplus/skin/cookiesmanagerplus.css" type"text/css"?>
@@ -23,7 +22,7 @@
 				onunload="coomanPlus.unload()"
 				persist="width height screenX screenY"
 				width="600"
-				height="500"
+				height="400"
 				flex="1"
 >
 	<vbox id="main" flex="1">
@@ -240,20 +239,21 @@
 						oncommand="coomanPlus.menuView(event)"
 			>
 				<menupopup accessibleType="100F">
-					<menuitem id="menu_info_name" type="checkbox" label="&cookiename.label;" closemenu="none"/>
-					<menuitem id="menu_info_value" type="checkbox" label="&cookievalue.label;" closemenu="none"/>
-					<menuitem id="menu_info_host" type="checkbox" label="&cookiedomain.label;" closemenu="none"/>
-					<menuitem id="menu_info_path" type="checkbox" label="&cookiepath.label;" closemenu="none"/>
-					<menuitem id="menu_info_isSecure" type="checkbox" label="&cookieisSecure.label;" closemenu="none"/>
-					<menuitem id="menu_info_expires" type="checkbox" label="&cookieexpire.label;" closemenu="none"/>
+					<menuitem id="menu_info_name" type="checkbox" label="&cookie.name.label;" closemenu="none"/>
+					<menuitem id="menu_info_value" type="checkbox" label="&cookie.value.label;" closemenu="none"/>
+					<menuitem id="menu_info_host" type="checkbox" label="&cookie.domain.label;" closemenu="none"/>
+					<menuitem id="menu_info_path" type="checkbox" label="&cookie.path.label;" closemenu="none"/>
+					<menuitem id="menu_info_isSecure" type="checkbox" label="&cookie.isSecure.label;" closemenu="none"/>
+					<menuitem id="menu_info_expires" type="checkbox" label="&cookie.expire.label;" closemenu="none"/>
 					<menuitem id="menu_info_expireProgress" type="checkbox" label="&menu.expireprogress.label;" tooltiptext="&menu.expireprogress.info;" class="offset" closemenu="none"/>
 					<menuitem id="menu_info_expireProgressText" type="checkbox" label="&menu.expirecountdown.label;" class="offset" closemenu="none"/>
-					<menuitem id="menu_info_creationTime" type="checkbox" label="&cookiecreationTime.label;" closemenu="none"/>
-					<menuitem id="menu_info_lastAccessed" type="checkbox" label="&cookielastAccessed.label;" closemenu="none"/>
-					<menuitem id="menu_info_isHttpOnly" type="checkbox" label="&cookieisHttpOnly.label;" closemenu="none"/>
-					<menuitem id="menu_info_policy" type="checkbox" label="&cookiepolicy.label;" closemenu="none"/>
-					<menuitem id="menu_info_status" type="checkbox" label="&cookiestatus.label;" closemenu="none"/>
+					<menuitem id="menu_info_creationTime" type="checkbox" label="&cookie.creationTime.label;" closemenu="none"/>
+					<menuitem id="menu_info_lastAccessed" type="checkbox" label="&cookie.lastAccessed.label;" closemenu="none"/>
+					<menuitem id="menu_info_isHttpOnly" type="checkbox" label="&cookie.isHttpOnly.label;" closemenu="none"/>
+					<menuitem id="menu_info_policy" type="checkbox" label="&cookie.policy.label;" closemenu="none"/>
+					<menuitem id="menu_info_status" type="checkbox" label="&cookie.status.label;" closemenu="none"/>
 					<menuitem id="menu_info_isProtected" type="checkbox" label="&protect.isProtected;" closemenu="none"/>
+					<menuitem id="menu_info_size" type="checkbox" label="&cookie.size.label;" closemenu="none"/>
 					<menuseparator accessibleType="1010"/>
 					<menuitem id="menu_info_reset" label="&infoRow.reset;"/>
 					<menuseparator accessibleType="1010"/>
@@ -338,10 +338,12 @@
 									accessibleType="101B"
 				/>
 					<button	id="filtermenu"
-									type="menu"
+									type="panel"
 									tooltiptext="&menu.filter.label;"
 									label="&menu.filter.label;"
 									class="menubutton"
+									align="center"
+									pack="center"
 									accessibleType="1002"
 					>
 						<menupopup id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
@@ -353,14 +355,14 @@
 							<menuitem id="searchtype1"
 												type="checkbox"
 												closemenu="none"
-												label="&cookieType1;"
+												label="&cookie.Type1;"
 												accessibleType="100E"
 hidden="true"
 							/>
 							<menuitem id="searchtype2"
 												type="checkbox"
 												closemenu="none"
-												label="&cookieType2;"
+												label="&cookie.Type2;"
 												accessibleType="100E"
 hidden="true"
 							/>
@@ -425,7 +427,7 @@ hidden="true"
 							/>
 						</menupopup>
 					</button>
-				<button id="lookupstart" oncommand="coomanPlus.doLookup()" accessibleType="1002"/>
+				<button id="lookupstart" oncommand="coomanPlus.doLookup(undefined, true)" accessibleType="1002"/>
 			</hbox>
 			<tree id="cookiesTree"
 						flex="1"
@@ -436,7 +438,7 @@ hidden="true"
 						editable="true"
 						enableColumnDrag="true"
 						scrollPos=""
-						seletedHost=""
+						selectedHost=""
 						selectedPath=""
 						selectedName=""
 						sortDirection="ascending"
@@ -444,6 +446,7 @@ hidden="true"
 						accessibleType="101D"
 			>
 				<treecols id="treecols" pickertooltiptext="&tree.picker;" accessibleType="101E">
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="sel"
 										flex="0"
 										type="checkbox"
@@ -455,130 +458,118 @@ hidden="true"
 										editable="true"
 										persist="ordinal"
 					/>
-					<splitter style="display: none;"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="rawHost"
-										label="&cookiedomain.label;"
-										flex="3"
+										label="&cookie.domain.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										ignoreincolumnpicker="true"
+										width="280"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="name"
-										label="&cookiename.label;"
-										flex="2"
+										label="&cookie.name.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										ignoreincolumnpicker="true"
+										width="250"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="value"
-										label="&cookievalue.label;"
-										flex="1"
+										label="&cookie.value.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="path"
-										label="&cookiepath.label;"
-										flex="1"
+										label="&cookie.path.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
-					<treecol	id="type"
-										label="&cookietype.label;"
-										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
-										context="coomanPlus_tree_menu"
-										align="center"
-										pack="center"
-										persist="width hidden ordinal"
-collapsed="true"
-					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="expires"
-										label="&cookieexpire.label;"
-										flex="1"
+										label="&cookie.expire.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="creationTimeString"
-										display="&cookiecreationTime.label;"
-										label="&cookiecreationTime.label;"
-										flex="1"
+										display="&cookie.creationTime.label;"
+										label="&cookie.creationTime.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="lastAccessedString"
-										display="&cookielastAccessed.label;"
-										label="&cookielastAccessed.label;"
-										flex="1"
+										display="&cookie.lastAccessed.label;"
+										label="&cookie.lastAccessed.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="isHttpOnly"
-										display="&cookieisHttpOnly.label;"
-										label="&cookieisHttpOnly.label;"
-										flex="1"
+										display="&cookie.isHttpOnly.label;"
+										label="&cookie.isHttpOnly.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="policyString"
-										label="&cookiepolicy.label;"
-										flex="1"
+										label="&cookie.policy.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="statusString"
-										display="&cookiestatus.label;"
-										label="&cookiestatus.label;"
-										flex="1"
+										display="&cookie.status.label;"
+										label="&cookie.status.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="isProtected"
 										label="&protect.isProtected;"
-										flex="0"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter"/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="isSecure"
-										label="&cookiesisSecure.label;"
-										flex="0"
+										label="&cookie.secure.label;"
+										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
+										context="coomanPlus_tree_menu"
+										hidden="true"
+										persist="width hidden ordinal"
+					/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
+					<treecol	id="size"
+										label="&cookie.size.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow" />
-					<treecol id="colhid"  hidden="true" label="" ignoreincolumnpicker="true"/>
+					<treecol id="colhid" hidden="true" label="" ignoreincolumnpicker="true"/>
 				</treecols>
 				<treechildren id="cookiesTreeChildren"
 											context="coomanPlus_tree_menu"
@@ -641,14 +632,14 @@ collapsed="true"
 
 						<row id="row_host" align="center" dragable="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label id="ifl_isDomain" value="&cookiedomain.label;:" disabled="true" control="ifl_host"/>
+								<label id="ifl_isDomain" value="&cookie.domain.label;:" disabled="true" control="ifl_host"/>
 							</hbox>
 							<hbox class="inforowdata">
 								<textbox id="ifl_host"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
-													accesskey="&cookiedomain.accesskey;"
+													accesskey="&cookie.domain.accesskey;"
 													readonly="true"
 													class="plain infofield"
 													flex="1"
@@ -711,9 +702,10 @@ collapsed="true"
 													readonly="true"
 													class="plain infofield"
 													tooltip="expiresProgressTooltip"
-													flex="1"
 													empty="true"
-													accessibleType="101B"/>
+													width="0"
+													accessibleType="101B"
+									/>
 									<description id="ifl_expires2"/>
 								</deck>
 								<stack flex="1" id="expireProgressDeck">
@@ -855,25 +847,44 @@ collapsed="true"
 							</hbox>
 						</row>
 
+						<row id="row_size" align="center" dragable="true" collapsed="true" persist="collapsed">
+							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+								<label value="&props.size.label;" disabled="true" control="ifl_size"/>
+							</hbox>
+							<hbox class="inforowdata">
+								<textbox id="ifl_size"
+													onfocus="coomanPlus.infoRowHighlight(event);"
+													onblur="coomanPlus.infoRowHighlight(event);"
+													onpopupshowing="coomanPlus.dragMenu(event);"
+													accesskey="&props.size.accesskey;"
+													readonly="true"
+													class="plain infofield"
+													flex="1"
+													empty="true"
+													accessibleType="101B"/>
+							</hbox>
+						</row>
+
 						<row id="row_end"/>
 					</rows>
 				</grid>
 			</groupbox>
 		</vbox>
 		<hbox align="end">
-			<hbox class="actionButtons" flex="1">
+			<hbox class="actionButtons" flex="1" style="margin-right: 0!important;">
 				<button id="newCookie" label="&menu.new.label;" oncommand="coomanPlus.openAdd()" accesskey="&button.new.accesskey;" accessibleType="1002"/>
 				<button id="editCookie" label="&menu.edit.label;" oncommand="coomanPlus.openEdit()" accesskey="&button.edit.accesskey;" accessibleType="1002"/>
 				<button id="deleteCookie" label="&menu.delete.label;" oncommand="coomanPlus.deleteCookies()" accesskey="&button.delete.accesskey;" disabled="true" accessibleType="1002"/>
 				<spacer style="width: 20px"/>
 				<hbox  flex="1" pack="end">
 					<vbox pack="end">
-						<button icon="close"
-										label="&button.close.label;"
-										accesskey="&button.close.accesskey;"
-										oncommand="window.close()"
-										accessibleType="1002"
-						/>
+					<button icon="close"
+									label="&button.close.label;"
+									accesskey="&button.close.accesskey;"
+									oncommand="window.close()"
+									style="margin-right: 0!important;"
+									accessibleType="1002"
+					/>
 					</vbox>
 				</hbox>
 			</hbox>
@@ -894,17 +905,17 @@ collapsed="true"
 		coomanPlus.strings = {
 			protect_protect_accesskey:		"&protect.protect.accesskey;",
 			protect_unprotect_accesskey:	"&protect.unprotect.accesskey;",
-			cookieexpire_progress:						"&cookieexpire.progress;",
-			cookieexpire_progress_life:				"&cookieexpire.progress.life;",
-			cookieexpired:										"&cookieexpired;",
-			day:															"&cookieexpire.day;",
-			days:															"&cookieexpire.days;",
-			hour:															"&cookieexpire.hour;",
-			hours:														"&cookieexpire.hours;",
-			minute:														"&cookieexpire.minute;",
-			minutes:													"&cookieexpire.minutes;",
-			second:														"&cookieexpire.second;",
-			seconds:													"&cookieexpire.seconds;",
+			cookieexpire_progress:						"&cookie.expire.progress;",
+			cookieexpire_progress_life:				"&cookie.expire.progress.life;",
+			cookieexpired:										"&cookie.expired;",
+			day:															"&cookie.expire.day;",
+			days:															"&cookie.expire.days;",
+			hour:															"&cookie.expire.hour;",
+			hours:														"&cookie.expire.hours;",
+			minute:														"&cookie.expire.minute;",
+			minutes:													"&cookie.expire.minutes;",
+			second:														"&cookie.expire.second;",
+			seconds:													"&cookie.expire.seconds;",
 			restore_file_open:								"&restore.file.open;",
 			ascending:												"&ascending;",
 			descending:												"&descending;",
@@ -935,8 +946,8 @@ collapsed="true"
 			filterSearch:											"&filter.search;",
 			exportFileSave:										"&export.file.save;",
 			na:																"&n.a;",
-			cookieType1:											"&cookieType1;",
-			cookieType2:											"&cookieType2;",
+			cookieType1:											"&cookie.Type1;",
+			cookieType2:											"&cookie.Type2;",
 		};
 	</script>
 </window>

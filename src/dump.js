@@ -394,7 +394,7 @@ if (typeof(__dumpName__) == "undefined")
 
 			let n = 0,
 					i;
-			while(i in caller.arguments)
+			for(let i = 0; i < caller.arguments.length; i++)
 			{
 				let quote = typeof caller.arguments[i] == "string" ? '"' : "",
 						arg;
