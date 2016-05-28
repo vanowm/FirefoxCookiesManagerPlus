@@ -128,6 +128,8 @@
 <!ENTITY		infoRow.move.down																				"Move down">
 <!ENTITY		infoRow.reset																						"Reset Info Rows Order">
 <!ENTITY		infoRow.wrap																						"Wrap text">
+<!ENTITY		infoRow.expand																					"JSON Expand">
+<!ENTITY		infoRow.decode																					"URL Decode">
 
 <!ENTITY		protect.protect																					"Protect">
 <!ENTITY		protect.protect.accesskey																"P">
@@ -159,6 +161,7 @@
 <!ENTITY		menu.changes																						"Changes log">
 <!ENTITY		menu.changes.accesskey																	"C">
 <!ENTITY		menu.realHost.label																			'Show raw domain'>
+<!ENTITY		menu.autofit.label																			'Auto fit columns'>
 
 <!ENTITY		columnSort.label																				"Sort by">
 <!ENTITY		columnSort.accesskey																		"S">

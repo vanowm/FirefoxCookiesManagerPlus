@@ -1,4 +1,5 @@
 Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import("resource://gre/modules/NetUtil.jsm");
 coomanPlus.prefTemplateClipboard = {value: "", extra: false}
 coomanPlus.prefTemplateFile = {value: "", extra: false};
 coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT}", extra: false};
@@ -99,8 +100,10 @@ coomanPlus.exportTemplate = function(aCookie, t)
 			data = {
 				NAME:					this.exportEscape(aCookie.name),
 				NAME_RAW:			aCookie.name,
-				CONTENT:			this.exportEscape(aCookie.valueRaw),
-				CONTENT_RAW:	aCookie.valueRaw,
+//				CONTENT:			this.exportEscape(aCookie.valueRaw),
+//				CONTENT_RAW:	aCookie.valueRaw,
+				CONTENT:			this.exportEscape(aCookie.value),
+				CONTENT_RAW:	aCookie.value,
 				HOST:					this.exportEscape(aCookie.host),
 				PATH:					this.exportEscape(aCookie.path),
 				ISSECURE:			aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
@@ -510,7 +513,7 @@ coomanPlus.restoreOpen = function(nopass, templ, fp)
 			obj.policy = 0;
 			let aCookie = new this.cookieObject(obj);
 
-			aCookie.value = aCookie.valueRaw;
+//			aCookie.value = aCookie.valueRaw;
 			if (!("isProtected" in obj))
 				obj.isProtected = null;
 

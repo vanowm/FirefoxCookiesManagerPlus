@@ -9,27 +9,34 @@ Legend:
 
 Changes log:
 
-v1.9 (2016-05-22)
-	+ cookie size information shows as NN (XX), where NN is total size when transmitted to/from website in name=value format and XX is size of content value
-	+ [+]/[-] buttons to month selection in edit window
+v1.9 (2016-05-28)
+	+ cookie size information. It shows as NN (XX), where NN is total size when transmitted to/from website in name=value format and XX is size of content value
+	+ [+]/[-] buttons for month selection in edit window
 	+ detailed information about the cookie in delete confirmation prompt
 	+ password peek button for password fields
 	+ date picker can now select date from prev/next month
-	* expand/compact button is no longer persistent
-	* F5 (refresh) now works anywhere in the window
+	+ url encode/decode and JSON expand/compact for content field in edit window. Applies to entire text or only to selected part.
+	+ option to automatically apply url decode and/or JSON expand at right click of content field
+	+ new option: View -> Tree view -> Auto fit columns. When disabled, the columns can be resized beyond the list width, adding horizontal scrollbar when needed. Unfortunately there is a bug in Firefox itself which might cause misaligment of list data: issue #74
+	+ open edit cookie window directly from native cookie viewer via right click (doesn't show properly newly created cookies just yet)
+	* F5 (refresh) now works anywhere inside the window
 	* buttons in delete confirmation are now centered and window has consistent size
 	* Mac OS has issues with modal non-dialog windows, therefore made all modal windows as dialog type
 	* edit and options windows are no longer modal
-	* cookies list columns now keep it's width when resizing other columns, allowing resize beyond the window size showing horizontal scrollbar when needed (there is a bug that might give unexpected result: https://bugzilla.mozilla.org/show_bug.cgi?id=1274862)
+	* in list sorting can now be chosen hidden columns via view -> tree view -> sort by
+	* drop of an info row is no longer limited to left column only
+	* content field at main window can be resized weather wrap is on enabled or not
 	! delete doesn't work on Mac (issue #70)
 	! cancel button in delete confirmation dialog not shown on Mac
 	! checkboxes cut off on Mac (issue #71)
-	! cookies data with UNICODE/UTF-8 content not properly saved
 	! date format has no effect (issue #72)
 	! search filter button incorrectly displayed on Mac
 	! refresh would show different results if filter set for current website
-	! manually entering year in date picker would be lost if withing 2 seconds after changing it clicked on a day number
-	- "Always on top" option on non-Windows OS
+	! manually entering year in date picker would be lost if withing 2 seconds after it was changed clicked on a day number
+	! error message in console when using down arrow key to navigate between info rows and reached last row
+	! synchronization with native cookies viewer didn't work
+	! incorrect tooltip shown on expired info row when multiple or no cookies selected
+	- "Always on top" option on non-Windows OS (issue #53)
 
 v1.8 (2016-05-17)
 	+ invert selection via right click on "select all" checkbox at tree column header

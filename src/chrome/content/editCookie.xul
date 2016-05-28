@@ -42,8 +42,6 @@
 				isHttpOnly0:	"&props.isHttpOnly.no;",
 				isHttpOnly1:	"&props.isHttpOnly.yes;",
 				cookies:			"&cookies;",
-				json0:				"&json0;",
-				json1:				"&json1;",
 			};
 		</script>
 
@@ -109,8 +107,22 @@
 				<row id="value_options" align="center">
 					<hbox/>
 					<hbox>
-						<button id="json" oncommand="coomanPlus.setJSON(event)" checked="true" control="ifl_value" label="&json1;" tabindex="53"/>
-						<checkbox id="wrap" oncommand="coomanPlus.setWrap(event)" checked="true" persist="checked" control="ifl_value" label="&wrap;" tabindex="56"/>
+						<button id="actions" type="menu" onpopupshowing="document.getElementById('ifl_value').focus()" oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&escape;" tabindex="52" closemenu="none">
+							<menupopup>
+								<menuitem id="mnu_encode" label="&encode;"/>
+								<menuitem id="mnu_decode" label="&decode;"/>
+								<menuseparator/>
+								<menuitem id="mnu_expand" label="&expand;"/>
+								<menuitem id="mnu_compact" label="&compact;"/>
+							</menupopup>
+						</button>
+<!--
+						<button id="encode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&encode;" tabindex="53" />
+						<button id="decode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&decode;" tabindex="54"/>
+						<button id="expand"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&expand;" tabindex="55"/>
+						<button id="compact"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&compact;" tabindex="56"/>
+-->
+						<checkbox id="wrap" oncommand="coomanPlus.setWrap(event)" checked="true" persist="checked" control="ifl_value" label="&wrap;" tabindex="59"/>
 					</hbox>
 				</row>
 				<row align="center">

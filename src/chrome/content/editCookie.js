@@ -68,6 +68,13 @@ var coomanPlus = {
 		$('ifl_isSecureYes').label = $('ifl_isSecureYes').value = this.string("forSecureOnly");
 		$('ifl_isSecureNo').label = $('ifl_isSecureNo').value = this.string("forAnyConnection");
 
+		let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
+									.getInterface(Ci.nsIWebNavigation)
+									.QueryInterface(Ci.nsIDocShellTreeItem)
+									.treeOwner.QueryInterface(Ci.nsIInterfaceRequestor)
+									.getInterface(Ci.nsIXULWindow);
+		xulWin.zLevel = (this.pref("topmost")) ? xulWin.raisedZ : xulWin.normalZ;
+
 		if (this._params.cookies) //this._params.window.coomanPlus._selected.length == 1)
 		{
 			this._multi = (this._params.cookies.length > 1);
@@ -81,7 +88,7 @@ var coomanPlus = {
 
 			this._curCookie = new this.cookieObject(aCookie);
 //			this._curCookie.name = this._curCookie.nameRaw;
-			this._curCookie.value = this._curCookie.valueRaw;
+//			this._curCookie.value = this._curCookie.valueRaw;
 		}
 		else
 			this._curCookie = new this.cookieObject({
@@ -183,8 +190,6 @@ var coomanPlus = {
 		this.showNew();
 		this.setWrap();
 		//we used persist in previous versions, now we must reset manually :(
-		$("json").setAttribute("checked", true);
-		this.setJSON(false, true);
 		this.inited = true;
 	},//init()
 
@@ -251,6 +256,7 @@ log.debug();
 			coomanPlus.protect.unload();
 		}catch(e){log.error(e)}
 		window.removeEventListener("focus", this.onFocus, true);
+
 log.debug("finished");
 	},
 
@@ -478,9 +484,9 @@ log.debug();
 				path = this.trim($("ifl_path").value),
 				isHttpOnly = ($("ifl_isHttpOnly").value == "true");
 
-		try
+/*		try
 		{
-//			name = encodeURIComponent(name);
+			name = encodeURIComponent(name);
 		}
 		catch(e){}
 		try
@@ -488,7 +494,7 @@ log.debug();
 			value = encodeURIComponent(value);
 		}
 		catch(e){}
-
+*/
 		if (check)
 		{
 			let isValidURI = this.test_url(host, path);
@@ -521,8 +527,8 @@ log.debug();
 												policy: this._curCookie.policy,
 												isHttpOnly: isHttpOnly
 											});
-		this._newCookie.name = name;
-		this._newCookie.value = value;
+//		this._newCookie.name = name;
+//		this._newCookie.value = value;
 		return true;
 
 	},//createNewCookie()
@@ -590,6 +596,11 @@ log.debug();
 			this._params.window.coomanPlus.loadCookies(this._parent.getElementById('lookupcriterium').getAttribute("filter"));
 			this._params.window.coomanPlus.cookieSelected();
 		}
+		if (typeof(coomanPlus._params.callback) == "function")
+			try
+			{
+				coomanPlus._params.callback(selected);
+			}catch(e){log.debug(e)}
 
 	//out_d2("Cookie Manager::SaveCookie::END");
 		window.close();
@@ -683,7 +694,7 @@ log.debug();
 	{
 		this._curCookie = new this.cookieObject(this._params.cookies[e.target.value]);
 //		this._curCookie.name = this._curCookie.nameRaw;
-		this._curCookie.value = this._curCookie.valueRaw;
+//		this._curCookie.value = this._curCookie.valueRaw;
 		this.setFieldProps();
 	},
 	
@@ -744,46 +755,74 @@ log.debug();
 		$("wrap").setAttribute("checked", $("wrap").getAttribute("checked") == "true");
 		$("ifl_value").setAttribute("wrap", $("wrap").getAttribute("checked") == "true" ? "" : "off");
 	},
-
-	setJSON: function setJSON(e, init)
+	
+	setAction: function	setAction(e)
 	{
 log.debug();
-		let ok = true,
-				type = $("json").getAttribute("checked") == "true";
-		if (e)
-		{
-			e.target.removeAttribute("error");
-			type = type ? 2 : 0;
-		}
-		else
-			type = type ? 0 : 2;
 
-		let val = $("ifl_value").value;
-		if (type)
-			val = this.unescape(val);
-		else
-			val = this.escape(val);
+		let obj = $("ifl_value"),
+				selStart = obj.selectionStart,
+				selEnd = obj.selectionEnd,
+				r = obj.value;
 
-		if (e)
+		if (selStart != selEnd)
+			r = r.substring(selStart, selEnd);
+
+		switch(e.target.id.replace("mnu_", ""))
 		{
-			if (val == $("ifl_value").value)
-			{
-				e.target.setAttribute("error", true);
-				coomanPlus.setJSON.timer = coomanPlusCore.async(function()
+			case "encode":
+				try
 				{
-					e.target.removeAttribute("error");
-				}, 1000, coomanPlus.setJSON.timer)
-			}
-//			else
-//			{
-				e.target.setAttribute("checked", e.target.getAttribute("checked") != "true");
-//			}
+					r = encodeURIComponent(r);
+				}catch(e){}
+			break;
+
+			case "decode":
+				try
+				{
+					r = decodeURIComponent(r);
+				}catch(e){}
+			break;
+
+			case "expand":
+				try
+				{
+					r = JSON.stringify(JSON.parse(r), null, 2);
+				}catch(e){}
+			break;
+
+			case "compact":
+				try
+				{
+					r = JSON.stringify(JSON.parse(r), null, 0);
+				}catch(e){}
+			break;
 		}
-		if (!init && val != $("ifl_value").value)
+		let newLength = r.length;
+		if (selStart != selEnd)
+			r = obj.value.slice(0, selStart) + r + obj.value.slice(selEnd);
+
+		if (r == obj.value)
 		{
-			$("ifl_value").value = val;
-		}	
-		$("json").label = this.string("json" + ($("json").getAttribute("checked") == "true" ? 0 : 1));
-		return;
-	},//json()
+			let button = e.currentTarget,
+					timer = coomanPlus.setAction["timer" + e.target.id];
+			button.setAttribute("error", true);
+			
+			timer = coomanPlusCore.async(function()
+			{
+				button.removeAttribute("error");
+			}, 1000, timer)
+		}
+		else
+		{
+			obj.value = r;
+		}
+		obj.focus();
+		if (selStart != selEnd)
+		{
+			obj.selectionStart = selStart;
+			obj.selectionEnd = selStart + newLength;
+		}
+
+	},//setAction()
 };

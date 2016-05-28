@@ -112,7 +112,9 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 		this.name 			= aCookie.name;
 	}
 */
-	this.name 			= aCookie.name;
+	this.name 				= aCookie.name;
+	this.value 				= aCookie.value;
+/*
 	this.valueRaw			= aCookie.value;
 	try
 	{
@@ -122,6 +124,7 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	{
 		this.value 			= aCookie.value;
 	}
+*/
 	this.isDomain			= aCookie.isDomain;
 	this.host					= aCookie.host;
 	this.rawHost			= aCookie.rawHost ? aCookie.rawHost : coomanPlus.getRawHost(aCookie.host);
@@ -848,34 +851,105 @@ coomanPlus.getByteSizeText = function getByteSizeText(b)
 	return parseFloat((b / Math.pow(1024, i)).toFixed(2)) + " " + ["B", "KB", "MB", "GB", "TB", "PB"][i];
 }
 
+coomanPlus.openEdit = function openEdit(param)
+{
+log.debug();
+	param = typeof(param) == "undefined" ?  {type: "edit"} : param;
+	if (param.type == "new")
+	{
+		param.cookies = this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null;
+	}
+	else
+	{
+		if (!param.cookies)
+		{
+			let s = this.getTreeSelections(this._cookiesTree);
+			if (!s.length)
+			{
+				this.openAdd();
+				return;
+			}
+			let selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
+			selIndex = s[((selIndex == -1) ? 0 : selIndex)]
+
+			param.cookies = [this._cookies[selIndex]];
+			for(let i = 0; i < s.length; i++)
+			{
+				if (s[i] != selIndex)
+					param.cookies[cookies.length] = this._cookies[s[i]];
+			}
+		}
+	}
+//		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "edit", cookies: cookies});
+	this._openDialog("editCookie.xul", "_blank", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no"), param);
+}//openEdit();
+
+coomanPlus.nsIScriptableUnicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
+coomanPlus.nsICryptoHash = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+coomanPlus.cookieHash = function cookieHash(obj, force, type)
+{
+//type: 0/undefined = base64, 1 = hex, 2 = binary;
+	if (obj.hash && !force)
+		return obj.hash;
+	
+	let	converter = this.nsIScriptableUnicodeConverter,
+			ch = this.nsICryptoHash,
+			str = JSON.stringify({
+				host: obj.host,
+				name: obj.name,
+				path: obj.path,
+//				type: typeof(obj.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : obj.type,
+//				value: typeof(obj.type) == "undefined" || obj.type == coomanPlusCore.COOKIE_NORMAL ? "" : obj.value
+			}),
+			hash,
+			data;
+
+	converter.charset = "UTF-8";
+	data = converter.convertToByteArray(str, {});
+	ch.init(ch.MD5);
+	ch.update(data, data.length);
+	hash = ch.finish(!type);
+	if (type == 1)
+	{
+		let h = "";
+		for (let i in hash)
+			h += ("0" + hash.charCodeAt(i).toString(16)).slice(-2);
+
+		hash = h;
+	}
+	return hash
+}//cookieHash()
+
 coomanPlus.os = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS;
 coomanPlus.appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 coomanPlus.isMac = coomanPlus.os == "Darwin";
 coomanPlus.isWin = coomanPlus.os == "WINNT";
-(coomanPlus.observer = {
-	_observerService: Cc["@mozilla.org/observer-service;1"]
-														.getService(Ci.nsIObserverService),
-	_name: "coomanPlusWindow",
-	init: function()
-	{
-		this._observerService.addObserver(this, this._name, false);
-		window.addEventListener("unload", function() { coomanPlus.observer.uninit(); }, false);
-	},
+if (!coomanPlus.noFuncInit)
+{
+	(coomanPlus.observer = {
+		_observerService: Cc["@mozilla.org/observer-service;1"]
+															.getService(Ci.nsIObserverService),
+		_name: "coomanPlusWindow",
+		init: function()
+		{
+			this._observerService.addObserver(this, this._name, false);
+			window.addEventListener("unload", function() { coomanPlus.observer.uninit(); }, false);
+		},
 
-	uninit: function()
-	{
-		this._observerService.removeObserver(this, this._name);
-	},
+		uninit: function()
+		{
+			this._observerService.removeObserver(this, this._name);
+		},
 
-	observe: function(aSubject, aTopic, aData)
-	{
-		aSubject.QueryInterface(Components.interfaces.nsISupportsString);
-		if (aTopic != this._name || !coomanPlus[aSubject.data])
-			return;
+		observe: function(aSubject, aTopic, aData)
+		{
+			aSubject.QueryInterface(Components.interfaces.nsISupportsString);
+			if (aTopic != this._name || !coomanPlus[aSubject.data])
+				return;
 
-		coomanPlus[aSubject.data](aData);
-	},
-}).init();
-coomanPlus.protect.init(false);
-window.addEventListener("load", coomanPlus.listKeys, false);
-
+			coomanPlus[aSubject.data](aData);
+		},
+	}).init();
+	coomanPlus.protect.init(false);
+	window.addEventListener("load", coomanPlus.listKeys, false);
+}

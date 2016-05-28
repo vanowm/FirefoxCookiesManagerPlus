@@ -50,6 +50,9 @@
 <!ENTITY	cookieType2										"HTML5">
 <!ENTITY	proto.label										"Protocol">
 <!ENTITY	port.label										"Port">
-<!ENTITY	json0													"Expand">
-<!ENTITY	json1			 										"Compact">
 <!ENTITY	wrap			 										"Wrap text">
+<!ENTITY	expand		 										"JSON Expand">
+<!ENTITY	compact		 										"JSON Compact">
+<!ENTITY	escape		 										"Actions">
+<!ENTITY	encode		 										"URL Encode">
+<!ENTITY	decode		 										"URL Decode">

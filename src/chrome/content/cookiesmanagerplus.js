@@ -315,6 +315,7 @@ log.debug("start");
 
 		}
 		coomanPlusCore.lastKeyDown = [];
+		$("cookieInfoBox").addEventListener("dragexit", this.dragexit, true);
 		$("main").addEventListener("keydown", this.onKeyDown, true);
 		$("main").addEventListener("keyup", this.onKeyUp, true);
 		$("cookiesTree").addEventListener("scroll", this.treeScroll, true);
@@ -374,6 +375,7 @@ log.debug("start");
 		if (document.width < w || document.height < h)
 			window.sizeToContent();
 */
+		this.setAutofit();
 log.debug("end",1);
 	},//start()
 
@@ -420,6 +422,7 @@ log.debug();
 			$("main").removeEventListener("dragover", this.filesDragOver, true);
 			$("main").removeEventListener("dragdrop", this.filesDragDrop, true);
 			$("cookiesTree").removeEventListener("click", this.cookieClickEvent, true);
+			$("cookieInfoBox").removeEventListener("dragexit", this.dragexit, true);
 		}catch(e){log.error(e)}
 
 		let rows = $("cookieInfoRows").getElementsByTagName("row");
@@ -743,7 +746,24 @@ log.debug();
 			field.setAttribute("value", field.value);
 			field.realValue = props[i].value[2];
 		}
-
+		let expires = $("ifl_expires");
+		if (expires.getAttribute("multi") == "true" || expires.getAttribute("empty") == "true" || expires.getAttribute("na") == "true")
+			expires.removeAttribute("tooltip");
+		else
+			expires.setAttribute("tooltip", "expiresProgressTooltip");
+		let obj = $("ifl_value");
+		obj.valueOrig = obj.value;
+		if (obj.getAttribute("decode") != "off")
+		{
+			obj.value = decodeURIComponent(obj.value);
+		}
+		if (obj.getAttribute("expand") != "off")
+		{
+			try
+			{
+				obj.value = JSON.stringify(JSON.parse(obj.value), null, 2);
+			}catch(e){}
+		}
 		if (!fixed.value[1] && fixed.value[0].length > 0)
 		{
 			$("ifl_value").setAttribute("tooltip", "tooltipValue");
@@ -975,11 +995,12 @@ log.debug();
 		$("menu_restoreselected").disabled = true;
 		$("menuBackupSelected").disabled = true;
 		$("menuRestoreSelected").disabled = true;
+		$("ifl_expires").removeAttribute("tooltip");
 		this._selected = [];
 		this.UI_EnableCookieBtns(false, false);
 		if ($("expireProgress").hidden	 && $("expireProgressText").hidden)
 			this.expiresProgress.cancel(1);
-	},
+	},//clearCookieProperties()
 
 	clearFilter: function clearFilter()
 	{
@@ -1763,43 +1784,11 @@ log.debug();
 			this.sortTree(this._cookiesTree, this._cookies);
 	},
 
-	openEdit: function openEdit(add)
-	{
-log.debug();
-		let cookies,
-				type = "edit";
-		if (add)
-		{
-			cookies = this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null;
-			type = "new";
-		}
-		else
-		{
-			let s = this.getTreeSelections(this._cookiesTree);
-			if (!s.length)
-			{
-				this.openAdd();
-				return;
-			}
-			let selIndex = s.indexOf(this._cookiesTree.view.selection.currentIndex);
-			selIndex = s[((selIndex == -1) ? 0 : selIndex)]
-
-			cookies = [this._cookies[selIndex]];
-			for(let i = 0; i < s.length; i++)
-			{
-				if (s[i] != selIndex)
-					cookies[cookies.length] = this._cookies[s[i]];
-			}
-		}
-//		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "edit", cookies: cookies});
-		this._openDialog("editCookie.xul", "_blank", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no"), {type: type, cookies: cookies});
-	},
-
 	openAdd: function openAdd()
 	{
 log.debug();
 //		this._openDialog("editCookie.xul", "_blank", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {type: "new", cookies: this.getTreeSelections(this._cookiesTree).length ? [this._cookies[this._cookiesTree.view.selection.currentIndex]] : null});
-		this.openEdit(true);
+		this.openEdit({type: "new"});
 	},
 
 	openCookies: function openCookies()
@@ -1924,6 +1913,8 @@ log.debug();
 		this.infoRowsChanged = this.prefViewOrder != this.prefViewOrderDefault;
 		$("menu_info_reset").disabled = !this.infoRowsChanged;
 		coomanPlus.setWrap();
+		coomanPlus.setExpand();
+		coomanPlus.setDecode();
 		if (!resize)
 			return;
 
@@ -2004,16 +1995,11 @@ log.debug();
 		$("infoRowUp").disabled = obj.parentNode.id == coomanPlus.infoRowsFirst.id;
 		$("infoRowDown").disabled = obj.parentNode.id == coomanPlus.infoRowsLast.id;
 		
-		if (o.id == "ifl_value")
-		{
-			$("infoRowWrap").collapsed = false;
-			$("infoRowWrap").previousSibling.collapsed = false;
-		}
-		else
-		{
-			$("infoRowWrap").collapsed = true;
-			$("infoRowWrap").previousSibling.collapsed = true;
-		}
+		let hide = o.id != "ifl_value";
+		$("infoRowWrap").collapsed = hide;
+		$("infoRowWrap").previousSibling.collapsed = hide;
+		$("infoRowExpand").collapsed = hide;
+		$("infoRowDecode").collapsed = hide;
 		obj.click();
 	},
 
@@ -2032,7 +2018,8 @@ log.debug();
 	infoRowContextExec: function infoRowContextExec(e)
 	{
 		let obj = document.popupNode,
-				o = coomanPlus.infoRowGetRowObj(obj);
+				o = coomanPlus.infoRowGetRowObj(obj),
+				t;
 		if (o)
 			obj = o.firstChild;
 
@@ -2061,21 +2048,77 @@ log.debug();
 					o.setAttribute("wrap", o.getAttribute("wrap") == "off" ? "" : "off");
 					coomanPlus.setWrap();
 				break;
+			case "expand":
+					o = $("ifl_value");
+					t = o.getAttribute("expand") == "off";
+					o.setAttribute("expand", t ? "" : "off");
+					coomanPlus.setExpand();
+					if (t)
+					{
+						try
+						{
+							o.value = JSON.stringify(JSON.parse(o.value), null, 2);
+						}catch(e){};
+					}
+					else
+						o.value = o.valueOrig;
+				break;
+			case "decode":
+					o = $("ifl_value");
+					t = o.getAttribute("decode") == "off";
+					o.setAttribute("decode", t ? "" : "off");
+					coomanPlus.setDecode();
+					if (t)
+					{
+						try
+						{
+							o.value = decodeURIComponent(o.valueOrig);
+						}catch(e){}
+					}
+					else
+						o.value = o.valueOrig;
+				break;
 		}
 		return true;
 	},
 
 	setWrap: function setWrap()
 	{
-		let o = $("ifl_value");
-		$("infoRowWrap").setAttribute("checked", o.getAttribute("wrap") != "off");
+		let o = $("ifl_value"),
+				r = o.getAttribute("wrap") != "off";
+		$("infoRowWrap").setAttribute("checked", r);
 		try
 		{
-			$("infoRowWrap2").setAttribute("checked", o.getAttribute("wrap") != "off");
+			$("infoRowWrap2").setAttribute("checked", r);
 		}catch(e){};
-		$("infoSplitter").collapsed = $("row_value").collapsed || $("ifl_value").getAttribute("wrap") == "off";
+/*
+		$("infoSplitter").collapsed = o.collapsed || o.getAttribute("wrap") == "off";
 		if ($("infoSplitter").collapsed)
+		{
 			$("cookieInfoBox").setAttribute("height", "");
+		}
+*/
+	},
+
+	setExpand: function setExpand()
+	{
+		let r = $("ifl_value").getAttribute("expand") != "off";
+
+		$("infoRowExpand").setAttribute("checked", r);
+		try
+		{
+			$("infoRowExpand2").setAttribute("checked", r);
+		}catch(e){};
+	},
+
+	setDecode: function setDecode()
+	{
+		let r = $("ifl_value").getAttribute("decode") != "off";
+		$("infoRowDecode").setAttribute("checked", r);
+		try
+		{
+			$("infoRowDecode2").setAttribute("checked", r);
+		}catch(e){};
 	},
 
 	infoRowHighlight: function infoRowHighlight(e)
@@ -2130,7 +2173,7 @@ log.debug();
 
 		let obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0),
 				box = $("cookieInfoBox").boxObject;
-		if (obj.firstChild.boxObject.x <= e.clientX && (obj.firstChild.boxObject.x + obj.firstChild.boxObject.width) >= e.clientX && e.clientY >= box.y && e.clientY <= (box.y + box.height))
+		if (obj.boxObject.x <= e.clientX && (obj.boxObject.x + obj.boxObject.width) >= e.clientX && e.clientY >= box.y && e.clientY <= (box.y + box.height))
 		{
 			let o = coomanPlus.dragGetRow(e);
 			if (o != coomanPlus.dragoverObj)
@@ -2154,6 +2197,7 @@ log.debug();
 			e.dataTransfer.effectAllowed = "none";
 		}
 		e.preventDefault();
+		e.stopPropagation();
 		return false;
 	},
 
@@ -2186,6 +2230,22 @@ log.debug();
 		}
 	},
 
+	dragexit: function dragexit(e)
+	{
+		let obj = document.elementFromPoint(e.clientX, e.clientY),
+				box = $("cookieInfoBox");
+		while (obj && obj != box)
+		{
+			obj = obj.parentNode;
+		}
+		if (obj)
+			return;
+
+		coomanPlus.dragPause = true;
+		coomanPlus.dragoverShow();
+		e.dataTransfer.effectAllowed = "none";
+	},
+
 	dragend: function dragend(e)
 	{
 		if (coomanPlus.dragCancel || coomanPlus.dragPause || !coomanPlus.dragStarted)
@@ -2198,11 +2258,15 @@ log.debug();
 		{
 			let obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0),
 					t = obj.getElementsByTagName("textbox")[0],
-					r = [];
+					r = [],
+					box = $("cookieInfoBox").boxObject,
+					o = coomanPlus.dragoverObj;
+
+//		if (obj.boxObject.x <= e.clientX && (obj.boxObject.x + obj.boxObject.width) >= e.clientX && e.clientY >= box.y && e.clientY <= (box.y + box.height))
+
 			for (let i = 0; i < t.editor.selection.rangeCount; i++)
 				r.push(t.editor.selection.getRangeAt(i).cloneRange());
 
-			let o = coomanPlus.dragoverObj;
 			if (o)
 			{
 				coomanPlus.cookieInfoRowsOrderSave(obj, o);
@@ -2254,21 +2318,16 @@ log.debug();
 	dragGetBox: function dragGetBox(e)
 	{
 		let obj = e.target;
-		switch(obj.tagName)
-		{
-			case "spacer":
-					obj = obj.nextSibling;
-				break;
-			case "hbox":
-					obj = obj.parentNode;
-				break;
-			case "label":
-					obj = obj.parentNode.parentNode;
-				break;
-		}
-		if (obj && obj.tagName != "row")
-			obj = null;
+		if (!obj)
+			return null;
 
+		if (obj.tagName == "spacer")
+			obj = obj.nextSibling;
+
+		while (obj && obj.tagName != "row")
+		{
+			obj = obj.parentNode;
+		}
 		return obj;
 	},
 
@@ -2344,10 +2403,11 @@ log.debug();
 					});
 				};
 		if (obj.id == this.infoRowsLast.id)
-			return sel();
+			return sel(o);
 
 		let rows = $("cookieInfoRows").getElementsByTagName("row"),
 				s = false;
+
 		for(let i = 0; i < rows.length; i++)
 		{
 			if (rows[i].id == obj.id)
@@ -2448,6 +2508,14 @@ log.debug();
 				let clone = document.importNode($("infoRowWrap").previousSibling, false);
 				obj.appendChild(clone);
 				clone = document.importNode($("infoRowWrap"), false);
+				clone.id += 2;
+				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
+				obj.appendChild(clone);
+				clone = document.importNode($("infoRowExpand"), false);
+				clone.id += 2;
+				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
+				obj.appendChild(clone);
+				clone = document.importNode($("infoRowDecode"), false);
 				clone.id += 2;
 				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
 				obj.appendChild(clone);
@@ -2585,6 +2653,51 @@ log.debug();
 		event.preventDefault();
 	},
 
+	setAutofit: function setAutofit(reset)
+	{
+		let fit = coomanPlus.pref("autofit"),
+				cols = $("treecols").childNodes,
+				i = 0,
+				col;
+
+		while(col = cols[i++])
+		{
+			if ((col.tagName != "treecol" && col.tagName != "splitter") || col.getAttribute("fixed") == "true")
+				continue;
+
+			switch(col.tagName)
+			{
+				case "splitter":
+					if (fit)
+						col.removeAttribute("resizeafter");
+					else
+						col.setAttribute("resizeafter", "grow");
+
+					break;
+			
+				case "treecol":
+					if (reset && col.hasAttribute("flex"))
+						col.width = col.clientWidth;
+
+					if (fit)
+						col.setAttribute("flex", 1);
+					else
+						col.removeAttribute("flex");
+
+					break;
+			}
+		}
+
+		if (fit)
+		{
+			$("menu_treeView_autofit").setAttribute("checked", true);
+		}
+		else
+		{
+			$("menu_treeView_autofit").removeAttribute("checked");
+		}
+	},//setAutofit()
+
 	treeViewSelect: function treeViewSelect(event)
 	{
 		var tree = coomanPlus._cookiesTree;
@@ -2605,6 +2718,12 @@ log.debug();
 				tree.columns.restoreNaturalOrder();
 				tree._ensureColumnOrder();
 				coomanPlus.treeView(event.target.parentNode)
+			}
+			else if(event.originalTarget.id == "menu_treeView_autofit")
+			{
+				let fit = event.originalTarget.getAttribute("checked") == "true";
+				coomanPlus.pref("autofit", fit);
+				coomanPlus.setAutofit(true);
 			}
 			else
 			{
@@ -2636,7 +2755,8 @@ log.debug();
 			// Construct an entry for each column in the row, unless
 			// it is not being shown.
 			let currElement = currCol.element;
-			if (currElement.id != "colhid" && currElement.id != "sel" && !currElement.hidden && !currElement.collapsed)
+//			if (currElement.id != "colhid" && currElement.id != "sel" && !currElement.hidden && !currElement.collapsed)
+			if (currElement.id != "colhid" && currElement.id != "sel" && !currElement.collapsed)
 			{
 				let popupChild = document.createElement("menuitem");
 				popupChild.setAttribute("type", "radio");

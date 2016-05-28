@@ -198,7 +198,7 @@ textbox[readonly="true"]
 {
 }
 
-#json[error]
+*[error]
 {
 	animation: shake-rotate 800ms 10 alternate;
 }

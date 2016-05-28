@@ -19,6 +19,8 @@ pref("extensions.cookiesmanagerplus.nativesync", false);
 pref("extensions.cookiesmanagerplus.showrealhost", true);
 pref("extensions.cookiesmanagerplus.showChangesLog", 1);
 pref("extensions.cookiesmanagerplus.deleteexpired", false);
+pref("extensions.cookiesmanagerplus.autofit", true);
+pref("extensions.cookiesmanagerplus.restoreselection", 1);
 
 //hidden options:
 pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+

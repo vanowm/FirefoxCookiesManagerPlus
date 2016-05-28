@@ -50,6 +50,8 @@
 				<menuitem id="infoRowCopy" label="&infoRow.copy;" value="copy" accessibleType="100E"/>
 				<menuseparator />
 				<menuitem id="infoRowWrap" type="checkbox" label="&infoRow.wrap;" value="wrap" accessibleType="100E"/>
+				<menuitem id="infoRowExpand" type="checkbox" label="&infoRow.expand;" value="expand" accessibleType="100E"/>
+				<menuitem id="infoRowDecode" type="checkbox" label="&infoRow.decode;" value="decode" accessibleType="100E"/>
 				<menuseparator />
 				<menuitem id="infoRowUp" label="&infoRow.move.up;" value="up" accessibleType="100E" />
 				<menuitem id="infoRowDown" label="&infoRow.move.down;" value="down" accessibleType="100E" />
@@ -263,6 +265,7 @@
 						<menupopup id="menu_treeView" onpopupshowing="coomanPlus.treeView(this)" oncommand="coomanPlus.treeViewSelect(event)" accessibleType="100F">
 							<menuseparator accessibleType="1010"/>
 							<menuitem id="menu_treeView_realHost" anonid="treeView_realHost" type="checkbox" label="&menu.realHost.label;" closemenu="none" stationary="true"/>
+							<menuitem id="menu_treeView_autofit" type="checkbox" label="&menu.autofit.label;" closemenu="none" stationary="true"/>
 							<menuitem anonid="treeViewReset" label="&restoreColumnOrder.label;"/>
 							<menuseparator accessibleType="1010"/>
 							<menu type="menu" label="&columnSort.label;" accesskey="&columnSort.accesskey;">
@@ -569,7 +572,7 @@ hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow" />
-					<treecol id="colhid" hidden="true" label="" ignoreincolumnpicker="true"/>
+					<treecol id="colhid" hidden="true" ignoreincolumnpicker="true"/>
 				</treecols>
 				<treechildren id="cookiesTreeChildren"
 											context="coomanPlus_tree_menu"
@@ -622,7 +625,7 @@ hidden="true"
 													class="plain infofield"
 													flex="1"
 													rows="1"
-													persist="wrap"
+													persist="wrap,expand,decode"
 													multiline="true"
 													empty="true"
 													accessibleType="101B"/>
