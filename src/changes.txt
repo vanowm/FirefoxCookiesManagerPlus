@@ -9,33 +9,42 @@ Legend:
 
 Changes log:
 
-v1.9 (2016-05-28)
-	+ cookie size information. It shows as NN (XX), where NN is total size when transmitted to/from website in name=value format and XX is size of content value
+v1.9 (2016-05-31)
+	+ ability backup/restore/reset all settings and window customizations (from options window)
+	+ cookie size information
 	+ [+]/[-] buttons for month selection in edit window
 	+ detailed information about the cookie in delete confirmation prompt
 	+ password peek button for password fields
-	+ date picker can now select date from prev/next month
+	+ date picker can now select date from prev/next month when when current month is sharing same week with prev/next month
 	+ url encode/decode and JSON expand/compact for content field in edit window. Applies to entire text or only to selected part.
-	+ option to automatically apply url decode and/or JSON expand at right click of content field
-	+ new option: View -> Tree view -> Auto fit columns. When disabled, the columns can be resized beyond the list width, adding horizontal scrollbar when needed. Unfortunately there is a bug in Firefox itself which might cause misaligment of list data: issue #74
-	+ open edit cookie window directly from native cookie viewer via right click (doesn't show properly newly created cookies just yet)
+	+ option to automatically apply url decode and/or JSON expand at right click of content info field
+	+ new option: View -> Tree view -> Auto fit columns. When disabled, the columns can be resized beyond the list width, adding horizontal scrollbar when needed. Unfortunately there is a bug in Firefox itself which might cause misalignment between column headers and list data: issue #74
+	+ open edit cookie window directly from native cookie viewer via right click (doesn't show properly newly created cookies yet)
+	+ new function: backup/restore visible cookies. This action is equal to select all + backup/restore selected
+	+ drag'n drop cookies file(s) into CM+ window while holding SHIFT key will restore only visible cookies and holding CTRL key will restore only selected cookies
+	+ improved security of the encrypted backup files
+	+ restore multiple cookie files via file menu
 	* F5 (refresh) now works anywhere inside the window
 	* buttons in delete confirmation are now centered and window has consistent size
 	* Mac OS has issues with modal non-dialog windows, therefore made all modal windows as dialog type
 	* edit and options windows are no longer modal
-	* in list sorting can now be chosen hidden columns via view -> tree view -> sort by
-	* drop of an info row is no longer limited to left column only
-	* content field at main window can be resized weather wrap is on enabled or not
+	* hidden columns are now included in sorting choices at View -> Tree view -> Sort by
+	* drop-in of an info row is no longer limited to left column only
+	* content field at main window can now be resized when wrap is on or off
+	* second password field is now disabled if first password field is empty
+	* when restoring multiple encrypted files it will try use previously entered passwords, resulting in fewer prompts
 	! delete doesn't work on Mac (issue #70)
 	! cancel button in delete confirmation dialog not shown on Mac
 	! checkboxes cut off on Mac (issue #71)
-	! date format has no effect (issue #72)
+	! date format in options has no effect (issue #72)
 	! search filter button incorrectly displayed on Mac
 	! refresh would show different results if filter set for current website
-	! manually entering year in date picker would be lost if withing 2 seconds after it was changed clicked on a day number
+	! manually entering year in date picker would be lost if within 2 seconds after it was changed clicked on a day number
 	! error message in console when using down arrow key to navigate between info rows and reached last row
 	! synchronization with native cookies viewer didn't work
 	! incorrect tooltip shown on expired info row when multiple or no cookies selected
+	! password prompt for encrypted cookies file would allow submit empty password
+	! remove password would leave {PROTECTED_RAW} tag in decrypted file when CookieKeeper is not installed/enabled
 	- "Always on top" option on non-Windows OS (issue #53)
 
 v1.8 (2016-05-17)

@@ -76,6 +76,18 @@ var	self = this,
 		this.window.openDialog("chrome://cookiesmanagerplus/content/options.xul", "options", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no"), args);
 	},
 
+	_backups: {},
+	backup: function backup(obj, id)
+	{
+		let self = this;
+		self._backups[id] = obj;
+
+		self.backup.timer = self.async(function()
+		{
+			self.pref("persist", JSON.stringify(self._backups));
+		}, 0, self.backup.timer);
+	},
+
 	pref: function (key, val, noCache, noAsync)
 	{
 		let pref = coomanPlusCore.pref;

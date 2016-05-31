@@ -1,3 +1,7 @@
+String.prototype.trim = function()
+{
+	return this.replace(/^\s+|\s+$/g,"");
+}
 coomanPlus.trim = function(s)
 {
 	return s.replace(/^\s+|\s+$/g,"");
@@ -144,8 +148,8 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	this.isProtected	= coomanPlus.protect.enabled ? coomanPlus.protect.obj.isProtected(this) : false;
 	this.updated			= typeof(updated) == "undefined" ? null : updated;
 	this.type 				= coomanPlusCore.COOKIE_NORMAL;
-	this.valueSize 		= coomanPlus.getByteSize(this.value);
-	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
+//	this.valueSize 		= coomanPlus.getByteSize(this.value);
+//	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
 	this.size 				= coomanPlus.getByteSize(this.name + "=" + this.value);
 	this.sizeText			= coomanPlus.getByteSizeText(this.size);
 }
@@ -520,7 +524,7 @@ log.debug("protect observer added");
 				if (obj)
 				{
 					obj.label = obj.getAttribute("_label").replace("$NAME$", self.name)
-					obj.setAttribute("image", self.icon);
+//					obj.setAttribute("image", self.icon);
 				}
 				if (startup && coomanPlus.infoRowsShow)
 					coomanPlus.infoRowsShow(true);
@@ -876,7 +880,7 @@ log.debug();
 			for(let i = 0; i < s.length; i++)
 			{
 				if (s[i] != selIndex)
-					param.cookies[cookies.length] = this._cookies[s[i]];
+					param.cookies[param.cookies.length] = this._cookies[s[i]];
 			}
 		}
 	}
@@ -920,6 +924,128 @@ coomanPlus.cookieHash = function cookieHash(obj, force, type)
 	return hash
 }//cookieHash()
 
+coomanPlus.backupPersist = function backupPersist(obj, backup)
+{
+	if (!obj)
+		return;
+
+	let self = coomanPlus.backupPersist;
+
+	if (!self.data)
+		self.data = {}
+
+	if (!backup)
+		backup = self.data;
+
+	if (obj.id)
+	{
+		let persist = [],
+				i = 0
+		try
+		{
+			persist = obj.getAttribute("persist").split(" ");
+		}catch(e){}
+		while(i < persist.length)
+		{
+			let attr = persist[i++].trim();
+			if (attr == "" || attr == "screenX" || attr == "screenY")
+				continue;
+
+			if (!backup[obj.id])
+				backup[obj.id] = {};
+			backup[obj.id][attr] = obj.getAttribute(attr);
+//WTF! without set ordinal on splitters, they break when attempting read an attribute???
+			if (attr == "ordinal")
+			{
+				d = 0;
+				while(d < obj.parentNode.childNodes.length)
+				{
+					if (obj.parentNode.childNodes[d].tagName == "splitter")
+						obj.parentNode.childNodes[d].setAttribute(attr, d);
+
+					d++;
+				}
+			}
+		}
+	}
+	let i = 0;
+	while(i < obj.childNodes.length)
+	{
+		self(obj.childNodes[i++], backup);
+	}
+}//backupPersist()
+
+coomanPlus.resetPersist = function resetPersist(obj, backup)
+{
+log.debug();
+	if (!backup)
+		backup = coomanPlus.backupPersist.data;
+
+	function resetPersist(obj)
+	{
+		let persist = [],
+				i = 0
+		try
+		{
+			persist = obj.getAttribute("persist").split(" ");
+		}catch(e){}
+		while(i < persist.length)
+		{
+			let attr = persist[i++].trim();
+			if (attr == "" || attr == "screenX" || attr == "screenY")
+				continue;
+
+			let d = backup[obj.id][attr] || obj.getAttribute("_" + attr);
+			obj.setAttribute(attr, d);
+			if (attr == "ordinal")
+			{
+				d = 0;
+				while(d < obj.parentNode.childNodes.length)
+				{
+					if (obj.parentNode.childNodes[d].tagName == "splitter")
+						obj.parentNode.childNodes[d].setAttribute(attr, d);
+
+					d++;
+				}
+			}
+		}
+	}
+	if (!obj)
+	{
+		for(let id in backup)
+		{
+			let obj = $(id);
+			if (!obj)
+				continue;
+
+			resetPersist(obj);
+		}
+		return;
+	}
+	let self = coomanPlus.resetPersist;
+	if (obj.id)
+		resetPersist(obj)
+
+	let i = 0;
+	while(i < obj.childNodes.length)
+	{
+		self(obj.childNodes[i++], backup);
+	}
+}//resetPersist()
+
+coomanPlus.checkReset = function checkReset(id)
+{
+	let reset = "";
+	try
+	{
+		reset = JSON.parse(this.prefs.getCharPref("reset"));
+	}catch(e){}
+	if (reset && reset.indexOf(id) == -1)
+		this.command("reset");
+
+}
+
+coomanPlus.backupPersist.data = {};
 coomanPlus.os = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS;
 coomanPlus.appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 coomanPlus.isMac = coomanPlus.os == "Darwin";
@@ -952,4 +1078,13 @@ if (!coomanPlus.noFuncInit)
 	}).init();
 	coomanPlus.protect.init(false);
 	window.addEventListener("load", coomanPlus.listKeys, false);
+}
+
+if (coomanPlus.exec)
+{
+	let com;
+	while(com = coomanPlus.exec.splice(0, 1)[0])
+	{
+		com();
+	}
 }

@@ -80,3 +80,11 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY options.restoreselection.warning		"* might affect startup time">
 <!ENTITY options.html5.label								"Enable Local Storage (HTML5 Cookies) support">
 <!ENTITY options.html5.warning							"(experimental might not work properly)">
+<!ENTITY options.resetall										"Reset all settings">
+<!ENTITY options.resetall.desc							"Reset all settings to default">
+<!ENTITY options.tools											"Tools">
+<!ENTITY options.backup											"Backup settings">
+<!ENTITY options.restore										"Restore settings">
+<!ENTITY backupSettingsSave									"Save Settings as">
+<!ENTITY restoreSettingsOpen								"Open Settings file">
+<!ENTITY restoreSettingsError								"Error restoring settings">

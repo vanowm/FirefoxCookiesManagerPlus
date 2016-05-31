@@ -49,6 +49,7 @@ var coomanPlus = {
 	prefs: coomanPlusCore.prefs,
 	mouseScrollTimeStamp: 0,
 	inited: false,
+	exec: [],
 	load: function load()
 	{
 		coomanPlus.init(window.arguments[0]);
@@ -191,6 +192,9 @@ var coomanPlus = {
 		this.setWrap();
 		//we used persist in previous versions, now we must reset manually :(
 		this.inited = true;
+		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+		observer.addObserver(this, "cmp-command", false);
+		this.checkReset("edit");
 	},//init()
 
 	loadMenu: function loadMenu()
@@ -222,7 +226,8 @@ log.debug();
 
 	uninit: function uninit()
 	{
-
+log.debug();
+		coomanPlus.settingsBackup();
 //		coomanPlusCore.cmpWindow = this._cmpWindow;
 
 		for(var i in this._curCookie)
@@ -250,7 +255,11 @@ log.debug();
 			if ($(i))
 				$(i).setAttribute("checked", this.backup(i, "checked"));
 		}
-
+		try
+		{
+			let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+			observer.removeObserver(this, "cmp-command", false);
+		}catch(e){};
 		try
 		{
 			coomanPlus.protect.unload();
@@ -825,4 +834,78 @@ log.debug();
 		}
 
 	},//setAction()
+
+	observe: function observe(aData, aTopic, aCommand)
+	{
+log.debug();
+		if (aTopic == "cmp-command")
+			return coomanPlus.command(aCommand, aData);
+	},//observe{}
+
+	resetWindowSettings: function resetWindowSettings()
+	{
+		this.resetPersist();
+		window.sizeToContent();
+		let reset = [];
+		try
+		{
+			reset = this.prefs.getCharPref("reset");
+			reset = JSON.parse(reset);
+		}catch(e){}
+		reset.push("edit");
+		this.prefs.setCharPref("reset", JSON.stringify(reset));
+	},//resetWindowSettings()
+
+	command: function command(com, data)
+	{
+log.debug();
+		switch(com)
+		{
+			case "reset":
+				this.resetWindowSettings();
+				break;
+			case "backup":
+				this.settingsBackup();
+				break;
+			case "restore":
+				data.QueryInterface(Components.interfaces.nsISupportsString).data;
+				this.settingsRestore(data);
+				break;
+		}
+	},//command()
+
+	settingsBackup: function settingsBackup()
+	{
+log.debug();
+		let settings = {};
+		let win = $("cookiesManagerPlusWindowEdit");
+		coomanPlus.backupPersist(win, settings);
+		coomanPlusCore.backup(settings, "edit")
+
+	},//settingsBackup()
+
+	settingsRestore: function settingsRestore(json)
+	{
+log.debug();
+		let data;
+		try
+		{
+			data = JSON.parse(json).edit;
+		}catch(e){log.error(e)}
+		if (data)
+		{
+			this.resetPersist(undefined, data);
+			if (data.cookiesManagerPlusWindowEdit)
+			{
+				window.resizeTo(data.cookiesManagerPlusWindowEdit.width, data.cookiesManagerPlusWindowEdit.height);
+			}
+			else
+				window.sizeToContent();
+		}
+	},//settingsRestore()
 };
+
+coomanPlus.exec.push(function()
+{
+	coomanPlus.backupPersist($("cookiesManagerPlusWindowEdit"));
+});

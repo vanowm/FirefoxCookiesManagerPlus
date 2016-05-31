@@ -29,21 +29,6 @@
 			<key id="esc" keycode="VK_ESCAPE" oncommand="window.close();" />
 		</keyset>
 
-		<script type="application/javascript" src="common.js"/>
-		<script type="application/javascript" src="editCookie.js"/>
-		<script type="application/javascript" src="libOut.js"/>
-		<script type="application/javascript" src="update.js"/>
-		<script type="application/javascript" src="commonFunc.js"/>
-		<script type="application/javascript" src="datepicker/user-functions.js" />
-		<script type="application/javascript">
-			coomanPlus.strings = {
-				titleAdd:			"&CookieEditDlg.titleAdd.label;",
-				overwrite:		"&overwrite;",
-				isHttpOnly0:	"&props.isHttpOnly.no;",
-				isHttpOnly1:	"&props.isHttpOnly.yes;",
-				cookies:			"&cookies;",
-			};
-		</script>
 
 	  <stringbundle id="bundlePreferences" src="chrome://browser/locale/preferences/preferences.properties"/>
 
@@ -87,7 +72,6 @@
 						<vbox id="valueMenuBox" collapsed="true" pack="center">
 							<button id="valueMenu"
 											type="panel"
-											class="menubutton"
 											sizetopopup="none"
 											tooltiptext="&value.select.info;"
 											oncommand="coomanPlus.showValueSelect(event);"
@@ -367,5 +351,20 @@
 			</hbox>
 		</vbox>
 	</vbox>
+	<script type="application/javascript" src="common.js"/>
+	<script type="application/javascript" src="editCookie.js"/>
+	<script type="application/javascript" src="libOut.js"/>
+	<script type="application/javascript" src="update.js"/>
+	<script type="application/javascript" src="commonFunc.js"/>
+	<script type="application/javascript" src="datepicker/user-functions.js" />
+	<script type="application/javascript">
+		coomanPlus.strings = {
+			titleAdd:			"&CookieEditDlg.titleAdd.label;",
+			overwrite:		"&overwrite;",
+			isHttpOnly0:	"&props.isHttpOnly.no;",
+			isHttpOnly1:	"&props.isHttpOnly.yes;",
+			cookies:			"&cookies;",
+		};
+	</script>
 </window>
 

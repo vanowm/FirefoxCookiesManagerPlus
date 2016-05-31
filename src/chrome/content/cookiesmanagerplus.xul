@@ -23,6 +23,8 @@
 				persist="width height screenX screenY"
 				width="600"
 				height="400"
+				_width="600"
+				_height="400"
 				flex="1"
 >
 	<vbox id="main" flex="1">
@@ -86,6 +88,12 @@
 											oncommand="coomanPlus.backupSelected()"
 											accessibleType="100E"
 						/>
+						<menuitem id="menu_backupvisible"
+											label="&backup.visible;"
+											accesskey="&backup.visible.accesskey;"
+											oncommand="coomanPlus.backupVisible()"
+											accessibleType="100E"
+						/>
 						<menuitem id="menu_backupall"
 											label="&backup.all;"
 											accesskey="&backup.all.accesskey;"
@@ -97,6 +105,12 @@
 											label="&restore.selected;"
 											accesskey="&restore.selected.accesskey;"
 											oncommand="coomanPlus.restoreSelected()"
+											accessibleType="100E"
+						/>
+						<menuitem id="menu_restorevisible"
+											label="&restore.visible;"
+											accesskey="&restore.visible.accesskey;"
+											oncommand="coomanPlus.restoreVisible()"
 											accessibleType="100E"
 						/>
 						<menuitem id="menu_restoreAll"
@@ -150,6 +164,12 @@
 												accesskey="&backup.selected.accesskey;"
 												accessibleType="100E"
 							/>
+							<menuitem id="menuBackupVisible"
+												oncommand="coomanPlus.backupVisible();"
+												label="&backup.visible;"
+												accesskey="&backup.visible.accesskey;"
+												accessibleType="100E"
+							/>
 							<menuitem id="menuBackupAll"
 												oncommand="coomanPlus.backupAll();"
 												label="&backup.all;"
@@ -161,6 +181,12 @@
 												label="&restore.selected;"
 												accesskey="&restore.selected.accesskey;"
 												oncommand="coomanPlus.restoreSelected()"
+												accessibleType="100E"
+							/>
+							<menuitem id="menuRestoreVisible"
+												label="&restore.visible;"
+												accesskey="&restore.visible.accesskey;"
+												oncommand="coomanPlus.restoreVisible()"
 												accessibleType="100E"
 							/>
 							<menuitem id="menuRestoreAll"
@@ -241,38 +267,38 @@
 						oncommand="coomanPlus.menuView(event)"
 			>
 				<menupopup accessibleType="100F">
-					<menuitem id="menu_info_name" type="checkbox" label="&cookie.name.label;" closemenu="none"/>
-					<menuitem id="menu_info_value" type="checkbox" label="&cookie.value.label;" closemenu="none"/>
-					<menuitem id="menu_info_host" type="checkbox" label="&cookie.domain.label;" closemenu="none"/>
-					<menuitem id="menu_info_path" type="checkbox" label="&cookie.path.label;" closemenu="none"/>
-					<menuitem id="menu_info_isSecure" type="checkbox" label="&cookie.isSecure.label;" closemenu="none"/>
-					<menuitem id="menu_info_expires" type="checkbox" label="&cookie.expire.label;" closemenu="none"/>
-					<menuitem id="menu_info_expireProgress" type="checkbox" label="&menu.expireprogress.label;" tooltiptext="&menu.expireprogress.info;" class="offset" closemenu="none"/>
-					<menuitem id="menu_info_expireProgressText" type="checkbox" label="&menu.expirecountdown.label;" class="offset" closemenu="none"/>
-					<menuitem id="menu_info_creationTime" type="checkbox" label="&cookie.creationTime.label;" closemenu="none"/>
-					<menuitem id="menu_info_lastAccessed" type="checkbox" label="&cookie.lastAccessed.label;" closemenu="none"/>
-					<menuitem id="menu_info_isHttpOnly" type="checkbox" label="&cookie.isHttpOnly.label;" closemenu="none"/>
-					<menuitem id="menu_info_policy" type="checkbox" label="&cookie.policy.label;" closemenu="none"/>
-					<menuitem id="menu_info_status" type="checkbox" label="&cookie.status.label;" closemenu="none"/>
-					<menuitem id="menu_info_isProtected" type="checkbox" label="&protect.isProtected;" closemenu="none"/>
-					<menuitem id="menu_info_size" type="checkbox" label="&cookie.size.label;" closemenu="none"/>
+					<menuitem id="menu_info_name" type="checkbox" label="&cookie.name.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_value" type="checkbox" label="&cookie.value.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_host" type="checkbox" label="&cookie.domain.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_path" type="checkbox" label="&cookie.path.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_isSecure" type="checkbox" label="&cookie.isSecure.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_expires" type="checkbox" label="&cookie.expire.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_expireProgress" type="checkbox" label="&menu.expireprogress.label;" tooltiptext="&menu.expireprogress.info;" class="offset" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_expireProgressText" type="checkbox" label="&menu.expirecountdown.label;" class="offset" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_creationTime" type="checkbox" label="&cookie.creationTime.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_lastAccessed" type="checkbox" label="&cookie.lastAccessed.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_isHttpOnly" type="checkbox" label="&cookie.isHttpOnly.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_policy" type="checkbox" label="&cookie.policy.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_status" type="checkbox" label="&cookie.status.label;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_isProtected" type="checkbox" label="&protect.isProtected;" closemenu="none" accessibleType="100E"/>
+					<menuitem id="menu_info_size" type="checkbox" label="&cookie.size.label;" closemenu="none" accessibleType="100E"/>
 					<menuseparator accessibleType="1010"/>
-					<menuitem id="menu_info_reset" label="&infoRow.reset;"/>
-					<menuseparator accessibleType="1010"/>
-					<menuitem id="menu_info_topmost" type="checkbox" label="&options.topmost.label;" tooltiptext="&options.topmost.info;"/>
+					<menuitem id="menu_info_topmost" type="checkbox" label="&options.topmost.label;" tooltiptext="&options.topmost.info;" accessibleType="100E"/>
 					<menuseparator accessibleType="1010"/>
 					<menu label="&menu.view.tree;" accesskey="&menu.view.tree.accesskey;">
 						<menupopup id="menu_treeView" onpopupshowing="coomanPlus.treeView(this)" oncommand="coomanPlus.treeViewSelect(event)" accessibleType="100F">
 							<menuseparator accessibleType="1010"/>
-							<menuitem id="menu_treeView_realHost" anonid="treeView_realHost" type="checkbox" label="&menu.realHost.label;" closemenu="none" stationary="true"/>
-							<menuitem id="menu_treeView_autofit" type="checkbox" label="&menu.autofit.label;" closemenu="none" stationary="true"/>
-							<menuitem anonid="treeViewReset" label="&restoreColumnOrder.label;"/>
+							<menuitem id="menu_treeView_realHost" anonid="treeView_realHost" type="checkbox" label="&menu.realHost.label;" closemenu="none" stationary="true" accessibleType="100E"/>
+							<menuitem id="menu_treeView_autofit" type="checkbox" label="&menu.autofit.label;" closemenu="none" stationary="true" accessibleType="100E"/>
+							<menuitem anonid="treeViewReset" label="&restoreColumnOrder.label;" accessibleType="100E"/>
 							<menuseparator accessibleType="1010"/>
 							<menu type="menu" label="&columnSort.label;" accesskey="&columnSort.accesskey;">
 								<menupopup id="menu_treeViewSort" onpopupshowing="coomanPlus.treeViewSort(this)" accessibleType="100F"/>
 							</menu>
 						</menupopup>
 					</menu>
+					<menuseparator accessibleType="1010"/>
+					<menuitem id="menu_info_reset" label="&infoRow.reset;" accessibleType="100E"/>
 				</menupopup>
 			</menu>
 			<menu label="&menu.tools;" accesskey="&menu.tools.accesskey;">
@@ -468,6 +494,7 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										ignoreincolumnpicker="true"
 										width="280"
+										_width="280"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -477,6 +504,7 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										ignoreincolumnpicker="true"
 										width="250"
+										_width="250"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -485,6 +513,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -493,6 +522,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -501,6 +531,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -510,6 +541,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -519,6 +551,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -528,6 +561,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -536,6 +570,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -545,6 +580,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -553,6 +589,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -561,6 +598,7 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
@@ -569,10 +607,10 @@ hidden="true"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
+										_hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow" />
-					<treecol id="colhid" hidden="true" ignoreincolumnpicker="true"/>
 				</treecols>
 				<treechildren id="cookiesTreeChildren"
 											context="coomanPlus_tree_menu"
@@ -625,7 +663,7 @@ hidden="true"
 													class="plain infofield"
 													flex="1"
 													rows="1"
-													persist="wrap,expand,decode"
+													persist="wrap expand decode"
 													multiline="true"
 													empty="true"
 													accessibleType="101B"/>
@@ -713,19 +751,17 @@ hidden="true"
 								</deck>
 								<stack flex="1" id="expireProgressDeck">
 									<progressmeter id="expireProgress" flex="1" tooltip="expiresProgressTooltip" persist="collapsed" hidden="true" accessibleType="1012"/>
-									<hbox align="center">
-										<textbox id="expireProgressText"
-													disabled="true"
+									<hbox align="center" style="overflow: hidden" flex="1">
+										<label id="expireProgressText"
 													class="plain infofield"
 													persist="collapsed"
-													empty="true"
-													flex="1"/>
+													empty="true"/>
 									</hbox>
 								</stack>
 							</hbox>
 						</row>
 
-						<row id="row_creationTime" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_creationTime" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.creationTime.label;" disabled="true" control="ifl_creationTime"/>
 							</hbox>
@@ -743,7 +779,7 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_lastAccessed" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_lastAccessed" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.lastAccessed.label;" disabled="true" control="ifl_lastAccessed"/>
 							</hbox>
@@ -761,7 +797,7 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_isHttpOnly" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_isHttpOnly" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.isHttpOnly.label;" disabled="true" control="ifl_isHttpOnly"/>
 							</hbox>
@@ -779,7 +815,7 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_policy" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_policy" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.policy.label;" disabled="true" control="ifl_policy"/>
 							</hbox>
@@ -797,7 +833,7 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_status" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_status" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.status.label;" disabled="true" control="ifl_status"/>
 							</hbox>
@@ -850,7 +886,7 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_size" align="center" dragable="true" collapsed="true" persist="collapsed">
+						<row id="row_size" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
 							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.size.label;" disabled="true" control="ifl_size"/>
 							</hbox>
@@ -874,7 +910,7 @@ hidden="true"
 			</groupbox>
 		</vbox>
 		<hbox align="end">
-			<hbox class="actionButtons" flex="1" style="margin-right: 0!important;">
+			<hbox class="actionButtons" flex="1">
 				<button id="newCookie" label="&menu.new.label;" oncommand="coomanPlus.openAdd()" accesskey="&button.new.accesskey;" accessibleType="1002"/>
 				<button id="editCookie" label="&menu.edit.label;" oncommand="coomanPlus.openEdit()" accesskey="&button.edit.accesskey;" accessibleType="1002"/>
 				<button id="deleteCookie" label="&menu.delete.label;" oncommand="coomanPlus.deleteCookies()" accesskey="&button.delete.accesskey;" disabled="true" accessibleType="1002"/>

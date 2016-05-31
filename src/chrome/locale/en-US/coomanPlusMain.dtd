@@ -49,15 +49,19 @@
 <!ENTITY		backup.button																						"Backup/Restore">
 <!ENTITY		backup.button.accesskey																	"B">
 <!ENTITY		backup.selected																					"Backup Selected">
-<!ENTITY		backup.selected.accesskey																"B">
+<!ENTITY		backup.selected.accesskey																"S">
+<!ENTITY		backup.visible																					"Backup Visible">
+<!ENTITY		backup.visible.accesskey																"V">
 <!ENTITY		backup.all																							"Backup All">
-<!ENTITY		backup.all.accesskey																		"A">
+<!ENTITY		backup.all.accesskey																		"B">
 <!ENTITY		backup.corrupted																				"File is corrupted">
 <!ENTITY		backup.protected																				"File is password protected">
 <!ENTITY		restore.all																							"Restore All">
 <!ENTITY		restore.all.accesskey																		"R">
 <!ENTITY		restore.selected																				"Restore Selected">
 <!ENTITY		restore.selected.accesskey															"E">
+<!ENTITY		restore.visible																					"Restore Visible">
+<!ENTITY		restore.visible.accesskey																"I">
 <!ENTITY		restore.file.open																				"Open file">
 <!ENTITY		restore.success																					"Successfully restored # cookie(s)">
 <!ENTITY		restore.none																						"No cookies restored">

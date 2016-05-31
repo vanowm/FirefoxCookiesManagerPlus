@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!-- a hack that "fixes" https://bugzilla.mozilla.org/show_bug.cgi?id=1274862 -->
+
+<bindings id="treeBindings"
+	xmlns="http://www.mozilla.org/xbl"
+	xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:xbl="http://www.mozilla.org/xbl">
+	
+	<binding id="treecol" extends="chrome://global/content/bindings/tree.xml#treecol">
+		<implementation>
+			<constructor><![CDATA[
+				let treeBox = this.parentNode.parentNode.boxObject,
+						treecolpicker = this.parentNode && this.parentNode.boxObject.lastChild && this.parentNode.boxObject.lastChild.boxObject;
+				let observer = new MutationObserver(function(mutator)
+				{
+					let extra = treecolpicker ? treecolpicker.width + 2 : 0; //where is this 2 came from?
+					if (treeBox.horizontalPosition + treeBox.width >= treeBox.rowWidth + extra)
+					{
+						let scrollPos = treeBox.rowWidth - treeBox.width + extra;
+						if (scrollPos < 0)
+								scrollPos = 0;
+
+						treeBox.scrollToHorizontalPosition(scrollPos);
+					}
+				});
+				observer.observe(this, {attributes: true, attributeFilter:["width"]});
+			]]></constructor>
+		</implementation>
+	</binding>
+</bindings>
+

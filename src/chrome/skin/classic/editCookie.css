@@ -125,12 +125,12 @@ checkbox:focus > .checkbox-label-box {
 
 #main
 {
-	min-width: 525px;
+	min-width: 562px;
 }
 
 #main:-moz-system-metric(windows-classic)
 {
-	min-width: 520px;
+	min-width: 550px;
 }
 #ifl_value
 {
@@ -165,21 +165,33 @@ checkbox:focus > .checkbox-label-box {
 }
 #valueMenu
 {
-	width: 1em;
+	width: 2px !important;
 	list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif");
-	min-width: 0;
+	min-width: 0 !important;
+	max-width: 2px !important;
 	margin-left: 0;
 	margin-bottom: 1px;
 	margin-top: 1px;
+	margin-right: 3px;
 	padding: 0;
-	display: block;
+	border-width: 0;
 }
-#valueMenu dropmarker
+#valueMenu .button-icon
+{
+	padding: 0;
+	margin: 0;
+}
+#valueMenu dropmarker,
+#valueMenu .button-text
 {
 	display: none;
 }
 
-
+.contentPane
+{
+	padding: 0;
+	margin: 5px;
+}
 
 
 

@@ -81,6 +81,7 @@ var coomanPlus = {
 
 	showedExpires: -1,
 
+	exec: [],
 	_cookiesTreeView: {
 		QueryInterface: null,
 		rowCount : 0,
@@ -115,7 +116,7 @@ var coomanPlus = {
 				 return coomanPlus._cookies[row][coomanPlus.pref("showrealhost") ? "host" : "rawHost"];
 
 				case "size":
-				 return coomanPlus._cookies[row].sizeText + " (" + coomanPlus._cookies[row].valueSizeText + ")";
+				 return coomanPlus._cookies[row].sizeText;// + " (" + coomanPlus._cookies[row].valueSizeText + ")";
 
 				case "expires":
 					return coomanPlus.getExpiresString(coomanPlus._cookies[row]["expires"]);
@@ -282,6 +283,7 @@ log.debug("start");
 
 		this.inited = true;
 
+
 		this.isXP = window.navigator.oscpu.indexOf("Windows NT 5") != -1;
 
 		$("cookiesTreeChildren").setAttribute("xp", this.isXP);
@@ -335,9 +337,10 @@ log.debug("start");
 		$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 		this.title = document.title + " v" + coomanPlusCore.addon.version
 
-		Cc["@mozilla.org/observer-service;1"]
-			.getService(Ci.nsIObserverService)
-			.addObserver(this, "cookie-changed", false);
+		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+
+		observer.addObserver(this, "cookie-changed", false);
+		observer.addObserver(this, "cmp-command", false);
 
 //		this.setFilter();
 //		this.setSort();
@@ -376,6 +379,7 @@ log.debug("start");
 			window.sizeToContent();
 */
 		this.setAutofit();
+		this.checkReset("main");
 log.debug("end",1);
 	},//start()
 
@@ -399,12 +403,16 @@ log.debug();
 	unload: function unload()
 	{
 log.debug();
+		coomanPlus.settingsBackup();
 		coomanPlusCore.cmpWindow = null;
+		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
 		try
 		{
-			Cc["@mozilla.org/observer-service;1"]
-				.getService(Ci.nsIObserverService)
-				.removeObserver(this, "cookie-changed", false);
+			observer.removeObserver(this, "cookie-changed", false);
+		}catch(e){log.error(e)}
+		try
+		{
+			observer.removeObserver(this, "cmp-command", false);
 		}catch(e){log.error(e)}
 		try
 		{
@@ -456,7 +464,7 @@ log.debug();
 		}
 		catch(e){}
 		coomanPlus.inited = false;
-	},
+	},//unload()
 
 	onPrefChangeDo: function onPrefChangeDo()
 	{
@@ -676,7 +684,8 @@ log.debug();
 			{id: "isHttpOnly", value: [fixed.isHttpOnly[1] ? fixed.isHttpOnly[0] : this.string("yesno"+(fixed.isHttpOnly[0]?1:0)), fixed.isHttpOnly[1]]},
 			{id: "isProtected", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
 			{id: "isProtected2", value: [fixed.isProtected[1] ? fixed.isProtected[0] : this.string("yesno"+(fixed.isProtected[0]?1:0)), fixed.isProtected[1], fixed.isProtected[2]]},
-			{id: "size", value: [fixed.size[1] ? fixed.size[0] : fixed.sizeText[2] + " (" + (fixed.valueSizeText[1] ? fixed.valueSizeText[2][2] : fixed.valueSizeText[2]) + ")", fixed.size[1]]},
+//			{id: "size", value: [fixed.size[1] ? fixed.size[0] : fixed.sizeText[2] + " (" + (fixed.valueSizeText[1] ? fixed.valueSizeText[2][2] : fixed.valueSizeText[2]) + ")", fixed.size[1]]},
+			{id: "size", value: [fixed.size[1] ? fixed.size[0] : fixed.sizeText[2], fixed.size[1]]},
 
 		];
 		this.showedExpires = aCookie.expires == -1 ? -1 : fixed.expires[0] * 1000;
@@ -1018,6 +1027,9 @@ log.debug();
 	observe: function observe(aCookie, aTopic, aData)
 	{
 log.debug();
+		if (aTopic == "cmp-command")
+			return coomanPlus.command(aData, aCookie);
+
 		if (this._noObserve || !this.pref("autoupdate") || aTopic != "cookie-changed")
 			return;
 
@@ -2152,6 +2164,7 @@ log.debug();
 		row.setAttribute("highlight", true);
 		coomanPlus.dragCancel = false;
 		coomanPlus.dragPause = false;
+		coomanPlus.dragoverObj = null;
 		e.dataTransfer.addElement(row);
 		e.dataTransfer.effectAllowed = "move";
 		e.dataTransfer.mozSetDataAt("application/x-moz-node", row, 0);
@@ -2173,9 +2186,9 @@ log.debug();
 
 		let obj = e.dataTransfer.mozGetDataAt("application/x-moz-node", 0),
 				box = $("cookieInfoBox").boxObject;
+			let o = coomanPlus.dragGetRow(e);
 		if (obj.boxObject.x <= e.clientX && (obj.boxObject.x + obj.boxObject.width) >= e.clientX && e.clientY >= box.y && e.clientY <= (box.y + box.height))
 		{
-			let o = coomanPlus.dragGetRow(e);
 			if (o != coomanPlus.dragoverObj)
 			{
 				coomanPlus.dragoverObj = o;
@@ -2193,6 +2206,7 @@ log.debug();
 		else
 		{
 			coomanPlus.dragPause = true;
+			coomanPlus.dragoverObj = null;
 			coomanPlus.dragoverShow();
 			e.dataTransfer.effectAllowed = "none";
 		}
@@ -2242,6 +2256,7 @@ log.debug();
 			return;
 
 		coomanPlus.dragPause = true;
+		coomanPlus.dragoverObj = null;
 		coomanPlus.dragoverShow();
 		e.dataTransfer.effectAllowed = "none";
 	},
@@ -2655,6 +2670,9 @@ log.debug();
 
 	setAutofit: function setAutofit(reset)
 	{
+		if (reset)
+			coomanPlus.prefs.clearUserPref("autofit");
+
 		let fit = coomanPlus.pref("autofit"),
 				cols = $("treecols").childNodes,
 				i = 0,
@@ -2669,7 +2687,8 @@ log.debug();
 			{
 				case "splitter":
 					if (fit)
-						col.removeAttribute("resizeafter");
+//						col.removeAttribute("resizeafter");
+						col.setAttribute("resizeafter", "farthest");
 					else
 						col.setAttribute("resizeafter", "grow");
 
@@ -2735,7 +2754,22 @@ log.debug();
 					if (element.getAttribute("hidden") == "true")
 						element.setAttribute("hidden", "false");
 					else
+					{
 						element.setAttribute("hidden", "true");
+
+//work around for a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1274862
+						let treeBox = coomanPlus._cookiesTree.boxObject,
+								extra = $("treecols").boxObject.lastChild.boxObject.width + 2; //where is this 2 came from?
+
+						if (treeBox.horizontalPosition + treeBox.width >= treeBox.rowWidth + extra)
+						{
+							let scrollPos = treeBox.rowWidth - treeBox.width + extra;
+							if (scrollPos < 0)
+									scrollPos = 0;
+
+							treeBox.scrollToHorizontalPosition(scrollPos);
+						}
+					}
 				}
 			}
 		}
@@ -2756,7 +2790,7 @@ log.debug();
 			// it is not being shown.
 			let currElement = currCol.element;
 //			if (currElement.id != "colhid" && currElement.id != "sel" && !currElement.hidden && !currElement.collapsed)
-			if (currElement.id != "colhid" && currElement.id != "sel" && !currElement.collapsed)
+			if (currElement.id != "sel" && !currElement.collapsed)
 			{
 				let popupChild = document.createElement("menuitem");
 				popupChild.setAttribute("type", "radio");
@@ -2796,6 +2830,7 @@ log.debug();
 
 	menuView: function menuView(e)
 	{
+		
 		if (e.target.id == "menu_info_reset")
 		{
 			this.cookieInfoRowsReset();
@@ -2868,6 +2903,10 @@ log.debug();
 		if (typeof(args) == "object")
 			args = args.wrappedJSObject;
 
+		if (args.reset)
+		{
+			coomanPlus.command("reset");
+		}
 		if (args.window)
 			this.window = args.window;
 
@@ -2917,8 +2956,10 @@ log.debug();
 		if (dragSession.isDataFlavorSupported("application/x-moz-file"))
 		{
 			dragSession.canDrop = true;
-			dragSession.dragAction = e.ctrlKey ? dragService.DRAGDROP_ACTION_LINK : dragService.DRAGDROP_ACTION_COPY;
+			dragSession.dragAction = e.ctrlKey ? dragService.DRAGDROP_ACTION_LINK : e.shiftKey ? dragService.DRAGDROP_ACTION_MOVE : dragService.DRAGDROP_ACTION_COPY;
 		}
+		coomanPlus.filesDragOver.ctrlKey = e.ctrlKey;
+		coomanPlus.filesDragOver.shiftKey = e.shiftKey;
 	},
 
 	filesDragDrop: function filesDragDrop(e)
@@ -2950,34 +2991,10 @@ log.debug();
 					files.push(file);
 			}
 		}
-		let list = [];
-		for(let i = 0; i < files.length; i++)
-		{
-			let file = files[i];
-			self.restoreAll(e.ctrlKey, {
-				file: file,
-				displayDirectory: file.parent.path
-			}, function callback(r)
-			{
-				if (r.length)
-					list = list.concat(r);
+		let list = [],
+				pass = [];
 
-				if (i >= files.length - 1)
-				{
-					if (!list.length)
-					{
-						self.alert(coomanPlus.string("restore_none"));
-						return;
-					}
-					self._selected = list;
-					self._noObserve = true;
-					self.loadCookies();
-					self.selectLastCookie(true);
-					self._noObserve = false;
-					coomanPlus.alert(coomanPlus.string("restore_success").replace("#", list.length));
-				}
-			});
-		}
+		self.restoreAll(coomanPlus.filesDragOver.ctrlKey ? self._selected : coomanPlus.filesDragOver.shiftKey ? self._cookies : false, files);
 	},//filesDragDrop()
 
 	treeDragStart: function	treeDragStart(e)
@@ -2993,8 +3010,81 @@ log.debug();
 		if (coomanPlus.getOpenURL)
 		coomanPlus.getOpenURL(SUPPORTSITE, true);
 	},
+	
+	resetWindowSettings: function resetWindowSettings()
+	{
+		this.resetPersist();
+		this.cookieInfoRowsReset();
+		this.prefs.clearUserPref("showrealhost");
+		this.prefs.clearUserPref("topmost");
+		this.setAutofit(true);
+		$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
+		this.loadCookies();
+		this.selectLastCookie(true);
+		window.sizeToContent();
+		let reset = [];
+		try
+		{
+			reset = this.prefs.getCharPref("reset");
+			reset = JSON.parse(reset);
+		}catch(e){}
+		reset.push("main");
+		this.prefs.setCharPref("reset", JSON.stringify(reset));
+	},//resetWindowSettings()
 
+	command: function command(com, data)
+	{
+log.debug();
+		switch(com)
+		{
+			case "reset":
+				this.resetWindowSettings();
+				break;
+			case "backup":
+				this.settingsBackup();
+				break;
+			case "restore":
+				data.QueryInterface(Components.interfaces.nsISupportsString).data;
+				this.settingsRestore(data);
+				break;
+		}
+	},//command()
+
+	settingsBackup: function settingsBackup()
+	{
+log.debug();
+		let settings = {};
+		let win = $("cookiesmanagerplusWindow");
+		coomanPlus.backupPersist(win, settings);
+		coomanPlusCore.backup(settings, "main")
+	},//settingsBackup()
+
+	settingsRestore: function settingsRestore(json)
+	{
+log.debug();
+		let data;
+		try
+		{
+			data = JSON.parse(json).main;
+		}catch(e){log.error(e)}
+		if (data)
+		{
+//ordinal for columns and rows doesn't work, expired splitter doesn't work after http moved
+			this.resetPersist(undefined, data);
+			this.infoRowsSort();
+			this.infoRowsShow();
+			$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
+			this.loadCookies();
+			this.selectLastCookie(true);
+			window.sizeToContent();
+		}
+	}
 };
+
+coomanPlus.exec.push(function()
+{
+	coomanPlus.backupPersist($("cookiesmanagerplusWindow"));
+});
 
 let wm = Cc['@mozilla.org/appshell/window-mediator;1'].getService(Ci.nsIWindowMediator),
 		browsers = wm.getZOrderDOMWindowEnumerator('', false);

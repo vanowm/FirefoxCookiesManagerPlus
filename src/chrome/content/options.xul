@@ -55,6 +55,9 @@
 			changesLog_key:										"&cookiesmanagerplus.changesLog_key;",
 			menu_options:											"&cookiesmanagerplus.menu_options;",
 			menu_options_key:									"&cookiesmanagerplus.menu_options_key;",
+			backupSettingsSave:								"&backupSettingsSave;",
+			restoreSettingsOpen:							"&restoreSettingsOpen;",
+			restoreSettingsError:							"&restoreSettingsError;",
 		};
 	</script>
 	<keyset>
@@ -593,6 +596,22 @@
 									</splitter>
 								</vbox>
 							</groupbox>
+							<hbox id="toolsBox" flex="1" pack="start" align="center">
+								<vbox>
+									<button	id="tools"
+													type="menu"
+													label="&options.tools;"
+													oncommand="coomanPlus.command(event.target.value);"
+									>
+										<menupopup>
+											<menuitem value="backup" label="&options.backup;"/>
+											<menuitem value="restore" label="&options.restore;"/>
+											<menuseparator/>
+											<menuitem value="reset" label="&options.resetall;" tooltiptext="&options.resetall.desc;"/>
+										</menupopup>
+									</button>
+								</vbox>
+							</hbox>
 						</vbox>
 					</tabpanel>
 					<tabpanel id="panelExport" orient="vertical" flex="1">

@@ -39,7 +39,9 @@ var coomanPlus = {
 	instantApply: false,
 	inited: false,
 	pref: coomanPlusCore.pref,
+	prefs: coomanPlusCore.prefs,
 	html5: coomanPlusCore.html5,
+	exec: [],
 	load: function load()
 	{
 		coomanPlusCore.async(function()
@@ -147,6 +149,9 @@ var coomanPlus = {
 			return "" + aValue;
 		}
 		numBox.value = this.pref("restoreselection");
+		let tools = $("toolsBox");
+		document.documentElement._buttons.accept.parentNode.insertBefore(tools, document.documentElement._buttons.accept.parentNode.firstChild);
+		this.checkReset("options");
 		this.inited = true;
 	},//init()
 
@@ -371,6 +376,125 @@ log.debug();
 		$("ifl_restoreselection")._fireChange();
 	},//mouseScroll()
 	
+	resetAll: function resetAll()
+	{
+		let list = this.prefs.getChildList(""),
+				i = -1,
+				e = ["version"];
+		while(++i < list.length)
+		{
+			if (e.indexOf(list[i]) != -1)
+				continue;
+			try
+			{
+				this.prefs.clearUserPref(list[i]);
+			}
+			catch(e){log.error(e)};
+		}
+		this.resetPersist();
+		window.sizeToContent();
+		this.prefs.setCharPref("reset", JSON.stringify(["options"]));
+		Cc["@mozilla.org/observer-service;1"]
+			.getService(Ci.nsIObserverService)
+			.notifyObservers(list, "cmp-command", "reset");
+	},
+
+	command: function command(com, data)
+	{
+log.debug();
+		switch(com)
+		{
+			case "reset":
+				this.resetAll();
+				break;
+			case "backup":
+					Cc["@mozilla.org/observer-service;1"]
+						.getService(Ci.nsIObserverService)
+						.notifyObservers(null, "cmp-command", "backup");
+					let prefs = "";
+					coomanPlusCore.async(function()
+					{
+						try
+						{
+							prefs = JSON.stringify(coomanPlus.getSettings());
+						}catch(e){};
+					}, 500);
+					let fp = this.saveFileSelect("", "cmpj", "", this.string("backupSettingsSave"), {title: coomanPlusCore.addon.name, filter: "*.cmpj"});
+					if (!fp)
+						break;
+
+					this.saveFile(fp, prefs)
+				break;
+			case "restore":
+					this.settingsRestore();
+				break;
+		}
+	},//command()
+
+	getSettings: function getSettings()
+	{
+		let list = this.pref.prefs,
+				e = ["version", "reset"],
+				prefs = {};
+		for(let i in list)
+		{
+			if (e.indexOf(i) != -1)
+				continue;
+
+			prefs[i] = this.pref(i, undefined, true);
+		}
+		return prefs
+	},//getSettings()
+
+	settingsRestore: function settingsRestore()
+	{
+		let nsIFilePicker = Ci.nsIFilePicker;
+		fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+		fp.init(window, this.string("restoreSettingsOpen"), nsIFilePicker.modeOpen);
+		fp.appendFilter(coomanPlusCore.addon.name, "*.cmpj");
+		let rv = fp.show();
+		if (rv != nsIFilePicker.returnOK)
+			return false;
+		let istream = Cc["@mozilla.org/network/file-input-stream;1"].
+									createInstance(Ci.nsIFileInputStream);
+		istream.init(fp.file, -1, -1, false);
+
+		let bstream = Cc["@mozilla.org/binaryinputstream;1"].
+									createInstance(Ci.nsIBinaryInputStream);
+		bstream.setInputStream(istream);
+
+		let fileData = bstream.readBytes(bstream.available());
+		bstream.close();
+		istream.close();
+		let data;
+		try
+		{
+			data = JSON.parse(fileData);
+		}catch(e){log.error(e)}
+		if (!data)
+		{
+			this.alert(this.string("restoreSettingsError"));
+			return false;
+		}
+
+		for(let i in data)
+		{
+			if (i == "persist")
+			{
+				let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
+						observerSubject = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+				observerSubject.data = data[i];
+				observerService.notifyObservers(observerSubject, "cmp-command", "restore");
+			}
+			else
+			{
+				try
+				{
+					this.pref(i, data[i]);
+				}catch(e){};
+			}
+		}
+	},//settingsRestore()
 }
 function srGetStrBundle()
 {
@@ -409,3 +533,8 @@ if (coomanPlus.standalone)
 log.debug();
 	window.close();
 }
+
+coomanPlus.exec.push(function()
+{
+	coomanPlus.backupPersist($("coomanPlusWindowOptions"));
+});

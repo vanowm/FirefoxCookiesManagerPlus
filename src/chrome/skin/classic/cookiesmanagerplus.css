@@ -8,7 +8,7 @@ tree
 	min-height: 7em;
 	margin-bottom: 5px;
 }
-treecol:not([type="checkbox"]):not([id="colhid"])
+treecol:not([type="checkbox"])
 {
 	min-width: 3em;
 }
@@ -20,16 +20,16 @@ treecol#content
 }
 
 #loadingCount,
-#expireProgressText[disabled="true"][progress="true"]
+#expireProgressText[progress="true"]
 {
 	text-shadow: 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog
 }
 #loadingCount,
-#expireProgressText[disabled="true"][progress="true"]:-moz-system-metric(windows-classic)
+#expireProgressText[progress="true"]:-moz-system-metric(windows-classic)
 {
 	text-shadow: 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.5em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog, 0 0 0.2em -moz-Dialog
 }
-#expireProgressText[disabled="true"]
+#expireProgressText
 {
 	color: -moz-FieldText;
 	font-style: italic;
@@ -41,7 +41,7 @@ treecol#content
 	text-align: center;
 }
 #ifl_expires[expired="true"]:not([multi="true"]):not([empty="true"]),
-#expireProgressText[disabled="true"][expired="true"]
+#expireProgressText[expired="true"]
 {
 	color: red;
 }
@@ -567,4 +567,21 @@ menuitem[indeterminate] *
 	width: 0px;
 	min-width: 0px;
 	max-width: 0px;
+}
+
+treecol
+{
+/* work around for a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1274862 */
+	-moz-binding: url("chrome://cookiesmanagerplus/content/tree.xml#treecol") !important;
+}
+
+#lookupstart .button-box
+{
+	padding-top: 0;
+	padding-bottom: 0;
+}
+.actionButtons
+{
+	margin-right: 0 !important;
+	margin: 5px 0 5px 2px;
 }

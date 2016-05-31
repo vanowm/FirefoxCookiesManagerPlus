@@ -25,4 +25,5 @@ pref("extensions.cookiesmanagerplus.restoreselection", 1);
 //hidden options:
 pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
 pref("extensions.cookiesmanagerplus.debug", 1);
+pref("extensions.cookiesmanagerplus.persist", ""); //persist data from windows
 pref("extensions.cookiesmanagerplus.version", "");

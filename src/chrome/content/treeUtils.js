@@ -41,7 +41,7 @@ coomanPlus.sortTreeData = function sortTreeData(tree, table, columnName)
 {
 log.debug("sort begin");
 	let order = tree.getAttribute("sortDirection") == "ascending",
-			column = tree.getAttribute("sortResource");
+			column = tree.getAttribute("sortResource") || "rawHost";
 
 	column = this.fixColumnName(column);
 
