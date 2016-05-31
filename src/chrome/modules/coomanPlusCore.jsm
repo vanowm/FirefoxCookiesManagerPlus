@@ -70,6 +70,7 @@ var	self = this,
 	{
 		args = typeof(args) == "undefined" ? {} : args
 
+log(args, 1);
 		args.wrappedJSObject = args;
 
 	//	this._openDialog("options.xul", "", "chrome,resizable=yes,centerscreen,dialog=no," + (this.isMac ? "dialog=no" : "modal"), {standalone: standalone ? true : false});

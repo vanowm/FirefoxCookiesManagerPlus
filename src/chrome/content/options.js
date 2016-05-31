@@ -52,6 +52,7 @@ var coomanPlus = {
 
 	init: function init()
 	{
+log.debug();
 		let self = this;
 		this._cb = $("cookieBundle");
 		this.strings.secureYes = this.string("forSecureOnly");
@@ -419,7 +420,7 @@ log.debug();
 							prefs = JSON.stringify(coomanPlus.getSettings());
 						}catch(e){};
 					}, 500);
-					let fp = this.saveFileSelect("", "cmpj", "", this.string("backupSettingsSave"), {title: coomanPlusCore.addon.name, filter: "*.cmpj"});
+					let fp = this.saveFileSelect(this.getFilename(null, "cmp-settings-#.cmpj"), "cmpj", "", this.string("backupSettingsSave"), {title: coomanPlusCore.addon.name, filter: "*.cmpj"});
 					if (!fp)
 						break;
 
@@ -452,6 +453,7 @@ log.debug();
 		fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 		fp.init(window, this.string("restoreSettingsOpen"), nsIFilePicker.modeOpen);
 		fp.appendFilter(coomanPlusCore.addon.name, "*.cmpj");
+		fp.defaultExtension = "cmpj";
 		let rv = fp.show();
 		if (rv != nsIFilePicker.returnOK)
 			return false;
@@ -506,35 +508,35 @@ if (coomanPlusCore.cmpWindowOptions)
 	coomanPlusCore.cmpWindowOptions.focus();
 	window.close()
 }
-coomanPlusCore.cmpWindowOptions = window;
 var args = "arguments" in window && window.arguments.length ? window.arguments[0] : {};
 if (typeof(args) == "object" && args.wrappedJSObject)
 	args = args.wrappedJSObject;
 
-if (args.standalone)
+if ("standalone" in args)
 {
-//	coomanPlus.cmpWindowBackup = coomanPlusCore.cmpWindow;
-//	coomanPlusCore.cmpWindow = window;
-	coomanPlus.standalone = false;
+	coomanPlus.standalone = args.standalone;
 }
 log.debug("standalone " + coomanPlus.standalone);
-var xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-						.getInterface(Components.interfaces.nsIWebNavigation)
-						.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-						.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-						.getInterface(Components.interfaces.nsIXULWindow);
-xulWin.zLevel = xulWin.highestZ;
 if (coomanPlus.standalone)
 {
 	coomanPlusCore.async(function()
 	{
-		coomanPlusCore.openOptions({standalone: true});
+		coomanPlusCore.cmpWindowOptions = null;
+		coomanPlusCore.openOptions({standalone: false});
 	});
-log.debug();
 	window.close();
 }
-
-coomanPlus.exec.push(function()
+else
 {
-	coomanPlus.backupPersist($("coomanPlusWindowOptions"));
-});
+	coomanPlusCore.cmpWindowOptions = window;
+	var xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+							.getInterface(Components.interfaces.nsIWebNavigation)
+							.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+							.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+							.getInterface(Components.interfaces.nsIXULWindow);
+	xulWin.zLevel = xulWin.highestZ;
+	coomanPlus.exec.push(function()
+	{
+		coomanPlus.backupPersist($("coomanPlusWindowOptions"));
+	});
+}

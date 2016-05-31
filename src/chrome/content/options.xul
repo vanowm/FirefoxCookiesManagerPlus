@@ -20,46 +20,6 @@
 				xmlns:html="http://www.w3.org/1999/xhtml"
 				flex="1"
 >
-
-	<script type="application/javascript" src="common.js"/>
-	<script type="application/javascript" src="options.js"/>
-	<script type="application/javascript" src="libOut.js"/>
-	<script type="application/javascript" src="update.js"/>
-	<script type="application/javascript" src="commonFunc.js"/>
-	<script type="application/javascript" src="export.js"/>
-	<script type="application/javascript" src="date.js"/>
-	<script type="application/javascript" src="base64.js"/>
-	<stringbundle id="cookieBundle" src="chrome://browser/locale/preferences/preferences.properties"/>
-	<stringbundle id="pippkiBundle" src="chrome://pippki/locale/pippki.properties"/>
-	<script>
-		coomanPlus.strings = {
-			restore_file_open:								"&restore.file.open;",
-			password_incorrect:								"&password.incorrect;",
-			backup_corrupted:									"&backup.corrupted;",
-			backup_notencrypted:							"&backup.notencrypted;",
-			backup_decrypt_failed:						"&backup.decrypt.failed;",
-			backup_decrypt_success:						"&backup.decrypt.success;",
-			restore_file_open_error:					"&restore.file.open.error;",
-			backup_already_encrypted:					"&backup.already.encrypted;",
-			password_notset:									"&backup.password.notset;",
-			password_set:											"&backup.password.set;",
-			backup_protected:									"&backup.protected;",
-			export_openfolder:								"&export.openfolder;",
-			none:															"&options.none;",
-			all:															"&options.all;",
-			changesLog1:											"&options.showChangesLogNotif1;",
-			changesLog2:											"&options.showChangesLogNotif2;",
-			changesLog4:											"&options.showChangesLogFull;",
-			updated: 													"&cookiesmanagerplus.updated;",
-			changesLog:												"&cookiesmanagerplus.changesLog;",
-			changesLog_key:										"&cookiesmanagerplus.changesLog_key;",
-			menu_options:											"&cookiesmanagerplus.menu_options;",
-			menu_options_key:									"&cookiesmanagerplus.menu_options_key;",
-			backupSettingsSave:								"&backupSettingsSave;",
-			restoreSettingsOpen:							"&restoreSettingsOpen;",
-			restoreSettingsError:							"&restoreSettingsError;",
-		};
-	</script>
 	<keyset>
 		<key key="L" modifiers="alt" oncommand="document.getElementById('dateList').focus();"/>
 	</keyset>
@@ -687,4 +647,43 @@
 			</tabbox>
 		</vbox>
 	</prefpane>
+	<script type="application/javascript" src="common.js"/>
+	<script type="application/javascript" src="options.js"/>
+	<script type="application/javascript" src="libOut.js"/>
+	<script type="application/javascript" src="update.js"/>
+	<script type="application/javascript" src="commonFunc.js"/>
+	<script type="application/javascript" src="export.js"/>
+	<script type="application/javascript" src="date.js"/>
+	<script type="application/javascript" src="base64.js"/>
+	<stringbundle id="cookieBundle" src="chrome://browser/locale/preferences/preferences.properties"/>
+	<stringbundle id="pippkiBundle" src="chrome://pippki/locale/pippki.properties"/>
+	<script>
+		coomanPlus.strings = {
+			restore_file_open:								"&restore.file.open;",
+			password_incorrect:								"&password.incorrect;",
+			backup_corrupted:									"&backup.corrupted;",
+			backup_notencrypted:							"&backup.notencrypted;",
+			backup_decrypt_failed:						"&backup.decrypt.failed;",
+			backup_decrypt_success:						"&backup.decrypt.success;",
+			restore_file_open_error:					"&restore.file.open.error;",
+			backup_already_encrypted:					"&backup.already.encrypted;",
+			password_notset:									"&backup.password.notset;",
+			password_set:											"&backup.password.set;",
+			backup_protected:									"&backup.protected;",
+			export_openfolder:								"&export.openfolder;",
+			none:															"&options.none;",
+			all:															"&options.all;",
+			changesLog1:											"&options.showChangesLogNotif1;",
+			changesLog2:											"&options.showChangesLogNotif2;",
+			changesLog4:											"&options.showChangesLogFull;",
+			updated: 													"&cookiesmanagerplus.updated;",
+			changesLog:												"&cookiesmanagerplus.changesLog;",
+			changesLog_key:										"&cookiesmanagerplus.changesLog_key;",
+			menu_options:											"&cookiesmanagerplus.menu_options;",
+			menu_options_key:									"&cookiesmanagerplus.menu_options_key;",
+			backupSettingsSave:								"&backupSettingsSave;",
+			restoreSettingsOpen:							"&restoreSettingsOpen;",
+			restoreSettingsError:							"&restoreSettingsError;",
+		};
+	</script>
 </prefwindow>

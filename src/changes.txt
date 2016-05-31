@@ -9,6 +9,9 @@ Legend:
 
 Changes log:
 
+v1.9.1 (2016-05-31)
+	! options window closes immediately (issue #75)
+
 v1.9 (2016-05-31)
 	+ ability backup/restore/reset all settings and window customizations (from options window)
 	+ cookie size information
