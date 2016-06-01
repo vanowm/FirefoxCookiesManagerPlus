@@ -11,6 +11,7 @@ Changes log:
 
 v1.9.1 (2016-05-31)
 	! options window closes immediately (issue #75)
+	! edit multiple cookies would allow change name, domain and path (issue #76)
 
 v1.9 (2016-05-31)
 	+ ability backup/restore/reset all settings and window customizations (from options window)

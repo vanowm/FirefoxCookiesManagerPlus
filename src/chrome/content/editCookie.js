@@ -111,9 +111,6 @@ var coomanPlus = {
 			this.title = document.title;
 
 		document.title = this.title;
-		$("c_name").disabled = this._multi;
-		$("c_host").disabled = this._multi;
-		$("c_path").disabled = this._multi;
 		$("multiSelect").collapsed = !this._multi;
 		$("valueMenuBox").collapsed = !this._multi;
 		if (this._multi)
@@ -152,6 +149,9 @@ var coomanPlus = {
 			addEventListener($("c_" + i), "CheckboxStateChange", this.enableDisable, false);
 			this.enableDisableChildren($("c_" + i));
 		}
+		$("c_name").disabled = this._multi;
+		$("c_host").disabled = this._multi;
+		$("c_path").disabled = this._multi;
 /*
 		addEventListener($("ifl_expires_date"), "change", this.fixDate, true);
 		addEventListener($("ifl_expires_time"), "change", this.fixTime, true);
