@@ -1,5 +1,5 @@
-This Firefox extension was originally based on outdated (and probably abandoned) [Add N Edit Cookies](https://addons.mozilla.org/firefox/addon/573) v0.2.1.3 by goodwill. **New in this branch compare to original Add N Edit Cookies:**
-This version has the following features compared to the original:
+This Firefox extension was originally based on abandoned [Add N Edit Cookies](https://addons.mozilla.org/firefox/addon/573) v0.2.1.3 by goodwill.
+**This version has the following new features compared to the original:
 *   total replacement for built-in cookie viewer (optional)
 *   ability change domain, path and name of a cookie
 *   ability edit multiple cookies at once
