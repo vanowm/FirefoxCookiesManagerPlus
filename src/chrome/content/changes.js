@@ -190,7 +190,21 @@ var changesLog = {
 	showLegend: function()
 	{
 		let val = this.checkboxGet("changesLogLegend");
-		$("changesLog").setAttribute("legend", val)
+		$("changesLog").setAttribute("legend", val && !$("changesLogLegend").disabled ? val : 0)
+	},
+
+	legendType: function(e)
+	{
+		this.checkboxSet(e.target.id);
+		this.showLegendType();
+	},
+
+	showLegendType: function()
+	{
+		let val = this.checkboxGet("changesLogLegendType") ? 0 : 1;
+		$("changesLog").setAttribute("type", val)
+		$("changesLogLegend").disabled = val ? true : false;
+		this.showLegend();
 	},
 
 	wrap: function(e)
@@ -456,30 +470,29 @@ var changesLog = {
 			else
 			{
 				let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService),
-						isClipboard = {value: 0},
 						button = promptService.confirmEx(window,
 											_("addExtensionsTitle"),
 											_("addExtensions"),
-											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_0_DEFAULT,
-											_("infoLevel0"),
-											_("infoLevel2"),
-											_("infoLevel1"),
-											_("infoClipboard"),
-											isClipboard);
+//											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_IS_STRING + promptService.BUTTON_POS_0_DEFAULT,
+											promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_YES + promptService.BUTTON_POS_2 * promptService.BUTTON_TITLE_NO + promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_CANCEL + promptService.BUTTON_POS_0_DEFAULT,
+											null,
+											null,
+											null,
+											null,
+											{});
 				function callback(list)
 				{
 					let href = changesLog.fixUrl("mailto:{NAME} support<{EMAIL}>"),
-							subject = changesLog.fixUrl("subject={NAME}&body=%0A%0A__________%0A"),
+							subject = changesLog.fixUrl("subject={NAME}"),
 							body = {
 								Addon: changesLog.fixUrl("{NAMERAW} v{VERRAW}"),
 								Program: changesLog.fixUrl("{APPRAW} ({LOCALERAW})"),
 								OS: changesLog.fixUrl("{OSRAW}"),
 								Preferences: changesLog.getPrefs(true)
 							},
-							bodyEncoded = changesLog.clone(body),
 							extra = {};
 
-					if (list.length && (button == 1 || isClipboard.value))
+					if (list.length && !button)
 					{
 						for(let i in list)
 						{
@@ -494,20 +507,14 @@ var changesLog = {
 							}
 						}
 					}
-
-					if (button == 1)
+					href += "?" + subject;
+					if (!button)
 					{
 						for(let i in extra)
-							bodyEncoded[i] = extra[i];
-					}
-					if (button)
-						href += "?" + subject + encodeURIComponent(JSON.stringify(bodyEncoded));
+							body[i] = extra[i];
 
-					for(let i in extra)
-						body[i] = extra[i];
-
-					if (isClipboard.value)
 						changesLog.copy(JSON.stringify(body, null, "\t"));
+					}
 
 					if (Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator)
 							.compare(coomanPlusCore.appInfo.version, "8.0") < 0)
@@ -536,9 +543,9 @@ var changesLog = {
 						}
 					}
 				}//else
-				if (button != 1 && !isClipboard.value)
+				if (button == 2)
 					callback([]);
-				else
+				else if (!button)
 					AddonManager.getAllAddons(callback);
 
 			}//promptExtList()
@@ -565,11 +572,13 @@ var changesLog = {
 				prevhboxTitle = null,
 				isLegend = true,
 				legendBox = null,
-				stats = {};
+				stats = {},
+				typeString = {"-": "removed", "+": "added", "*": "changed", "!": "fixed"};
 		function showStats(stats)
 		{
 			let first = true,
-					hboxStats = document.createElement("hbox");
+					hboxStats = document.createElement("hbox"),
+					legendType = $("changesLog").getAttribute("type") == "2";
 
 			hboxStats.className = "stats";
 			let list = [];
@@ -582,12 +591,27 @@ var changesLog = {
 				let i = list[c];
 				let hbox = document.createElement("hbox"),
 						type = document.createElement("description"),
-						value = document.createElement("description");
+						value = document.createElement("description"),
+						coma = document.createElement("description"),
+						type2 = document.createElement("description"),
+						value2 = document.createElement("description");
 				type.className = i;
+				type2.className = i;
+				value.className = i;
+				value2.className = i;
+				type.setAttribute("type", 0);
+				type2.setAttribute("type", 1);
+				value2.setAttribute("type", 1);
 				type.appendChild(document.createTextNode(stats[i][0]));
-				value.appendChild(document.createTextNode(stats[i][1] + (c < list.length - 1 ? ", " : "")))
+				type2.appendChild(document.createTextNode(_(typeString[stats[i][0]])));
+				value2.appendChild(document.createTextNode(":"));
+				value.appendChild(value2);
+				value.appendChild(document.createTextNode(stats[i][1]));
+				coma.appendChild(document.createTextNode(c < list.length - 1 ? ", " : ""));
 				hbox.appendChild(type);
+				hbox.appendChild(type2);
 				hbox.appendChild(value);
+				hbox.appendChild(coma);
 				hbox.setAttribute("line", "");
 				hbox.className = i;
 				hboxStats.appendChild(hbox);
@@ -601,6 +625,7 @@ var changesLog = {
 			let t = /^(\s*)([+\-*!])/.exec(array[i]),
 					tab = document.createElement("description"),
 					type = document.createElement("description"),
+					type2 = document.createElement("description"),
 					label = document.createElement("description"),
 					hbox = document.createElement("hbox"),
 					vbox = document.createElement("vbox"),
@@ -613,12 +638,14 @@ var changesLog = {
 			hbox.setAttribute("flex", 0);
 			vbox.setAttribute("flex", 1);
 			type.className = "type";
+			type2.className = "type";
+			type.setAttribute("type", 0);
+			type2.setAttribute("type", 1);
 			tab.className = "tab";
 			space.textContent = " ";
 			if (t)
 			{
 				tab.textContent = t[1];
-				type.textContent = t[2];
 				let s = "";
 				switch(t[2])
 				{
@@ -635,24 +662,29 @@ var changesLog = {
 						s = "changed";
 						break;
 				}
+				type.textContent = t[2];
 				if (s)
 				{
+					type2.textContent = _(s);
 					if (typeof(stats[s]) == "undefined")
 						stats[s] = [t[2], 0];
 
 					stats[s][1]++;
 //						tab.className = s;
 					type.className += " " + s;
+					type2.className += " " + s;
 					hbox.className = s;
 					hbox.setAttribute("oddeven", oddEven++ % 2); 
 				}
 				hbox.appendChild(tab);
 				hbox.appendChild(type);
+				hbox.appendChild(type2);
 				hbox.appendChild(space);
 				txt = t[1].length + 1;
 				if (t[1])
 				{
 					type.className += " border";
+					type2.className += " border";
 					tab.className += " border";
 					label.className += " border";
 				}
@@ -904,7 +936,7 @@ e.preventDefault();
 			$("changesLogBox").setAttribute("window", true);
 		}
 
-		this.showLegend();
+		this.showLegendType();
 		this.showHighlight();
 		this.showWrap();
 		this.showAltbg();

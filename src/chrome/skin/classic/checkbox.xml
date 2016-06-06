@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<bindings id="checkboxBindings"
+	 xmlns="http://www.mozilla.org/xbl"
+	 xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	 xmlns:xbl="http://www.mozilla.org/xbl">
+
+	<binding id="checkbox-right" extends="chrome://global/content/bindings/checkbox.xml#checkbox">
+		<resources>
+			<stylesheet src="chrome://cookiesmanagerplus/skin/checkbox.css"/>
+		</resources>
+		<content>
+			<xul:hbox class="checkbox-label-box" flex="1">
+				<xul:label class="checkbox-label" xbl:inherits="xbl:text=label,accesskey,crop" flex="1"/>
+				<xul:image class="checkbox-icon" xbl:inherits="src"/>
+			</xul:hbox>
+			<xul:image class="checkbox-check" xbl:inherits="checked,disabled"/>
+		</content>
+	</binding>
+
+	<binding id="checkbox-button" extends="chrome://global/content/bindings/checkbox.xml#checkbox">
+		<resources>
+			<stylesheet src="chrome://cookiesmanagerplus/skin/checkbox.css"/>
+		</resources>
+		<content>
+			<xul:image class="checkbox-check readonly" xbl:inherits="checked,disabled"/>
+		</content>
+	</binding>
+</bindings>

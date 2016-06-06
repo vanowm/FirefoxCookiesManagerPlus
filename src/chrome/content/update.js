@@ -5,6 +5,7 @@ coomanPlus.CHANGESLOG_NOTIFICATION2 = 2;
 coomanPlus.notification = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
 coomanPlus.notificationAvailable = (coomanPlus.notification && coomanPlus.notification.showAlertNotification);
 coomanPlus.strings = {};
+var log = coomanPlusCore.log;
 coomanPlus.string = function(s)
 {
 	if (s in this.strings)
@@ -209,13 +210,13 @@ coomanPlus.showChangesLog = function(type, demo)
 																										addon.name + " " + updated);
 		}catch(e){coomanPlusCore.log.error(e);}
 
-	let win = coomanPlusCore.window,
-			pn = win.PopupNotifications,
-			id = null,
-			browser = win.gBrowser ? win.gBrowser.selectedBrowser : null;
+	let win = coomanPlusCore.window;
 
-	if (type & coomanPlus.CHANGESLOG_NOTIFICATION2 && win.gBrowser && win.document.getElementById("notification-popup"))
+	if (win && type & coomanPlus.CHANGESLOG_NOTIFICATION2 && win.gBrowser && win.document.getElementById("notification-popup"))
 	{
+			let pn = win.PopupNotifications,
+					id = null,
+					browser = win.gBrowser ? win.gBrowser.selectedBrowser : null;
 //		try
 //		{
 		coomanPlusCore.async(function()
@@ -436,6 +437,10 @@ coomanPlus.update = function update()
 			{
 				upgradeMS("extensions.cookiesmanagerplus.cookieculler");
 				upgradeMS("extensions.cookiesmanagerplus.cookiecullerdelete", "deleteprotected");
+			}
+			if (compare(v, "1.9") >= 0 && compare(v, "1.10") < 0)
+			{
+				coomanPlusCore.prefs.setCharPref("reset", JSON.stringify({main:["colsordinal"]}));
 			}
 		}
 		catch(e)

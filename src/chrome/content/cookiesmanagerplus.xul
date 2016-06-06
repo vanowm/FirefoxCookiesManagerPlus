@@ -71,11 +71,11 @@
 				<menuitem label="&menu.selectAllShown.label;" oncommand="coomanPlus.selectAllShown()" accesskey="&button.all.accesskey;" accessibleType="100E"/>
 				<menuitem label="&menu.invertSelection.label;" oncommand="coomanPlus.invertSelection()" accesskey="&button.invert.accesskey;" accessibleType="100E"/>
 				<menuseparator id="tree_protectMenuSeparator" accessibleType="1010"/>
-				<menuitem id="tree_menu_protect"  label="&protect.protect;" accesskey="&protect.protect.accesskey;" oncommand="coomanPlus.protect.obj.protect()" accessibleType="100E"/>
-				<menuitem id="tree_menu_unprotect"  label="&protect.unprotect;" accesskey="&protect.unprotect.accesskey;" oncommand="coomanPlus.protect.obj.unprotect()" accessibleType="100E"/>
+				<menuitem id="tree_menu_protect" label="&protect.protect;" accesskey="&protect.protect.accesskey;" class="menuitem-iconic" oncommand="coomanPlus.protect.obj.protect()" accessibleType="100E"/>
+				<menuitem id="tree_menu_unprotect" label="&protect.unprotect;" accesskey="&protect.unprotect.accesskey;" class="menuitem-iconic" oncommand="coomanPlus.protect.obj.unprotect()" accessibleType="100E"/>
 				<menuseparator id="separator_export" accessibleType="1010"/>
-				<menuitem id="menu_exportclipboard"  label="&export.clipboard;" accesskey="&export.clipboard.accesskey;" oncommand="coomanPlus.exportClipboard()" accessibleType="100E"/>
-				<menuitem id="menu_exportfile"  label="&export.file;" accesskey="&export.file.accesskey;" oncommand="coomanPlus.exportFile()" accessibleType="100E"/>
+				<menuitem id="menu_exportclipboard" label="&export.clipboard;" accesskey="&export.clipboard.accesskey;" oncommand="coomanPlus.exportClipboard()" accessibleType="100E"/>
+				<menuitem id="menu_exportfile" label="&export.file;" accesskey="&export.file.accesskey;" oncommand="coomanPlus.exportFile()" accessibleType="100E"/>
 				<menu id="menu_backup"
 							type="menu"
 							label="&backup.button;"
@@ -243,12 +243,14 @@
 				<menuseparator id="protectMenuSeparator" accessibleType="1010"/>
 				<menuitem id="menu_protect"
 									label="&protect.protect;"
+									class="menuitem-iconic"
 									accesskey="&protect.protect.accesskey;"
 									oncommand="coomanPlus.protect.obj.protect()"
 									accessibleType="100E"
 				/>
 				<menuitem id="menu_unprotect"
 									label="&protect.unprotect;"
+									class="menuitem-iconic"
 									accesskey="&protect.unprotect.accesskey;"
 									oncommand="coomanPlus.protect.obj.unprotect()"
 									accessibleType="100E"
@@ -631,7 +633,7 @@ hidden="true"
 						<row id="row_start" hidden="true" collapsed="true"/>
 
 						<row id="row_name" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.name.label;" disabled="true" control="ifl_name"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -650,29 +652,37 @@ hidden="true"
 						</row>
 
 						<row id="row_value" pack="center" dragable="true" persist="collapsed" flex="1">
-							<hbox class="inforowdataheader" align="start" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="start" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+								<hbox class="dragme ro" flex="1" align="start" control="value" type="ro">
+									<vbox pack="center">
+										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+									<vbox pack="center">
+										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+								</hbox>
 								<label value="&props.value.label;" disabled="true" control="ifl_value"/>
 							</hbox>
 							<vbox class="inforowdata">
-								<textbox id="ifl_value"
-													onfocus="coomanPlus.infoRowHighlight(event);"
-													onblur="coomanPlus.infoRowHighlight(event);"
-													onpopupshowing="coomanPlus.dragMenu(event);"
-													accesskey="&props.value.accesskey;"
-													readonly="true"
-													class="plain infofield"
-													flex="1"
-													rows="1"
-													persist="wrap expand decode"
-													multiline="true"
-													empty="true"
-													accessibleType="101B"/>
-								<tooltip id="tooltipValue" style="white-space: pre-wrap; max-width: none;"/>
+									<textbox id="ifl_value"
+														onfocus="coomanPlus.infoRowHighlight(event);"
+														onblur="coomanPlus.infoRowHighlight(event);"
+														onpopupshowing="coomanPlus.dragMenu(event);"
+														accesskey="&props.value.accesskey;"
+														readonly="true"
+														class="plain infofield"
+														flex="1"
+														rows="1"
+														persist="wrap expand decode"
+														multiline="true"
+														empty="true"
+														accessibleType="101B"/>
+									<tooltip id="tooltipValue" style="white-space: pre-wrap; max-width: none;"/>
 							</vbox>
 						</row>
 
 						<row id="row_host" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label id="ifl_isDomain" value="&cookie.domain.label;:" disabled="true" control="ifl_host"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -690,7 +700,7 @@ hidden="true"
 						</row>
 
 						<row id="row_path" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.path.label;" disabled="true" control="ifl_path"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -708,7 +718,16 @@ hidden="true"
 						</row>
 
 						<row id="row_isSecure" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+								<hbox class="dragme ro" flex="1" align="start" control="isSecure" type="ro">
+									<vbox pack="center">
+										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+									<vbox pack="center">
+										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+								</hbox>
 								<label value="&props.secure.label;" disabled="true" control="ifl_isSecure"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -730,7 +749,15 @@ hidden="true"
 						</row>
 
 						<row id="row_expires" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+								<hbox class="dragme ro" flex="1" align="start" control="expires" type="ro">
+									<vbox pack="center">
+										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+									<vbox pack="center">
+										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+								</hbox>
 								<label value="&props.expires.label;" disabled="true" control="ifl_expires"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -762,7 +789,7 @@ hidden="true"
 						</row>
 
 						<row id="row_creationTime" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.creationTime.label;" disabled="true" control="ifl_creationTime"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -780,7 +807,7 @@ hidden="true"
 						</row>
 
 						<row id="row_lastAccessed" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.lastAccessed.label;" disabled="true" control="ifl_lastAccessed"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -798,7 +825,15 @@ hidden="true"
 						</row>
 
 						<row id="row_isHttpOnly" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+								<hbox class="dragme ro" flex="1" align="start" control="isHttpOnly" type="ro">
+									<vbox pack="center">
+										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+									<vbox pack="center">
+										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									</vbox>
+								</hbox>
 								<label value="&props.isHttpOnly.label;" disabled="true" control="ifl_isHttpOnly"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -816,7 +851,7 @@ hidden="true"
 						</row>
 
 						<row id="row_policy" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.policy.label;" disabled="true" control="ifl_policy"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -834,7 +869,7 @@ hidden="true"
 						</row>
 
 						<row id="row_status" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.status.label;" disabled="true" control="ifl_status"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -852,7 +887,7 @@ hidden="true"
 						</row>
 
 						<row id="row_isProtected" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&protect.isProtected;" disabled="true" control="ifl_isProtected"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -887,7 +922,7 @@ hidden="true"
 						</row>
 
 						<row id="row_size" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
+							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
 								<label value="&props.size.label;" disabled="true" control="ifl_size"/>
 							</hbox>
 							<hbox class="inforowdata">
@@ -987,6 +1022,8 @@ hidden="true"
 			na:																"&n.a;",
 			cookieType1:											"&cookie.Type1;",
 			cookieType2:											"&cookie.Type2;",
+			readonly1:												"&readonly.disabled;",
+			readonly2:												"&readonly.enabled;",
 		};
 	</script>
 </window>

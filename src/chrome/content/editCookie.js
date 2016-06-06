@@ -47,7 +47,9 @@ var coomanPlus = {
 	backupData: {},
 	pref: coomanPlusCore.pref,
 	prefs: coomanPlusCore.prefs,
+	prefBranch: Ci.nsIPrefBranch2,
 	mouseScrollTimeStamp: 0,
+	saveEnabled: false,
 	inited: false,
 	exec: [],
 	load: function load()
@@ -69,13 +71,7 @@ var coomanPlus = {
 		$('ifl_isSecureYes').label = $('ifl_isSecureYes').value = this.string("forSecureOnly");
 		$('ifl_isSecureNo').label = $('ifl_isSecureNo').value = this.string("forAnyConnection");
 
-		let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
-									.getInterface(Ci.nsIWebNavigation)
-									.QueryInterface(Ci.nsIDocShellTreeItem)
-									.treeOwner.QueryInterface(Ci.nsIInterfaceRequestor)
-									.getInterface(Ci.nsIXULWindow);
-		xulWin.zLevel = (this.pref("topmost")) ? xulWin.raisedZ : xulWin.normalZ;
-
+		this.command("topmost");
 		if (this._params.cookies) //this._params.window.coomanPlus._selected.length == 1)
 		{
 			this._multi = (this._params.cookies.length > 1);
@@ -122,7 +118,7 @@ var coomanPlus = {
 			$("c_host").checked = false;
 			$("c_path").checked = false;
 
-			document.title += " (" + this._params.cookies.length + " " + this.string("cookies") + ")";
+			document.title += " " + this._params.cookies.length + " " + this.string("cookies");
 			$("ifl_value").setAttribute("type", "multi");
 			coomanPlusCore.async(coomanPlus.loadMenu);
 			window.onresize = this.valueMenuSize;
@@ -130,45 +126,30 @@ var coomanPlus = {
 		else
 		{
 			$("ifl_value").removeAttribute("type");
+			document.title += " " + this.string("cookie");
 		}
-		function addEventListener(obj, type, func, bubble)
-		{
-			if (this.inited)
-				return;
-
-			obj.addEventListener(type, func, bubble);
-		}
-		for(let i in this._curCookie)
-		{
-			if (!$("c_" + i))
-				continue;
-
-			$("c_" + i).disabled = this._addFlag;
-
-			$("c_" + i).setAttribute("checked", !this._multi && this._addFlag ? true : $("c_" + i).checked);
-			addEventListener($("c_" + i), "CheckboxStateChange", this.enableDisable, false);
-			this.enableDisableChildren($("c_" + i));
-		}
+		document.title += " - " + coomanPlusCore.addon.name;
+		this.setSaveCheckboxes();
 		$("c_name").disabled = this._multi;
 		$("c_host").disabled = this._multi;
 		$("c_path").disabled = this._multi;
 /*
-		addEventListener($("ifl_expires_date"), "change", this.fixDate, true);
-		addEventListener($("ifl_expires_time"), "change", this.fixTime, true);
+		this.addEventListener($("ifl_expires_date"), "change", this.fixDate, true);
+		this.addEventListener($("ifl_expires_time"), "change", this.fixTime, true);
 */
-		addEventListener($("main"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("main"), "DOMMouseScroll", this.mouseScroll, true);
 /*
-		addEventListener($("ifl_expires_Year"), "DOMMouseScroll", this.mouseScroll, true);
-		addEventListener($("ifl_expires_Month"), "DOMMouseScroll", this.mouseScroll, true);
-		addEventListener($("ifl_expires_Day"), "DOMMouseScroll", this.mouseScroll, true);
-		addEventListener($("ifl_expires_Hours"), "DOMMouseScroll", this.mouseScroll, true);
-		addEventListener($("ifl_expires_Minutes"), "DOMMouseScroll", this.mouseScroll, true);
-		addEventListener($("ifl_expires_Seconds"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Year"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Month"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Day"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Hours"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Minutes"), "DOMMouseScroll", this.mouseScroll, true);
+		this.addEventListener($("ifl_expires_Seconds"), "DOMMouseScroll", this.mouseScroll, true);
 */
-		addEventListener(window, "focus", this.onFocus, true);
+		this.addEventListener(window, "focus", this.onFocus, true);
 		if (this._addFlag)
 		{
-			document.title = this.string("titleAdd");
+			document.title = this.string("titleAdd") +  " - " + coomanPlusCore.addon.name;
 			$("editCookie").hidden = false;
 
 			$('ifl_isSecure').value = $('ifl_isSecureNo').value;
@@ -194,8 +175,42 @@ var coomanPlus = {
 		this.inited = true;
 		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 		observer.addObserver(this, "cmp-command", false);
+		if ("addObserver" in this.prefs.QueryInterface(Ci.nsIPrefBranch))
+			this.prefBranch = Ci.nsIPrefBranch;
+
+		this.prefs.QueryInterface(this.prefBranch).addObserver('', this.onPrefChange, false);
+
 		this.checkReset("edit");
 	},//init()
+
+	_events: {},
+	addEventListener: function addEventListener(obj, type, func, bubble, force)
+	{
+		if (!this._events[type])
+			this._events[type] = [];
+
+		if (this._events[type] && this._events[type].indexOf(obj) != -1)
+				return;
+
+		obj.addEventListener(type, func, bubble);
+		this._events[type].push(obj);
+	},//addEventListener()
+
+	setSaveCheckboxes: function setSaveCheckboxes()
+	{
+		for(let i in this._curCookie)
+		{
+			let obj = $("c_" + i);
+			if (!obj)
+				continue;
+
+			obj.disabled = this._addFlag;
+
+			obj.setAttribute("checked", !this._multi && this._addFlag ? true : obj.checked);
+			this.addEventListener(obj, "CheckboxStateChange", this.enableDisable, false);
+			this.enableDisableChildren(obj);
+		}
+	},//setSaveCheckboxes()
 
 	loadMenu: function loadMenu()
 	{
@@ -264,10 +279,29 @@ log.debug();
 		{
 			coomanPlus.protect.unload();
 		}catch(e){log.error(e)}
+		try
+		{
+			this.prefs.QueryInterface(this.prefBranch).removeObserver('', this.onPrefChange, false);
+		}catch(e){log.error(e)}
 		window.removeEventListener("focus", this.onFocus, true);
 
 log.debug("finished");
 	},
+
+	onPrefChange: {
+		observe: function observe(subject, topic, key)
+		{
+			let self = coomanPlus;
+			if (key == "topmost")
+			{
+				coomanPlusCore.async(function()
+				{
+					self.command("topmost");
+				});
+				return;
+			}
+		},
+	},//onPrefChange
 
 	onFocus: function focus(e)
 	{
@@ -295,8 +329,12 @@ log.debug("finished");
 		if (typeof(obj) == "string")
 			obj = $(obj);
 
-		var c = obj.childNodes;
-		var command = remove ? "removeAttribute" : "setAttribute";
+		if (!obj)
+			return;
+
+		let c = obj.childNodes,
+				command = remove ? "removeAttribute" : "setAttribute";
+
 		obj[command]((attr == "disabled" && obj.tagName == "textbox" ? "readonly" : attr), value);
 		for(var i = 0; i < c.length; i++)
 		{
@@ -306,6 +344,8 @@ log.debug("finished");
 			if (c[i].childNodes.length > 0)
 				this.setAttribute(c[i], attr, value, remove);
 		}
+//		this.setAttribute(obj.nextSibling, attr, value, remove);
+			
 	},
 
 	enableDisable: function enableDisable(e)
@@ -578,8 +618,17 @@ log.debug();
 		let selected = [];
 		for(let i = 0; i < list.length; i++)
 		{
-			let aCookie = this.cookieMerge(list[i], this._newCookie);
+			let aCookie = this.cookieMerge(list[i], this._newCookie),
+					ro = aCookie.readonly;
+
 			cookieEqual = this._cookieEquals(aCookie, list[i]);
+			if (ro)
+			{
+				for(let r in ro)
+					ro[r] = aCookie[r];
+			}
+
+			coomanPlusCore.readonlyAdd(aCookie);
 			if(this._addFlag
 					|| (!this._addFlag && !exists)
 					|| !cookieEqual
@@ -590,6 +639,7 @@ log.debug();
 				)
 			{
 				this._params.window.coomanPlus._noObserve = true;
+
 				if (!this._addFlag && !asNew && !cookieEqual)
 				{
 					coomanPlus.cookieRemove(list[i]);
@@ -643,16 +693,18 @@ log.debug();
 			ok = true;
 		}
 		catch(e){}
-		let e = (!ok
-							|| this.trim($('ifl_name').value) === ""
-							||	!this.trim($('ifl_host').value) === ""
-							||	(!$('c_name').checked
-										&& !$('c_host').checked
-										&& !$('c_path').checked
-										&& !$('c_value').checked
-										&& !$('c_expires').checked
-										&& !$('c_isSecure').checked
-									)
+		let e = (!this.saveEnabled
+							&& (!ok
+									|| this.trim($('ifl_name').value) === ""
+									||	!this.trim($('ifl_host').value) === ""
+									||	(!$('c_name').checked
+												&& !$('c_host').checked
+												&& !$('c_path').checked
+												&& !$('c_value').checked
+												&& !$('c_expires').checked
+												&& !$('c_isSecure').checked
+											)
+								)
 						);
 
 		$("editCookie").disabled = e;
@@ -842,18 +894,31 @@ log.debug();
 			return coomanPlus.command(aCommand, aData);
 	},//observe{}
 
-	resetWindowSettings: function resetWindowSettings()
+	resetWindowSettings: function resetWindowSettings(params)
 	{
-		this.resetPersist();
+		function execute(p)
+		{
+			return !params || !params.length || params.indexOf(p) != -1;
+		}
+		if (execute("persist"))
+		{
+			this.resetPersist();
+			this.setSaveCheckboxes();
+		}
+	
 		window.sizeToContent();
-		let reset = [];
+		let reset = {};
 		try
 		{
 			reset = this.prefs.getCharPref("reset");
 			reset = JSON.parse(reset);
+			delete reset.edit;
 		}catch(e){}
-		reset.push("edit");
-		this.prefs.setCharPref("reset", JSON.stringify(reset));
+		reset = JSON.stringify(reset);
+		if (reset == "{}")
+			this.prefs.clearUserPref("reset");
+		else
+			this.prefs.setCharPref("reset", reset);
 	},//resetWindowSettings()
 
 	command: function command(com, data)
@@ -862,7 +927,7 @@ log.debug();
 		switch(com)
 		{
 			case "reset":
-				this.resetWindowSettings();
+				this.resetWindowSettings(data.wrappedJSObject);
 				break;
 			case "backup":
 				this.settingsBackup();
@@ -871,6 +936,14 @@ log.debug();
 				data.QueryInterface(Components.interfaces.nsISupportsString).data;
 				this.settingsRestore(data);
 				break;
+			case "topmost":
+				let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
+										.getInterface(Ci.nsIWebNavigation).QueryInterface(Ci.nsIDocShellTreeItem)
+										.treeOwner.QueryInterface(Ci.nsIInterfaceRequestor)
+										.getInterface(Ci.nsIXULWindow);
+				xulWin.zLevel = this.pref("topmost") ? xulWin.raisedZ : xulWin.normalZ;
+				break;
+
 		}
 	},//command()
 
@@ -895,6 +968,7 @@ log.debug();
 		if (data)
 		{
 			this.resetPersist(undefined, data);
+			this.setSaveCheckboxes();
 			if (data.cookiesManagerPlusWindowEdit)
 			{
 				window.resizeTo(data.cookiesManagerPlusWindowEdit.width, data.cookiesManagerPlusWindowEdit.height);

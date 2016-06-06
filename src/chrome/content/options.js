@@ -32,7 +32,6 @@ function $(id)
 	return document.getElementById(id);
 }
 var coomanPlus = {
-	cmpWindowBackup: null,
 	standalone: true,
 	winid: new Date(),
 	_cb: null,
@@ -55,6 +54,7 @@ var coomanPlus = {
 log.debug();
 		let self = this;
 		this._cb = $("cookieBundle");
+		document.title += " - " + coomanPlusCore.addon.name;
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
 		this.test($("format"));
@@ -103,9 +103,6 @@ log.debug();
 		if ($("exportChildren").tabs.itemCount <= parseInt($("exportChildren").getAttribute("selectedIndex")))
 			$("exportChildren").selectedIndex = 0;
 
-		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
-		$("dateListSplitter").setAttribute("state", $("dateListBox").collapsed ? "collapsed" : "open");
-		$("dateListSplitter").setAttribute("substate", $("dateListBox").collapsed ? "before" : "");
 		this.exportFilename({target: $("fieldBackupfilename")});
 		this.dateListSize();
 		this.changesLogMenu();
@@ -173,10 +170,6 @@ log.debug();
 	{
 
 		coomanPlusCore.cmpWindowOptions = null;
-/*
-		if (!coomanPlus.standalone)
-			coomanPlusCore.cmpWindow = coomanPlus.cmpWindowBackup;
-*/
 
 		if (coomanPlus.inited)
 		{
@@ -332,13 +325,17 @@ log.debug();
 	dateListSize: function dateListSize(e)
 	{
 		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
+		$("dateListSplitter").setAttribute("state", $("dateListBox").collapsed ? "collapsed" : "open");
+		$("dateListSplitter").setAttribute("substate", $("dateListBox").collapsed ? "before" : "");
+
+		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
 		if ($("dateListBox").collapsed)
 		{
-			$("coomanPlusWindowOptions").style.minHeight = "39em";
+			$("coomanPlusWindowOptions").style.minHeight = "43em";
 		}
 		else
 		{
-			$("coomanPlusWindowOptions").style.minHeight = "50em";
+			$("coomanPlusWindowOptions").style.minHeight = "52em";
 			let h = window.outerHeight;
 			window.resizeBy(0,-1);
 			if (h - window.outerHeight == 1)
@@ -393,8 +390,9 @@ log.debug();
 			catch(e){log.error(e)};
 		}
 		this.resetPersist();
+		this.dateListSize();
 		window.sizeToContent();
-		this.prefs.setCharPref("reset", JSON.stringify(["options"]));
+		this.prefs.setCharPref("reset", JSON.stringify({main:[], edit:[]}));
 		Cc["@mozilla.org/observer-service;1"]
 			.getService(Ci.nsIObserverService)
 			.notifyObservers(list, "cmp-command", "reset");
@@ -420,7 +418,7 @@ log.debug();
 							prefs = JSON.stringify(coomanPlus.getSettings());
 						}catch(e){};
 					}, 500);
-					let fp = this.saveFileSelect(this.getFilename(null, "cmp-settings-#.cmpj"), "cmpj", "", this.string("backupSettingsSave"), {title: coomanPlusCore.addon.name, filter: "*.cmpj"});
+					let fp = this.saveFileSelect(this.getFilename(null, "cmp-settings-#.cmps"), "cmps", "", this.string("backupSettingsSave"), {title: this.string("settingsFile").replace("#", coomanPlusCore.addon.name), filter: "*.cmps;*.cmpj"});
 					if (!fp)
 						break;
 
@@ -452,8 +450,8 @@ log.debug();
 		let nsIFilePicker = Ci.nsIFilePicker;
 		fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 		fp.init(window, this.string("restoreSettingsOpen"), nsIFilePicker.modeOpen);
-		fp.appendFilter(coomanPlusCore.addon.name, "*.cmpj");
-		fp.defaultExtension = "cmpj";
+		fp.appendFilter(this.string("settingsFile").replace("#", coomanPlusCore.addon.name), "*.cmps;*.cmpj");
+		fp.defaultExtension = "cmps";
 		let rv = fp.show();
 		if (rv != nsIFilePicker.returnOK)
 			return false;
@@ -478,7 +476,6 @@ log.debug();
 			this.alert(this.string("restoreSettingsError"));
 			return false;
 		}
-
 		for(let i in data)
 		{
 			if (i == "persist")
@@ -497,6 +494,24 @@ log.debug();
 			}
 		}
 	},//settingsRestore()
+
+	topmost: function topmost(broadcast)
+	{
+log.debug();
+		if (broadcast)
+			Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).notifyObservers(null, "cmp-command", "topmost");
+			
+		let xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+								.getInterface(Components.interfaces.nsIWebNavigation)
+								.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+								.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+								.getInterface(Components.interfaces.nsIXULWindow);
+		xulWin.zLevel = xulWin.highestZ;
+		coomanPlusCore.async(function()
+		{
+			xulWin.zLevel = coomanPlusCore.pref("topmost") ? xulWin.highestZ : xulWin.normalZ;
+		}, 100);
+	},//topmost()
 }
 function srGetStrBundle()
 {
@@ -508,9 +523,11 @@ if (coomanPlusCore.cmpWindowOptions)
 	coomanPlusCore.cmpWindowOptions.focus();
 	window.close()
 }
-var args = "arguments" in window && window.arguments.length ? window.arguments[0] : {};
-if (typeof(args) == "object" && args.wrappedJSObject)
-	args = args.wrappedJSObject;
+var _args = "arguments" in window && window.arguments.length ? window.arguments[0] : {},
+		args = {};
+if (typeof(_args) == "object" && _args.wrappedJSObject)
+	args = _args.wrappedJSObject;
+delete _args;
 
 if ("standalone" in args)
 {
@@ -529,12 +546,7 @@ if (coomanPlus.standalone)
 else
 {
 	coomanPlusCore.cmpWindowOptions = window;
-	var xulWin = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-							.getInterface(Components.interfaces.nsIWebNavigation)
-							.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-							.treeOwner.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-							.getInterface(Components.interfaces.nsIXULWindow);
-	xulWin.zLevel = xulWin.highestZ;
+	coomanPlus.topmost();
 	coomanPlus.exec.push(function()
 	{
 		coomanPlus.backupPersist($("coomanPlusWindowOptions"));

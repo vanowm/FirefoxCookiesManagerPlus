@@ -8,7 +8,8 @@
 <!ENTITY changesLog.here 										"homepage">
 <!ENTITY changesLog.menu.showOnUpdates 			"Notify after updates">
 <!ENTITY changesLog.menu.showOnUpdates.desc	"Get notified when new version installed">
-<!ENTITY changesLog.menu.legend 						"Legend">
+<!ENTITY changesLog.menu.legend							"Legend">
+<!ENTITY changesLog.menu.legendType					"Compact types">
 <!ENTITY changesLog.menu.wrap								"Wrap">
 <!ENTITY changesLog.menu.altbg							"Alt. bg color">
 <!ENTITY changesLog.menu.hightlight 				"Hightlight">

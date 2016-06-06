@@ -211,3 +211,5 @@
 <!ENTITY		menu.supportEmail.accesskey															"e">
 <!ENTITY		loading																									"Please Wait. Loading cookies.">
 <!ENTITY		fields.note																							"Enabling this field might decrease performance.">
+<!ENTITY		readonly.enabled																				"Read only">
+<!ENTITY		readonly.disabled																				"Normal Read/Write">

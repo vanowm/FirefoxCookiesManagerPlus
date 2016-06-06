@@ -11,14 +11,14 @@
 
 
 <prefwindow id="coomanPlusWindowOptions"
-				title="&title.label;"
-				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-				onload="coomanPlus.load()"
-				onunload="coomanPlus.unload()"
-				buttons="accept,cancel"
-				persist="screenX screenY width height"
-				xmlns:html="http://www.w3.org/1999/xhtml"
-				flex="1"
+						title="&title.label;"
+						xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+						onload="coomanPlus.load()"
+						onunload="coomanPlus.unload()"
+						buttons="accept,cancel"
+						persist="screenX screenY width height"
+						xmlns:html="http://www.w3.org/1999/xhtml"
+						flex="1"
 >
 	<keyset>
 		<key key="L" modifiers="alt" oncommand="document.getElementById('dateList').focus();"/>
@@ -28,7 +28,7 @@
 			<preferences>
 				<preference id="delconf" name="extensions.cookiesmanagerplus.delconfirm" type="bool" />
 				<preference id="autofilter" name="extensions.cookiesmanagerplus.autofilter" type="bool" />
-				<preference id="topmost" name="extensions.cookiesmanagerplus.topmost" type="bool" />
+				<preference id="topmost" name="extensions.cookiesmanagerplus.topmost" type="bool" onchange="coomanPlus.topmost(true)" />
 				<preference id="autoupdate" name="extensions.cookiesmanagerplus.autoupdate" type="bool" />
 				<preference id="dateformat" name="extensions.cookiesmanagerplus.dateformat" type="string" />
 				<preference id="simplehost" name="extensions.cookiesmanagerplus.simplehost" type="int" />
@@ -44,6 +44,8 @@
 				<preference id="deleteexpired" name="extensions.cookiesmanagerplus.deleteexpired" type="bool" />
 				<preference id="restoreselection" name="extensions.cookiesmanagerplus.restoreselection" type="int" />
 				<preference id="html5" name="extensions.cookiesmanagerplus.html5" type="bool" />
+				<preference id="readonly" name="extensions.cookiesmanagerplus.readonly" type="bool" />
+				<preference id="readonlydelete" name="extensions.cookiesmanagerplus.readonlydelete" type="bool" />
 			</preferences>
 			<tabbox id="options" persist="selectedIndex" flex="1">
 				<tabs>
@@ -54,25 +56,35 @@
 					<tabpanel id="panelGeneral" flex="1">
 						<vbox flex="1">
 							<hbox>
-								<checkbox preference="autofilter" label='&options.autofilter.label;' tooltiptext="&options.autofilter.info;" accessibleType="1003"/>
+								<checkbox preference="autofilter" label="&options.autofilter.label;" tooltiptext="&options.autofilter.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
-								<checkbox preference="autoupdate" label='&options.autoupdate.label;' tooltiptext="&options.autoupdate.info;" accessibleType="1003"/>
+								<checkbox preference="autoupdate" label="&options.autoupdate.label;" tooltiptext="&options.autoupdate.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox id="topmostBox">
-								<checkbox preference="topmost" label='&options.topmost.label;' tooltiptext="&options.topmost.info;" accessibleType="1003"/>
+								<checkbox preference="topmost"
+													label="&options.topmost.label;"
+													tooltiptext="&options.topmost.info;"
+													accessibleType="1003"
+								/>
 							</hbox>
 							<hbox>
-								<checkbox preference="nativesync" label='&options.synchronize;' tooltiptext="&options.synchronize.info;" accessibleType="1003"/>
+								<checkbox preference="nativesync" label="&options.synchronize;" tooltiptext="&options.synchronize.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
-								<checkbox preference="delconf" label='&options.delconfirm.label;' accessibleType="1003"/>
+								<checkbox preference="delconf" label="&options.delconfirm.label;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
-								<checkbox preference="deleteexpired" label='&options.deleteexpired.label;' tooltiptext="&options.deleteexpired.info;" accessibleType="1003"/>
+								<checkbox preference="deleteexpired" label="&options.deleteexpired.label;" tooltiptext="&options.deleteexpired.info;" accessibleType="1003"/>
+							</hbox>
+							<hbox>
+								<checkbox preference="readonly" label="&options.readonly;" tooltiptext="&options.readonly.info;" accessibleType="1003"/>
+							</hbox>
+							<hbox>
+								<checkbox preference="readonlydelete" label="&options.readonlydelete;" tooltiptext="&options.readonlydelete.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox id="protectbox" collapsed="true">
-								<checkbox id="deleteprotectedCheckbox" preference="deleteprotected" label='&options.protect.delete.label;' accessibleType="1003"/>
+								<checkbox id="deleteprotectedCheckbox" preference="deleteprotected" label="&options.protect.delete.label;" accessibleType="1003"/>
 							</hbox>
 							<hbox collapsed="true" align="center" tooltiptext="&options.restoreselection.info;">
 								<label value="&options.restoreselection.label;" control="restoreselection"/>
@@ -89,7 +101,7 @@
 								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
 							</hbox>
 							<hbox id="html5box" collapsed="true">
-								<checkbox id="html5Checkbox" preference="html5" label='&options.html5.label;' accessibleType="1003"/>
+								<checkbox id="html5Checkbox" preference="html5" label="&options.html5.label;" accessibleType="1003"/>
 								<label value="&options.html5.warning;" control="restoreselection" class="info"/>
 							</hbox>
 							<hbox tooltiptext="&options.simplehost.info;" align="center">
@@ -130,7 +142,7 @@
 							</hbox>
 							<groupbox id="formatBox" flex="1">
 								<caption>
-									<label value='&options.dateformat.label;' style="overflow:hidden;margin-right: 0" flex="0" tooltiptext="&options.dateformat.info;" control="format"/>
+									<label value="&options.dateformat.label;" style="overflow:hidden;margin-right: 0" flex="0" tooltiptext="&options.dateformat.info;" control="format"/>
 									<label value="(" style="margin-right: 0"/>
 									<hbox pack="start" align="start">
 										<label value="&options.dateformat.moreinfo;"
@@ -143,7 +155,7 @@
 								</caption>
 								<vbox flex="1" style="overflow: hidden;">
 									<hbox>
-										<textbox id="format" preference="dateformat" onkeyup="coomanPlus.test(this);" label='&options.dateformat.label;' flex="1" accesskey="F"/>
+										<textbox id="format" preference="dateformat" onkeyup="coomanPlus.test(this);" label="&options.dateformat.label;" flex="1" accesskey="F"/>
 									</hbox>
 									<hbox style="overflow:hidden; margin-right: 5px;" align="center">
 										<label value="&result;:" style="margin-right:0"/>
@@ -564,8 +576,8 @@
 													oncommand="coomanPlus.command(event.target.value);"
 									>
 										<menupopup>
-											<menuitem value="backup" label="&options.backup;"/>
 											<menuitem value="restore" label="&options.restore;"/>
+											<menuitem value="backup" label="&options.backup;"/>
 											<menuseparator/>
 											<menuitem value="reset" label="&options.resetall;" tooltiptext="&options.resetall.desc;"/>
 										</menupopup>
@@ -602,7 +614,7 @@
 										</rows>
 									</grid>
 									<hbox>
-										<checkbox preference="backupencrypt" label='&option.export.backup;' tooltiptext="&option.export.backup.info;" accessibleType="1003"/>
+										<checkbox preference="backupencrypt" label="&option.export.backup;" tooltiptext="&option.export.backup.info;" accessibleType="1003"/>
 									</hbox>
 									<textbox value="&option.export.backup.info;" class="plain" flex="1" disabled="true" multiline="true" label="&option.export.backup.info;"/>
 									<hbox>
@@ -684,6 +696,7 @@
 			backupSettingsSave:								"&backupSettingsSave;",
 			restoreSettingsOpen:							"&restoreSettingsOpen;",
 			restoreSettingsError:							"&restoreSettingsError;",
+			settingsFile:											"&settingsFile;",
 		};
 	</script>
 </prefwindow>

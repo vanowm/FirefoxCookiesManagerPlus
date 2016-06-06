@@ -1,12 +1,10 @@
-<!ENTITY	CookieEditDlg.title.label					"Cookies Manager+">
-<!ENTITY	CookieEditDlg.titleEdit.label			"Edit Cookie">
-<!ENTITY	CookieEditDlg.titleEdit2.label		"Edit Cookies">
-<!ENTITY	CookieEditDlg.titleAdd.label			"Add new Cookie">
+<!ENTITY	CookieEditDlg.titleEdit.label			"Edit">
+<!ENTITY	CookieEditDlg.titleAdd.label			"Add new cookie">
 <!ENTITY	CookieEditDlg.save.label					"Save">
 <!ENTITY	CookieEditDlg.save.accesskey			"S">
 <!ENTITY	CookieEditDlg.saveNew.label				"Save as new">
 <!ENTITY	CookieEditDlg.saveNew.accesskey 	"N">
-<!ENTITY	CookieEditDlg.close.label					"Close">
+<!ENTITY	CookieEditDlg.close.label					"Cancel">
 <!ENTITY	CookieEditDlg.close.accesskey			"C">
 <!ENTITY	CookieEditDlg.moreinfo.label			"More info">
 <!ENTITY	CookieEditor.warning.expired			"WARNING! This cookie is expired">
@@ -43,6 +41,7 @@
 <!ENTITY	value.select.info							"Quick value select">
 
 <!ENTITY	overwrite											"A cookie with the same name already exists. Overwrite?">
+<!ENTITY	cookie												"cookie">
 <!ENTITY	cookies												"cookies">
 <!ENTITY	type.label										"Type">
 <!ENTITY	type.info											"Type of the cookie">

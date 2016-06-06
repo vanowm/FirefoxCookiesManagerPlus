@@ -32,16 +32,16 @@ coomanPlus.getTreeSelections = function getTreeSelections(tree)
 coomanPlus.fixColumnName = function fixColumnName(c)
 {
 	if (this._cookies.length > 0 && !c in this._cookies[0])
-		c = "rawHost";
+		c = this.defaultSort;
 
 	return c;
 }
-
+coomanPlus.defaultSort = "rawHost";
 coomanPlus.sortTreeData = function sortTreeData(tree, table, columnName)
 {
 log.debug("sort begin");
 	let order = tree.getAttribute("sortDirection") == "ascending",
-			column = tree.getAttribute("sortResource") || "rawHost";
+			column = tree.getAttribute("sortResource") || this.defaultSort;
 
 	column = this.fixColumnName(column);
 
@@ -51,8 +51,11 @@ log.debug("sort begin");
 	if (columnName)
 	{
 		column = columnName;
-		tree.setAttribute("sortResource", column);
 	}
+	if (!$(column))
+		column = this.defaultSort;
+
+	tree.setAttribute("sortResource", column);
 	tree.setAttribute("sortDirection", order ? "ascending" : "descending");
 
 	// do the sort or re-sort

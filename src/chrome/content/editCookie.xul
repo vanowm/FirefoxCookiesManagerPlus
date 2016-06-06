@@ -43,21 +43,21 @@
 					<hbox align="center" pack="end">
 						<label value="&default.select;:"/>
 					</hbox>
-					<menulist id="multiDefault" label="&default.select;" accessibleType="101B" oncommand="coomanPlus.showDefaultSelect(event);" tooltiptext="&default.select.info;" tabindex="5">
+					<menulist id="multiDefault" label="&default.select;" accessibleType="101B" oncommand="coomanPlus.showDefaultSelect(event);" tooltiptext="&default.select.info;" tabindex="50">
 						<menupopup/>
 					</menulist>
 				</row>
 
 				<row align="center">
 					<hbox align="center" pack="end">
-						<checkbox right="true" id="c_name" label="&props.name.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_name" tabindex="20" accessibleType="1003" />
+						<checkbox id="c_name" right="true" label="&props.name.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_name" tabindex="200" accessibleType="1003" />
 					</hbox>
-					<textbox id="ifl_name" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="10" accessibleType="101B"/>
+					<textbox id="ifl_name" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="100" accessibleType="101B"/>
 				</row>
 
 				<row flex="1" pack="center">
 					<hbox align="start" pack="end">
-						<checkbox right="true" id="c_value" label="&props.value.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_value" tabindex="50" accessibleType="1003" />
+						<checkbox id="c_value" right="true" label="&props.value.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_value" tabindex="500" accessibleType="1003" />
 					</hbox>
 					<hbox flex="1">
 						<textbox	id="ifl_value"
@@ -65,7 +65,7 @@
 											onkeypress="coomanPlus.saveCookiesCheck(event)"
 											multiline="true"
 											newlines="strip"
-											tabindex="30"
+											tabindex="300"
 											flex="1"
 											accessibleType="101B"
 						/>
@@ -75,7 +75,7 @@
 											sizetopopup="none"
 											tooltiptext="&value.select.info;"
 											oncommand="coomanPlus.showValueSelect(event);"
-											tabindex="40"
+											tabindex="400"
 											onfocus="this.parentNode.setAttribute('focus', true);"
 											onblur="this.parentNode.removeAttribute('focus');"
 											onkeypress="return coomanPlus.valueKeypress(event);"
@@ -91,7 +91,7 @@
 				<row id="value_options" align="center">
 					<hbox/>
 					<hbox>
-						<button id="actions" type="menu" onpopupshowing="document.getElementById('ifl_value').focus()" oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&escape;" tabindex="52" closemenu="none">
+						<button id="actions" type="menu" onpopupshowing="document.getElementById('ifl_value').focus()" oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&escape;" tabindex="520" closemenu="none">
 							<menupopup>
 								<menuitem id="mnu_encode" label="&encode;"/>
 								<menuitem id="mnu_decode" label="&decode;"/>
@@ -101,34 +101,34 @@
 							</menupopup>
 						</button>
 <!--
-						<button id="encode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&encode;" tabindex="53" />
-						<button id="decode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&decode;" tabindex="54"/>
-						<button id="expand"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&expand;" tabindex="55"/>
-						<button id="compact"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&compact;" tabindex="56"/>
+						<button id="encode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&encode;" tabindex="530" />
+						<button id="decode"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&decode;" tabindex="540"/>
+						<button id="expand"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&expand;" tabindex="550"/>
+						<button id="compact"  oncommand="coomanPlus.setAction(event)" control="ifl_value" label="&compact;" tabindex="560"/>
 -->
-						<checkbox id="wrap" oncommand="coomanPlus.setWrap(event)" checked="true" persist="checked" control="ifl_value" label="&wrap;" tabindex="59"/>
+						<checkbox id="wrap" oncommand="coomanPlus.setWrap(event)" checked="true" persist="checked" control="ifl_value" label="&wrap;" tabindex="590"/>
 					</hbox>
 				</row>
 				<row align="center">
 					<hbox align="center" pack="end">
-						<checkbox right="true" id="c_host" label="&cookiedomain.label;:" checked="true" persist="checked" control="ifl_host" tabindex="70" accessibleType="1003" />
+						<checkbox id="c_host" right="true" label="&cookiedomain.label;:" checked="true" persist="checked" control="ifl_host" tabindex="700" accessibleType="1003" />
 					</hbox>
-					<textbox id="ifl_host" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="60" accessibleType="101B"/>
-				</row>
-
-				<row align="center">
-					<hbox align="center" pack="end">
-						<checkbox right="true" id="c_path" label="&props.path.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_path" tabindex="90" accessibleType="1003" />
-					</hbox>
-					<textbox id="ifl_path" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="80" accessibleType="101B"/>
+					<textbox id="ifl_host" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="600" accessibleType="101B"/>
 				</row>
 
 				<row align="center">
 					<hbox align="center" pack="end">
-						<checkbox right="true" id="c_isSecure" label="&props.secure.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_isSecure" tabindex="110" accessibleType="1003" />
+						<checkbox id="c_path" right="true" label="&props.path.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_path" tabindex="900" accessibleType="1003" />
+					</hbox>
+					<textbox id="ifl_path" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="800" accessibleType="101B"/>
+				</row>
+
+				<row align="center">
+					<hbox align="center" pack="end">
+						<checkbox id="c_isSecure" right="true" label="&props.secure.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_isSecure" tabindex="1100" accessibleType="1003" />
 					</hbox>
 					<hbox flex="0" align="center">
-						<menulist id="ifl_isSecure" label="&props.secure.label;" tabindex="100" flex="0">
+						<menulist id="ifl_isSecure" label="&props.secure.label;" tabindex="1000" flex="0">
 							<menupopup accessibleType="100F">
 								<menuitem id="ifl_isSecureNo" oncommand="coomanPlus.secure()" accessibleType="100E"/>
 								<menuitem id="ifl_isSecureYes" oncommand="coomanPlus.secure()" accessibleType="100E"/>
@@ -142,10 +142,10 @@
 
 				<row align="center">
 					<hbox align="center" pack="end">
-						<checkbox id="c_isHttpOnly" label="&props.isHttpOnly.label;" right="true" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_isHttpOnly" tabindex="130" accessibleType="1003" />
+						<checkbox id="c_isHttpOnly" label="&props.isHttpOnly.label;" right="true" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_isHttpOnly" tabindex="1300" accessibleType="1003" />
 					</hbox>
 					<hbox flex="0" align="center">
-						<menulist id="ifl_isHttpOnly" tabindex="120" flex="0" label="&props.isHttpOnly.label;">
+						<menulist id="ifl_isHttpOnly" tabindex="1200" flex="0" label="&props.isHttpOnly.label;">
 							<menupopup accessibleType="100F">
 								<menuitem value="true" label="&props.isHttpOnly.yes;" accessibleType="100E"/>
 								<menuitem value="false" label="&props.isHttpOnly.no;"  accessibleType="100E"/>
@@ -156,12 +156,12 @@
 
 				<row align="center">
 					<hbox align="center" pack="end">
-						<checkbox id="c_expires" label="&props.expires.label;" right="true" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="expr_selection" tabindex="150" accessibleType="1003"/>
+						<checkbox id="c_expires" label="&props.expires.label;" right="true" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="expr_selection" tabindex="1500" accessibleType="1003"/>
 					</hbox>
 
 					<groupbox>
 						<hbox align="center">
-							<menulist id="expr_selection" tabindex="140" label="&props.expires.label;">
+							<menulist id="expr_selection" tabindex="1400" label="&props.expires.label;">
 								<menupopup accessibleType="100F">
 									<menuitem id="expr_new" label="&options.expire.date.label;" value="expr_new" oncommand="coomanPlus.rebuildDateSelection(this)" accessibleType="100E"/>
 									<menuitem id="expr_session" label="&options.expire.session.label;" value="expr_session" oncommand="coomanPlus.rebuildDateSelection(this)" accessibleType="100E"/>
@@ -176,11 +176,11 @@
 						</popupset>
 						<hbox id="datetimepickerbox" collapsed="true" flex="0">
 							<vbox>
-								<textbox id="ifl_expires_date" label="&options.expire.date.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" oninput="coomanPlus.fixDate(true)" onblur="coomanPlus.fixDate()" flex="1" tabindex="160" accessibleType="101B"/>
+								<textbox id="ifl_expires_date" label="&options.expire.date.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" oninput="coomanPlus.fixDate(true)" onblur="coomanPlus.fixDate()" flex="1" tabindex="1600" accessibleType="101B"/>
 								<hbox>
 									<vbox flex="0">
 										<hbox>
-											<menulist id="ifl_expires_Month" label="&options.expire.date.months;" oncommand="coomanPlus.setDateField();" tabindex="180">
+											<menulist id="ifl_expires_Month" label="&options.expire.date.months;" oncommand="coomanPlus.setDateField();" tabindex="1800">
 												<menupopup accessibleType="100F">
 													<menuitem  label="&months.january.label;" value="January" accessibleType="100E"/>
 													<menuitem  label="&months.february.label;" value="February" accessibleType="100E"/>
@@ -210,7 +210,7 @@
 																onkeypress="coomanPlus.saveCookiesCheck(event)"
 																accessibleType="101B"
 																class="spinbutton"
-																tabindex="190"
+																tabindex="1900"
 											/>
 											<spinbuttonsV id="Day-spinButtons" onup="coomanPlus.spinEvent(event)" ondown="coomanPlus.spinEvent(event)"/>
 										</hbox>
@@ -222,7 +222,7 @@
 										<hbox>
 											<textbox	id="ifl_expires_Year"
 																label="&options.expire.date.year;"
-																tabindex="200"
+																tabindex="2000"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																maxLength="4"
 																onchange="coomanPlus.changeYear(this);coomanPlus.setDateField();"
@@ -247,7 +247,7 @@
 														oninput="coomanPlus.fixTime(true)"
 														onblur="coomanPlus.fixTime()"
 														onkeypress="coomanPlus.saveCookiesCheck(event)"
-														tabindex="170"
+														tabindex="1700"
 														flex="1"
 														accessibleType="101B"
 									/>
@@ -258,7 +258,7 @@
 											<textbox	id="ifl_expires_Hours"
 																label="&options.expire.date.hours;"
 																size="1"
-																tabindex="210"
+																tabindex="2100"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																maxLength="2"
 																onchange="coomanPlus.changeHours(this);coomanPlus.setTimeField();"
@@ -277,7 +277,7 @@
 											<textbox	id="ifl_expires_Minutes"
 																label="&options.expire.date.minutes;"
 																size="1"
-																tabindex="220"
+																tabindex="2200"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																maxLength="2"
 																onchange="coomanPlus.changeMinutes(this);coomanPlus.setTimeField();"
@@ -296,7 +296,7 @@
 											<textbox	id="ifl_expires_Seconds"
 																label="&options.expire.date.seconds;"
 																size="1"
-																tabindex="230"
+																tabindex="2300"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																flex="0"
 																maxLength="2"
@@ -326,7 +326,7 @@
 									oncommand="coomanPlus.saveCookie(true)"
 									accesskey="&CookieEditDlg.saveNew.accesskey;"
 									hidden="true"
-									tabindex="250"
+									tabindex="2500"
 									accessibleType="1002"
 					/>
 					<spacer/>
@@ -336,14 +336,14 @@
 									accesskey="&CookieEditDlg.save.accesskey;"
 									hidden="false"
 									style="font-weight:bold;"
-									tabindex="260"
+									tabindex="2600"
 									accessibleType="1002"
 					/>
 					<spacer/>
 					<button	label="&CookieEditDlg.close.label;"
 									oncommand="window.close()"
 									accesskey="&CookieEditDlg.close.accesskey;"
-									tabindex="270"
+									tabindex="2700"
 									accessibleType="1002"
 					/>
 				</hbox>
@@ -363,6 +363,7 @@
 			overwrite:		"&overwrite;",
 			isHttpOnly0:	"&props.isHttpOnly.no;",
 			isHttpOnly1:	"&props.isHttpOnly.yes;",
+			cookie:				"&cookie;",
 			cookies:			"&cookies;",
 		};
 	</script>

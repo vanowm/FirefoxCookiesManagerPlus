@@ -77,12 +77,16 @@ hbox.border,
 
 #changesLogSupport
 {
-	min-width: 18em;
+	min-width: 28em;
 }
 #changesLogSupport,
 #changesLogSupport *
 {
 	font-style: italic;
+}
+#changesLogSupport button *
+{
+	font-style: normal;
 }
 .type
 {
@@ -198,12 +202,13 @@ hbox.border,
 	opacity: 0.5 !important;
 }
 
-.stats
+#changesLog[highlight="0"] .stats
 {
 	font-style: italic;
-	font-weight: normal;
 }
-
+.stats
+{
+}
 #changesLog .stats
 {
 	margin-left: 1em;
@@ -220,3 +225,15 @@ hbox:not(.legend) > vbox > description.comment
 	background-color: ghostwhite;
 }
 */
+
+#changesLog[type="1"] :not(.legend) [type="0"]
+{
+	display: none;
+}
+
+#changesLog .legend [type="1"],
+#changesLog:not([type]) :not(.legend) [type="1"],
+#changesLog[type="0"] :not(.legend) [type="1"]
+{
+	display: none;
+}

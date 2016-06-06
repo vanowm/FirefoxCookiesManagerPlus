@@ -11,11 +11,14 @@
 		<implementation>
 			<constructor><![CDATA[
 				let treeBox = this.parentNode.parentNode.boxObject,
-						treecolpicker = this.parentNode && this.parentNode.boxObject.lastChild && this.parentNode.boxObject.lastChild.boxObject;
+						me = this;
+
 				let observer = new MutationObserver(function(mutator)
 				{
-					let extra = treecolpicker ? treecolpicker.width + 2 : 0; //where is this 2 came from?
-					if (treeBox.horizontalPosition + treeBox.width >= treeBox.rowWidth + extra)
+					let	treecolpicker = me.parentNode && me.parentNode.boxObject.lastChild && me.parentNode.boxObject.lastChild.boxObject,
+							extra = treecolpicker ? treecolpicker.width + 2 : 0; //where is this 2 came from?
+
+					if (treeBox.horizontalPosition + treeBox.width > treeBox.rowWidth + extra)
 					{
 						let scrollPos = treeBox.rowWidth - treeBox.width + extra;
 						if (scrollPos < 0)

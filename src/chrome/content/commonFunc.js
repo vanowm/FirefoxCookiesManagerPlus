@@ -267,7 +267,7 @@ coomanPlus.cookieAdd = function cookieAdd(aCookie, callback)
 
 		return r;
 	}
-	if (aCookie.type == coomanPlusCore.COOKIE_NORMAL)
+	if (!aCookie.type || aCookie.type == coomanPlusCore.COOKIE_NORMAL)
 	{
 		try
 		{
@@ -278,7 +278,12 @@ coomanPlus.cookieAdd = function cookieAdd(aCookie, callback)
 															aCookie.isSecure,
 															aCookie.isHttpOnly,
 															(aCookie.expires) ? false : true,
-															aCookie.expires || Math.round((new Date()).getTime() / 1000 + 9999999999)
+															aCookie.expires,
+															typeof(aCookie.originAttributes) != "undefined"
+																? aCookie.originAttributes
+																: aCookie._aCookie && typeof(aCookie._aCookie.originAttributes) != "undefined"
+																	? aCookie._aCookie.originAttributes 
+																	: {}
 			);
 		}
 		catch(e)
@@ -299,11 +304,26 @@ coomanPlus.cookieRemove = function cookieRemove(aCookie, callback)
 		case coomanPlusCore.COOKIE_NORMAL:
 log.debug("normal cookie");
 			let result;
-			result = coomanPlusCore._cm.remove(aCookie.host,
-																					aCookie.name,
-																					aCookie.path,
-																					aCookie.block,
-																					aCookie.originAttributes);
+			let readonlyList = coomanPlusCore.readonlyCheck(aCookie);
+			if (readonlyList)
+				coomanPlusCore.readonlyRemove(aCookie);
+			try
+			{
+				result = coomanPlusCore._cm.remove(	aCookie.host,
+																						aCookie.name,
+																						aCookie.path,
+																						aCookie.block,
+																						typeof(aCookie.originAttributes) != "undefined"
+																							? aCookie.originAttributes
+																							: aCookie._aCookie && typeof(aCookie._aCookie.originAttributes) != "undefined"
+																								? aCookie._aCookie.originAttributes 
+																								: {}
+				);
+			}
+			catch(e)
+			{
+				log.error(e);
+			}
 			if (typeof(callback) == "function")
 				callback(result)
 
@@ -524,7 +544,13 @@ log.debug("protect observer added");
 				if (obj)
 				{
 					obj.label = obj.getAttribute("_label").replace("$NAME$", self.name)
-//					obj.setAttribute("image", self.icon);
+					obj.setAttribute("image", self.icon);
+					$("protect_btn").setAttribute("image", self.icon);
+					$("unprotect_btn").setAttribute("image", self.icon);
+					$("menu_protect").setAttribute("image", self.icon);
+					$("menu_unprotect").setAttribute("image", self.icon);
+					$("tree_menu_protect").setAttribute("image", self.icon);
+					$("tree_menu_unprotect").setAttribute("image", self.icon);
 				}
 				if (startup && coomanPlus.infoRowsShow)
 					coomanPlus.infoRowsShow(true);
@@ -1002,7 +1028,7 @@ log.debug();
 				d = 0;
 				while(d < obj.parentNode.childNodes.length)
 				{
-					if (obj.parentNode.childNodes[d].tagName == "splitter")
+//					if (obj.parentNode.childNodes[d].tagName == "splitter")
 						obj.parentNode.childNodes[d].setAttribute(attr, d);
 
 					d++;
@@ -1040,8 +1066,12 @@ coomanPlus.checkReset = function checkReset(id)
 	{
 		reset = JSON.parse(this.prefs.getCharPref("reset"));
 	}catch(e){}
-	if (reset && reset.indexOf(id) == -1)
-		this.command("reset");
+	if (reset && reset[id])
+	{
+		let param = {};
+		param.wrappedJSObject = reset[id];
+		this.command("reset", param);
+	}
 
 }
 

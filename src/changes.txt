@@ -7,7 +7,16 @@ Legend:
 * = Changed
 - = Removed
 
-Changes log:
+v1.10 (2016-06-06)
+	+ read-only cookie data. Ability set cookie's "content", "expire", "send for" and "http only" data as read only, which means websites will not be able change it.
+	+ Cookie Keeper icon to all commands associated with it
+	* removed extra spaces between rows in cookies list on some systems
+	* border around current cookie is more pronounced now
+	* renamed "Close" button to "Cancel" in Edit window
+	! cookies list empty after upgrading from v1.7/1.8 (issue #77)
+	! when columns autofit disabled and horizontal scrollbar shown, resizing column to smaller size while scrolled to the right, would make the scroll jump
+	! when auto update is enabled some information from updated cookies get lost until manual refresh
+	! unable resize/change sorting of the list columns after settings reset. This update resets column order, sorry. (issue #78)
 
 v1.9.1 (2016-05-31)
 	! options window closes immediately (issue #75)

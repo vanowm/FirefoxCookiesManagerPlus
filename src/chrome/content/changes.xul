@@ -21,52 +21,55 @@
 	<hbox align="center">
 		<label id="changesLogTitle" value="&changesLog.title;" class="title"/>
 		<vbox id="changesLogSupport" flex="1" align="start" pack="center">
-			<description flex="1" align="start" pack="center">
-				&changesLog.support;
-				<label	id="supportSite"
-								class="text-link link"
-								context="changesLogLink"
-								onmouseover="changesLog.mouseOver(event)"
-								onmouseout="changesLog.mouseOut(event)"
-				>
-					&changesLog.support.website;
-				</label>
-				&changesLog.support.via;
-				<label	id="supportEmail"
-								class="text-link link"
-								context="changesLogLink"
-								onmouseover="changesLog.mouseOver(event)"
-								onmouseout="changesLog.mouseOut(event)"
-								
-				>
-					&changesLog.support.email;
-				</label>
-				.
-				&changesLog.more;
-				<label	id="supportHomepage"
-								class="text-link link"
-								context="changesLogLink"
-								onmouseover="changesLog.mouseOver(event)"
-								onmouseout="changesLog.mouseOut(event)"
-				>
-					&changesLog.here;
-				</label>
-			</description>
+			<hbox align="center" pack="center">
+				<description flex="1" align="start" pack="center">
+					&changesLog.support;
+					<label	id="supportSite"
+									class="text-link link"
+									context="changesLogLink"
+									onmouseover="changesLog.mouseOver(event)"
+									onmouseout="changesLog.mouseOut(event)"
+					>
+						&changesLog.support.website;
+					</label>
+					&changesLog.support.via;
+					<label	id="supportEmail"
+									class="text-link link"
+									context="changesLogLink"
+									onmouseover="changesLog.mouseOver(event)"
+									onmouseout="changesLog.mouseOut(event)"
+									
+					>
+						&changesLog.support.email;
+					</label>
+					.
+					&changesLog.more;
+					<label	id="supportHomepage"
+									class="text-link link"
+									context="changesLogLink"
+									onmouseover="changesLog.mouseOver(event)"
+									onmouseout="changesLog.mouseOut(event)"
+					>
+						&changesLog.here;
+					</label>
+				</description>
+				<hbox>
+					<button type="menu" id="changesLogMenu" label="&changesLog.options;" flex="0">
+						<panel id="changesLogOptions" position="after_end">
+							<vbox>
+								<checkbox id="changesLogHightlight" label="&changesLog.menu.hightlight;" value="1" persist="value" oncommand="changesLog.highlight(event);"/>
+								<checkbox id="changesLogWrap" label="&changesLog.menu.wrap;" value="1" persist="value" oncommand="changesLog.wrap(event);"/>
+								<checkbox id="changesLogAltBg" label="&changesLog.menu.altbg;" value="0" persist="value" oncommand="changesLog.altbg(event);"/>
+								<checkbox id="changesLogLegendType" label="&changesLog.menu.legendType;" value="1" persist="value" oncommand="changesLog.legendType(event);"/>
+								<checkbox id="changesLogLegend" label="&changesLog.menu.legend;" value="1" persist="value" oncommand="changesLog.legend(event);"/>
+								<checkbox id="changesLogCopyIssueUrl" label="&changesLog.menu.copyIssueUrl;" tooltiptext="&changesLog.menu.copyIssueUrl.desc;" value="0" persist="value" oncommand="changesLog.copyIssueUrl(event);"/>
+								<button id="changeLogAddonOptions" label="&changesLog.options.addon;" oncommand="changesLog.openOptions(event)"/>
+							</vbox>
+						</panel>
+					</button>
+				</hbox>
+			</hbox>
 		</vbox>
-		<hbox flex="1" pack="end">
-			<button type="menu" id="changesLogMenu" label="&changesLog.options;">
-				<panel id="changesLogOptions" position="after_end">
-					<vbox>
-						<checkbox id="changesLogHightlight" label="&changesLog.menu.hightlight;" value="1" persist="value" oncommand="changesLog.highlight(event);"/>
-						<checkbox id="changesLogWrap" label="&changesLog.menu.wrap;" value="1" persist="value" oncommand="changesLog.wrap(event);"/>
-						<checkbox id="changesLogAltBg" label="&changesLog.menu.altbg;" value="0" persist="value" oncommand="changesLog.altbg(event);"/>
-						<checkbox id="changesLogLegend" label="&changesLog.menu.legend;" value="1" persist="value" oncommand="changesLog.legend(event);"/>
-						<checkbox id="changesLogCopyIssueUrl" label="&changesLog.menu.copyIssueUrl;" tooltiptext="&changesLog.menu.copyIssueUrl.desc;" value="0" persist="value" oncommand="changesLog.copyIssueUrl(event);"/>
-						<button id="changeLogAddonOptions" label="&changesLog.options.addon;" oncommand="changesLog.openOptions(event)"/>
-					</vbox>
-				</panel>
-			</button>
-		</hbox>
 	</hbox>
 	<vbox id="changesLogBox" flex="1">
 		<hbox flex="1">

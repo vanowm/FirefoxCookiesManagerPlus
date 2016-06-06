@@ -4,6 +4,7 @@ checkbox[right="true"] {
 	-moz-appearance: checkbox-container;
 	-moz-box-align: center;
 	margin: 0;
+	padding: 0;
 	padding-top: 1px;
 	padding-bottom: 1px;
 	-moz-padding-start: 4px;
@@ -13,8 +14,10 @@ checkbox[right="true"] {
 checkbox[right="true"] .checkbox-label-box {
 	-moz-margin-end: 2px;
 	border: 1px solid transparent;
-	padding: 0px 1px;
+	padding:0 1px 0 0;
+	margin: 0;
 }
+
 
 checkbox[right="true"] .checkbox-icon {
 	-moz-margin-end: 2px;
@@ -73,3 +76,7 @@ checkbox[right="true"][checked="true"] > .checkbox-check {
 checkbox[right="true"][checked="true"][disabled="true"] > .checkbox-check {
 	background-image: url("chrome://global/skin/checkbox/cbox-check-dis.gif") !important
 }
+
+
+
+

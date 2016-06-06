@@ -1,4 +1,4 @@
-<!ENTITY title.label										"Cookies Manager+ Options">
+<!ENTITY title.label										"Options">
 <!ENTITY options.delconfirm.label				'Display "Delete Confirmations"'>
 <!ENTITY options.autoupdate.label				'Auto refresh'>
 <!ENTITY options.autoupdate.info				'Automatically update list if a cookie changed. Only "normal" cookies supported'>
@@ -88,3 +88,8 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY backupSettingsSave									"Save Settings as">
 <!ENTITY restoreSettingsOpen								"Open Settings file">
 <!ENTITY restoreSettingsError								"Error restoring settings">
+<!ENTITY options.readonly										"Enable write protected cookies data">
+<!ENTITY options.readonly.info							"This will allow you set content, http only, secure and expire data of a cookie(s) to read-only. Websites will not be able override write protected data. Deleted or expired cookies will be removed from read-only database upon browser restart or if deleted within CM+">
+<!ENTITY options.readonlydelete							"Allow websites delete write protected cookies">
+<!ENTITY options.readonlydelete.info				"Allow websites delete cookies with write protected data? (note, it will not clear read-only flag on deleted cookies until browser is restarted!)">
+<!ENTITY settingsFile												"# settings">

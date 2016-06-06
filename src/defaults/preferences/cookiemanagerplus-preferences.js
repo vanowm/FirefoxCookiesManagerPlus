@@ -21,8 +21,11 @@ pref("extensions.cookiesmanagerplus.showChangesLog", 1);
 pref("extensions.cookiesmanagerplus.deleteexpired", false);
 pref("extensions.cookiesmanagerplus.autofit", true);
 pref("extensions.cookiesmanagerplus.restoreselection", 1);
+pref("extensions.cookiesmanagerplus.readonly", true);
+pref("extensions.cookiesmanagerplus.readonlydelete", true);
 
 //hidden options:
+pref("extensions.cookiesmanagerplus.readonlyencrypt", true);
 pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
 pref("extensions.cookiesmanagerplus.debug", 1);
 pref("extensions.cookiesmanagerplus.persist", ""); //persist data from windows
