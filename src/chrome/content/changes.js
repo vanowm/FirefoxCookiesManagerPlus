@@ -498,12 +498,12 @@ var changesLog = {
 						{
 							if (list[i].isActive)
 							{
-								let type = list[i].type.charAt(0).toUpperCase() + list[i].type.slice(1) + "s";
+								let type = list[i].type.charAt(0).toUpperCase() + list[i].type.slice(1);
 
 								if (!extra[type])
 									extra[type] = []
 
-								extra[type].push([list[i].name, list[i].version,  list[i].id.replace("@", "{a}")]);
+								extra[type].push([list[i].name, list[i].version,  list[i].id.replace(/@/g, "{a}")]);
 							}
 						}
 					}
@@ -513,7 +513,7 @@ var changesLog = {
 						for(let i in extra)
 							body[i] = extra[i];
 
-						changesLog.copy(JSON.stringify(body, null, "\t"));
+						changesLog.copy(JSON.stringify(body));
 					}
 
 					if (Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator)

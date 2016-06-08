@@ -31,8 +31,8 @@ var	self = this,
 	_cm2: Cc["@mozilla.org/cookiemanager;1"].getService(Ci.nsICookieManager2),
 	os: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS,
 	appInfo: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo),
-//	sdr: Cc["@mozilla.org/security/sdr;1"].getService(Ci.nsISecretDecoderRing),
-	sdr: Cc["@mozilla.org/login-manager/crypto/SDR;1"].getService(Ci.nsILoginManagerCrypto),
+	sdr: Cc["@mozilla.org/security/sdr;1"].getService(Ci.nsISecretDecoderRing),
+//	sdr: Cc["@mozilla.org/login-manager/crypto/SDR;1"].getService(Ci.nsILoginManagerCrypto),
 	readonlyList: {},
 	readonlyFile: "cookiesManagerPlusReadonly.json",
 	readonlyFileSaved: true,
@@ -344,9 +344,10 @@ log.debug();
 			{
 				try
 				{
-					data = JSON.stringify({e:self.sdr.encrypt(data)});
+//					data = JSON.stringify({e:self.sdr.encrypt(data)});
+					data = JSON.stringify({e:self.sdr.encryptString(data)});
 				}
-				catch(e){}
+				catch(e){log.error(e)}
 			}
 
 			let file = FileUtils.getFile("ProfD", [self.readonlyFile]),
@@ -406,12 +407,14 @@ log.debug();
 			{
 				try
 				{
-					text = this.sdr.decrypt(data.e);
+//					text = this.sdr.decrypt(data.e);
+					text = this.sdr.decryptString(data.e);
 					data = JSON.parse(text);
 				}
 				catch(e)
 				{
 					data = null;
+					log.error(e);
 				}
 			}
 			this.readonlySaveLast = text;

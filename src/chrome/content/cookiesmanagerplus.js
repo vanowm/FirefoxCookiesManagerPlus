@@ -1840,6 +1840,55 @@ log.debug();
 		}
 	},//changeFilter()
 
+	_match: function _match(str, needle, wildcard, start, type)
+	{
+		needle = needle.replace(/[*]{2,}/g, "*");
+		start = typeof(start) == "undefined" ? 0 : start;
+		wildcard = typeof(wildcard) == "undefined" ? needle.match(/[*?]/) : wildcard;
+		type = typeof(type) == "undefined" ? 0 : type;
+		switch (type)
+		{
+			case 1:
+				let website = needle.toLowerCase(),
+						host = str.toLowerCase();
+				if (str == needle)
+					return true;
+
+				let p = -1,
+						l = website.lastIndexOf(".");
+				while(1)
+				{
+					p = website.indexOf(".", p+1);
+					if (p == -1 || p == l)
+						break;
+
+					if (host == website.substring(p))
+						return true;
+				}
+				break;
+			case 2:
+				return str == needle
+				break;
+		}
+		let r = new RegExp('"([^"]+)"', ""),
+				exact = needle.match(r),
+				host, name, value;
+		if (exact)
+			needle = exact[1];
+		if (wildcard)
+		{
+			let r = new RegExp((exact ? "^" : "")+ needle.replace(/\*/g, ".*").replace(/\?/g, ".") + (exact ? "$" : ""), "");
+			return str.substring(start).match(r);
+		}
+		else
+		{
+			if (exact)
+				return str.substring(start) == needle;
+
+			return str.substring(start).indexOf(needle) != -1;
+		}
+	},
+
 	_cookieMatchesFilter: function _cookieMatchesFilter(aCookie, filter)
 	{
 		host = aCookie.host;
