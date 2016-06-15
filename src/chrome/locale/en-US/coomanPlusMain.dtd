@@ -25,6 +25,7 @@
 <!ENTITY		menu.filter.host 																				"Domain">
 <!ENTITY		menu.filter.content 																		"Content">
 <!ENTITY		menu.filter.case																				"Case sensitive">
+<!ENTITY		menu.filter.regex																				"RegExp">
 <!ENTITY		menu.cookiesPermissions.label														"Cookies Permissions">
 
 <!ENTITY		menu.filter.hostType																		"Domain match">
@@ -100,6 +101,7 @@
 <!ENTITY		cookie.secure.label																			"Secure">
 <!ENTITY		cookie.type.label																				"Type">
 <!ENTITY		cookie.size.label																				"Size">
+<!ENTITY		cookie.readonly.label																		"Read-only">
 
 <!ENTITY		datepickerwindow.title.label														"Date Picker">
 <!ENTITY		datepickerwindow.button.label														"Calendar">
@@ -133,7 +135,8 @@
 <!ENTITY		infoRow.reset																						"Reset Info Rows Order">
 <!ENTITY		infoRow.wrap																						"Wrap text">
 <!ENTITY		infoRow.expand																					"JSON Expand">
-<!ENTITY		infoRow.decode																					"URL Decode">
+<!ENTITY		infoRow.urlDecode																				"URL Decode">
+<!ENTITY		infoRow.base64decode																		"Base64 decode">
 
 <!ENTITY		protect.protect																					"Protect">
 <!ENTITY		protect.protect.accesskey																"P">
@@ -213,3 +216,4 @@
 <!ENTITY		fields.note																							"Enabling this field might decrease performance.">
 <!ENTITY		readonly.enabled																				"Read only">
 <!ENTITY		readonly.disabled																				"Normal Read/Write">
+<!ENTITY		filter.search																						"Search">

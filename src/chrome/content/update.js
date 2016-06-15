@@ -1,3 +1,7 @@
+(function()
+{
+
+//let log = coomanPlusCore.log;
 coomanPlus.CHANGESLOG_NONE = 0;
 coomanPlus.CHANGESLOG_FULL = 4;
 coomanPlus.CHANGESLOG_NOTIFICATION = 1;
@@ -5,30 +9,10 @@ coomanPlus.CHANGESLOG_NOTIFICATION2 = 2;
 coomanPlus.notification = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
 coomanPlus.notificationAvailable = (coomanPlus.notification && coomanPlus.notification.showAlertNotification);
 coomanPlus.strings = {};
-var log = coomanPlusCore.log;
 coomanPlus.string = function(s)
 {
-	if (s in this.strings)
 		return this.strings[s];
-
-	try
-	{
-		return this._cb.getString(s);
-	}
-	catch(e)
-	{
-		if ("_cb2" in this)
-		try
-		{
-			return this._cb2.getString(s);
-		}
-		catch(e)
-		{
-			log.error("String is missing: " + s);
-		}
-	}
 }
-
 
 coomanPlus.openChanges = function()
 {
@@ -152,10 +136,7 @@ coomanPlus.showChangesLog = function(type, demo)
 						input
 				try
 				{
-					channel = ioService.newChannel(aURL,null,null);
-				}
-				catch(e) //FF48 WHAT THE FUCK, MOZILLA?! HOW ABOUT YOU UPDATE THE DAMN DOCUMENTATION BEFORE YOU REMOVE SHIT WITHOUT BACKWARDS COMPATIBILITY?
-				{
+					//FF48 WHAT THE FUCK, MOZILLA?! HOW ABOUT YOU UPDATE THE DAMN DOCUMENTATION BEFORE YOU REMOVE SHIT WITHOUT BACKWARDS COMPATIBILITY?
 					channel = ioService.newChannel2(aURL,null,null,
 																					null,      // aLoadingNode
 																					Services.scriptSecurityManager.getSystemPrincipal(),
@@ -163,6 +144,10 @@ coomanPlus.showChangesLog = function(type, demo)
 																					Components.interfaces.nsILoadInfo.SEC_NORMAL,
 																					Components.interfaces.nsIContentPolicy.TYPE_INTERNAL_IMAGE
 					);
+				}
+				catch(e)
+				{
+					channel = ioService.newChannel(aURL,null,null);
 				}
 				input = channel.open();
 	
@@ -452,3 +437,4 @@ coomanPlus.update = function update()
 	}
 	coomanPlusCore.updateChecked = true;
 }
+})();

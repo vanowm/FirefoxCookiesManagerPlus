@@ -3,7 +3,7 @@
 
 	<Description about="urn:mozilla:install-manifest">
 		<em:id>{bb6bc1bb-f824-4702-90cd-35e2fb24f25d}</em:id>
-		<em:version>1.10.1</em:version>
+		<em:version>1.11</em:version>
 
 		<em:targetApplication>
 			<Description>
@@ -15,6 +15,7 @@
 
 		<em:type>2</em:type>
 		<em:unpack>true</em:unpack>
+		<em:multiprocessCompatible>true</em:multiprocessCompatible>
 		<!-- Front End MetaData -->
 		<em:name>Cookies Manager+</em:name>
 		<em:description>Cookies manager that allows view, edit and create cookies as well as edit multiple cookies at once and backup/restore them</em:description>

@@ -2,6 +2,7 @@
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://global/content/xul.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/toolbarbutton.css" type="text/css"?>
 <?xml-stylesheet href="chrome://cookiesmanagerplus/skin/cookiesmanagerplus.css" type"text/css"?>
 
@@ -53,7 +54,8 @@
 				<menuseparator />
 				<menuitem id="infoRowWrap" type="checkbox" label="&infoRow.wrap;" value="wrap" accessibleType="100E"/>
 				<menuitem id="infoRowExpand" type="checkbox" label="&infoRow.expand;" value="expand" accessibleType="100E"/>
-				<menuitem id="infoRowDecode" type="checkbox" label="&infoRow.decode;" value="decode" accessibleType="100E"/>
+				<menuitem id="infoRowDecode" type="checkbox" label="&infoRow.urlDecode;" value="decode" accessibleType="100E"/>
+				<menuitem id="infoRowBase64Decode" type="checkbox" label="&infoRow.base64decode;" value="base64decode" accessibleType="100E"/>
 				<menuseparator />
 				<menuitem id="infoRowUp" label="&infoRow.move.up;" value="up" accessibleType="100E" />
 				<menuitem id="infoRowDown" label="&infoRow.move.down;" value="down" accessibleType="100E" />
@@ -355,7 +357,9 @@
 			</menu>
 		</menubar>
 		<vbox flex="1" class="contentPane">
+			<vbox>
 			<hbox id="nav-bar" align="center">
+<!--
 				<label control="lookupcriterium">&filter.label;</label>
 				<textbox	id="lookupcriterium"
 									default="true"
@@ -365,101 +369,124 @@
 									persist="filter"
 									filter=""
 									type="search"
+									autocompletesearch="cmp-autocomplete" enablehistory="true"
 									aria-controls="cookiesTree"
 									accessibleType="101B"
 				/>
-					<button	id="filtermenu"
-									type="panel"
-									tooltiptext="&menu.filter.label;"
-									label="&menu.filter.label;"
-									class="menubutton"
-									align="center"
-									pack="center"
-									accessibleType="1002"
-					>
-						<menupopup id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
-							<menuitem label=" "
-												description="&menu.filter.label;"
-												class="menuheader"
-												disabled="true"
-							/>
-							<menuitem id="searchtype1"
-												type="checkbox"
-												closemenu="none"
-												label="&cookie.Type1;"
-												accessibleType="100E"
+-->
+				<textbox	id="lookupcriterium"
+									default="true"
+									flex="1"
+									onkeyup="if (event.keyCode == 13) {coomanPlus.doLookup(event);}"
+									oncommand="coomanPlus.autofilter()"
+									persist="filter autocompletesearchparam"
+									filter=""
+									type="autocomplete"
+									autocompletesearch="cmp-autocomplete"
+									enablehistory="true"
+									aria-controls="cookiesTree"
+									accessibleType="101B"
+				/>
+				<button	id="filtermenu"
+								type="panel"
+								tooltiptext="&menu.filter.label;"
+								label="&menu.filter.label;"
+								class="menubutton"
+								align="center"
+								pack="center"
+								accessibleType="1002"
+				>
+					<menupopup id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
+						<menuitem label=" "
+											description="&menu.filter.label;"
+											class="menuheader"
+											disabled="true"
+						/>
+						<menuitem id="searchtype1"
+											type="checkbox"
+											closemenu="none"
+											label="&cookie.Type1;"
+											accessibleType="100E"
 hidden="true"
-							/>
-							<menuitem id="searchtype2"
-												type="checkbox"
-												closemenu="none"
-												label="&cookie.Type2;"
-												accessibleType="100E"
+						/>
+						<menuitem id="searchtype2"
+											type="checkbox"
+											closemenu="none"
+											label="&cookie.Type2;"
+											accessibleType="100E"
 hidden="true"
-							/>
-							<menuseparator accessibleType="1010"/>
-							<menuitem id="searchname"
-												type="checkbox"
-												closemenu="none"
-												label="&menu.filter.name;"
-												accessibleType="100E"
-							/>
-							<menuitem id="searchhost"
-												type="checkbox"
-												closemenu="none"
-												label="&menu.filter.host;"
-												accessibleType="100E"
-							/>
-							<menuitem id="searchcontent"
-												type="checkbox"
-												closemenu="none"
-												label="&menu.filter.content;"
-												accessibleType="100E"
-							/>
-		
-							<menuseparator accessibleType="1010"/>
-							<menu id="searchhosttype"
-										label="&menu.filter.hostType;">
-								<menupopup>
-									<menuitem id="searchhosttype0"
-														name="searchhosttype"
-														type="radio"
-														closemenu="none"
-														label="&menu.filter.normal;"
-														tooltiptext="&menu.filter.normal.info;"
-														accessibleType="100E"
-														value="0"
-									/>
-									<menuitem id="searchhosttype1"
-														name="searchhosttype"
-														type="radio"
-														closemenu="none"
-														label="&menu.filter.relaxed;"
-														tooltiptext="&menu.filter.relaxed.info;"
-														accessibleType="100E"
-														value="1"
-									/>
-									<menuitem id="searchhosttype2"
-														name="searchhosttype"
-														type="radio"
-														closemenu="none"
-														label="&menu.filter.exact;"
-														tooltiptext="&menu.filter.exact.info;"
-														accessibleType="100E"
-														value="2"
-									/>
-								</menupopup>
-							</menu>
-							<menuitem id="searchcase"
-												type="checkbox"
-												closemenu="none"
-												label="&menu.filter.case;"
-												accessibleType="100E"
-							/>
-						</menupopup>
-					</button>
+						/>
+						<menuseparator accessibleType="1010"/>
+						<menuitem id="searchname"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.name;"
+											accessibleType="100E"
+						/>
+						<menuitem id="searchhost"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.host;"
+											accessibleType="100E"
+						/>
+						<menuitem id="searchcontent"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.content;"
+											accessibleType="100E"
+						/>
+	
+						<menuseparator accessibleType="1010"/>
+						<menu id="searchhosttype"
+									label="&menu.filter.hostType;">
+							<menupopup>
+								<menuitem id="searchhosttype0"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.normal;"
+													tooltiptext="&menu.filter.normal.info;"
+													accessibleType="100E"
+													value="0"
+								/>
+								<menuitem id="searchhosttype1"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.relaxed;"
+													tooltiptext="&menu.filter.relaxed.info;"
+													accessibleType="100E"
+													value="1"
+								/>
+								<menuitem id="searchhosttype2"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.exact;"
+													tooltiptext="&menu.filter.exact.info;"
+													accessibleType="100E"
+													value="2"
+								/>
+							</menupopup>
+						</menu>
+						<menuitem id="searchcase"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.case;"
+											accessibleType="100E"
+						/>
+						<menuitem id="searchregex"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.regex;"
+											checked="false"
+											accessibleType="100E"
+						/>
+					</menupopup>
+				</button>
 				<button id="lookupstart" oncommand="coomanPlus.doLookup(undefined, true)" accessibleType="1002"/>
 			</hbox>
+			</vbox>
 			<tree id="cookiesTree"
 						flex="1"
 						hidecolumnpicker="false"
@@ -604,6 +631,15 @@ hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter class="tree-splitter" resizeafter="grow"/>
+					<treecol	id="readonly"
+										label="&cookie.readonly.label;"
+										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
+										context="coomanPlus_tree_menu"
+										hidden="true"
+										_hidden="true"
+										persist="width hidden ordinal"
+					/>
+					<splitter class="tree-splitter" resizeafter="grow"/>
 					<treecol	id="size"
 										label="&cookie.size.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
@@ -673,7 +709,7 @@ hidden="true"
 														class="plain infofield"
 														flex="1"
 														rows="1"
-														persist="wrap expand decode"
+														persist="wrap expand decode base64decode"
 														multiline="true"
 														empty="true"
 														accessibleType="101B"/>
@@ -974,7 +1010,6 @@ hidden="true"
 	<script type="application/javascript" src="export.js"/>
 	<script type="application/javascript" src="treeUtils.js"/>
 	<script type="application/javascript" src="date.js"/>
-	<script type="application/javascript" src="base64.js"/>
 	<script type="application/javascript">
 		coomanPlus.strings = {
 			protect_protect_accesskey:		"&protect.protect.accesskey;",

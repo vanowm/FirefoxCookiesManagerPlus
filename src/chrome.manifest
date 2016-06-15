@@ -7,3 +7,7 @@ style			chrome://browser/content/browser.xul							chrome://cookiesmanagerplus/s
 overlay		chrome://browser/content/browser.xul							chrome://cookiesmanagerplus/content/sysOverlay.xul
 overlay		chrome://browser/content/preferences/cookies.xul	chrome://cookiesmanagerplus/content/cookiesOverlay.xul
 locale		cookiesmanagerplus						en-US								chrome/locale/en-US/
+
+
+component {bb6bc1bb-f824-4702-90cd-35e2fb24f25d} components/autocomplete.js
+contract @mozilla.org/autocomplete/search;1?name=cmp-autocomplete {bb6bc1bb-f824-4702-90cd-35e2fb24f25d}

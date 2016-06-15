@@ -41,7 +41,7 @@ var coomanPlus = {
 	_addFlagNew: false,
 	_curCookie: null,
 	_newCookie: null,
-	_cb: null, //cookie bundle
+	_cb: [], //cookie bundle
 	_parent: null,
 	_multi: false,
 	backupData: {},
@@ -66,7 +66,7 @@ var coomanPlus = {
 		this._parent = this._params.document;
 
 		this._addFlag = this._params.type == "new";
-		this._cb = $("bundlePreferences");
+		this._cb.push($("bundlePreferences"));
 
 		$('ifl_isSecureYes').label = $('ifl_isSecureYes').value = this.string("forSecureOnly");
 		$('ifl_isSecureNo').label = $('ifl_isSecureNo').value = this.string("forAnyConnection");
@@ -181,6 +181,7 @@ var coomanPlus = {
 		this.prefs.QueryInterface(this.prefBranch).addObserver('', this.onPrefChange, false);
 
 		this.checkReset("edit");
+		this.checkRestore("edit");
 	},//init()
 
 	_events: {},
@@ -628,7 +629,6 @@ log.debug();
 					ro[r] = aCookie[r];
 			}
 
-			coomanPlusCore.readonlyAdd(aCookie);
 			if(this._addFlag
 					|| (!this._addFlag && !exists)
 					|| !cookieEqual
@@ -858,6 +858,20 @@ log.debug();
 					r = JSON.stringify(JSON.parse(r), null, 0);
 				}catch(e){}
 			break;
+
+			case "base64encode":
+				try
+				{
+					r = btoa(r);
+				}catch(e){}
+			break;
+
+			case "base64decode":
+				try
+				{
+					r = atob(r);
+				}catch(e){}
+			break;
 		}
 		let newLength = r.length;
 		if (selStart != selEnd)
@@ -975,6 +989,18 @@ log.debug();
 			}
 			else
 				window.sizeToContent();
+
+			try
+			{
+				restore = this.prefs.getCharPref("restore");
+				restore = JSON.parse(restore);
+				delete restore.edit;
+			}catch(e){}
+			restore = JSON.stringify(restore);
+			if (restore == "{}")
+				this.prefs.clearUserPref("restore");
+			else
+				this.prefs.setCharPref("restore", restore);
 		}
 	},//settingsRestore()
 };

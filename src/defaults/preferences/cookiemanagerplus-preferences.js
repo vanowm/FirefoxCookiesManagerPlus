@@ -8,6 +8,7 @@ pref("extensions.cookiesmanagerplus.searchname", true);
 pref("extensions.cookiesmanagerplus.searchcontent", true);
 pref("extensions.cookiesmanagerplus.searchhosttype", 0); //0 normal, 1 relaxed, 2 strict
 pref("extensions.cookiesmanagerplus.searchcase", false);
+pref("extensions.cookiesmanagerplus.searchregex", false);
 
 pref("extensions.cookiesmanagerplus.simplehost", 0);
 pref("extensions.cookiesmanagerplus.deleteprotected", false);
@@ -25,6 +26,8 @@ pref("extensions.cookiesmanagerplus.readonly", true);
 pref("extensions.cookiesmanagerplus.readonlydelete", true);
 
 //hidden options:
+pref("extensions.cookiesmanagerplus.searchhistory", 1000); //number of previous searches to remember
+pref("extensions.cookiesmanagerplus.buttonaction", false);//toolbar button default action 0 = default, 1 = open CM+ with current site filter
 pref("extensions.cookiesmanagerplus.readonlyencrypt", true);
 pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
 pref("extensions.cookiesmanagerplus.debug", 1);

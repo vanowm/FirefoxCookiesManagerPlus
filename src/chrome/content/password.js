@@ -39,7 +39,7 @@ var coomanPlus = {
 			$("msg.warning").collapsed = true;
 		}
 		$("msg.info").collapsed = !this._params.newPass || this._params.set ? true : false;
-		let observer = new MutationObserver(function()
+		var observer = new MutationObserver(function()
 		{
 			coomanPlus.check()
 		});

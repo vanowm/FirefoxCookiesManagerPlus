@@ -6,21 +6,11 @@
 <overlay	id="coomanPlusOverlay"
 					xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 >
-	<script type="application/javascript" src="sysOverlay.js"/>
-	<script type="application/javascript" src="update.js"/>
-	<script type="application/javascript">
-		coomanPlus.strings = {
-			site:							"&cookiesmanagerplus.site;",
-			updated:					"&cookiesmanagerplus.updated;",
-			changesLog:				"&cookiesmanagerplus.changesLog;",
-			changesLog_key:		"&cookiesmanagerplus.changesLog_key;",
-			menu_options:			"&cookiesmanagerplus.menu_options;",
-			menu_options_key:	"&cookiesmanagerplus.menu_options_key;",
-		};
-	</script>
 	<commandset>
 		<command id="openCookieEditor" oncommand="coomanPlus.openCookieEditor();"/>
-		<command id="openCookieEditorCurrent" oncommand="coomanPlus.openCookieEditor({gBrowser: gBrowser});"/>
+		<command id="openCookieEditor1" oncommand="coomanPlus.openCookieEditor(1);"/>
+		<command id="openCookieEditor2" oncommand="coomanPlus.openCookieEditor(2);"/>
+		<command id="openCookieEditorOptions" oncommand="coomanPlusCore.openOptions({standalone: false});"/>
 	</commandset>
 	<!-- FireFox -->
 	<toolbarpalette id="BrowserToolbarPalette">
@@ -31,10 +21,23 @@
 										tooltiptext="&cookiesmanagerplus.label;"
 										type="menu-button"
 		>
-			<menupopup onpopupshowing="return coomanPlus.menu();">
+			<menupopup onpopupshown="return coomanPlus.menu();">
 				<menuitem id="coomanPlus_button_menu"
-									command="openCookieEditorCurrent"
-									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+									label="&cookiesmanagerplus.label;"
+									accesskey="&cookiesmanagerplus.accesskey;"
+									command="openCookieEditor1"
+				/>
+				<menuitem id="coomanPlus_button_menu2"
+									label="&cookiesmanagerplus.site;"
+									command="openCookieEditor2"
+									accesskey="&cookiesmanagerplus.site.accesskey;"
+									tooltiptext="&cookiesmanagerplus.site.tooltip;"
+									disabled="true"
+				/>
+				<menuseparator/>
+				<menuitem label="&cookiesmanagerplus.menu_options;"
+									command="openCookieEditorOptions"
+									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>
 		</toolbarbutton>
@@ -48,15 +51,22 @@
 					class="menu-iconic"
 					onclick="if(event.originalTarget.id != 'coomanPlus_tools_menu') return false;this.parentNode.hidePopup();coomanPlus.openCookieEditor();"
 		>
-			<menupopup onpopupshowing="return coomanPlus.menu(event);">
-				<menuitem label="&cookiesmanagerplus.label;"
-									accesskey="&cookiesmanagerplus.accesskey;"
-									command="openCookieEditor"
-				/>
+			<menupopup onpopupshown="return coomanPlus.menu(event);">
 				<menuitem id="coomanPlus_tools_menuitem"
-									command="openCookieEditorCurrent"
-									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+									label="&cookiesmanagerplus.label;"
 									accesskey="&cookiesmanagerplus.accesskey;"
+									command="openCookieEditor1"
+				/>
+				<menuitem id="coomanPlus_tools_menuitem2"
+									label="&cookiesmanagerplus.site;"
+									command="openCookieEditor2"
+									tooltiptext="&cookiesmanagerplus.site.tooltip;"
+									accesskey="&cookiesmanagerplus.site.accesskey;"
+				/>
+				<menuseparator/>
+				<menuitem label="&cookiesmanagerplus.menu_options;"
+									command="openCookieEditorOptions"
+									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>
 		</menu>
@@ -70,13 +80,37 @@
 							iconic="true"
 							insertafter="appmenu_errorConsole"
 		>
-			<menupopup onpopupshowing="return coomanPlus.menu();">
+			<menupopup onpopupshown="return coomanPlus.menu();">
 				<menuitem id="coomanPlus_appmenu_menuitem"
-									command="openCookieEditorCurrent"
-									tooltiptext="&cookiesmanagerplus.current.tooltip;"
+									label="&cookiesmanagerplus.label;"
 									accesskey="&cookiesmanagerplus.accesskey;"
+									command="openCookieEditor1"
+				/>
+				<menuitem id="coomanPlus_appmenu_menuitem2"
+									label="&cookiesmanagerplus.site;"
+									command="openCookieEditor2"
+									tooltiptext="&cookiesmanagerplus.site.tooltip;"
+									accesskey="&cookiesmanagerplus.site.accesskey;"
+				/>
+				<menuseparator/>
+				<menuitem label="&cookiesmanagerplus.menu_options;"
+									command="openCookieEditorOptions"
+									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>
 		</splitmenu>
 	</vbox>
+	<script type="application/javascript" src="sysOverlay.js"/>
+	<script type="application/javascript" src="update.js"/>
+	<script type="application/javascript">
+		coomanPlus.strings = {
+			site:							"&cookiesmanagerplus.site;",
+			updated:					"&cookiesmanagerplus.updated;",
+			changesLog:				"&cookiesmanagerplus.changesLog;",
+			changesLog_key:		"&cookiesmanagerplus.changesLog_key;",
+			menu_options:			"&cookiesmanagerplus.menu_options;",
+			menu_options_key:	"&cookiesmanagerplus.menu_options_key;",
+			na:								"&cookiesmanagerplus.na;",
+		};
+	</script>
 </overlay>

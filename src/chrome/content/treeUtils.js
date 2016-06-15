@@ -68,6 +68,12 @@ log.debug("sort begin");
 		if (typeof(a[f]) == "string")
 			r = a[f].toLowerCase().localeCompare(b[f].toLowerCase());
 //			r = a[f].toLowerCase().localeCompare(b[f].toLowerCase(), undefined, {ignorePunctuation: true});
+		else if (f == "readonly")
+		{
+			let _a = a[f] ? true : false,
+					_b = b[f] ? true : false;
+			r = (_a > _b) - (_a < _b);
+		}
 		else
 		{
 			r = (a[f] > b[f]) - (a[f] < b[f]);

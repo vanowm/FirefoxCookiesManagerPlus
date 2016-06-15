@@ -28,6 +28,7 @@
 
 
 /*##################################################################################### */
+Cu.import("resource://gre/modules/Services.jsm");
 
 function $(id)
 {
@@ -53,11 +54,12 @@ var coomanPlus = {
 	prefFiltersearchhosttype: 0,
 	prefFiltersearchcontent: true,
 	prefFiltersearchcase: false,
+	prefFiltersearchregex: false,
 	prefSimpleHost: false,
 	prefExpireProgress: false,
 	prefExpireCountdown: true,
 	prefViewOrder: "",
-	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|type|isProtected|size",
+	prefViewOrderDefault: "name|value|host|path|isSecure|expires|creationTime|lastAccessed|isHttpOnly|policy|status|type|isProtected|readonly|size",
 
 	accel: "CONTROL",
 	keysList: null,
@@ -67,7 +69,7 @@ var coomanPlus = {
 	_selected: [],
 	_cookies: [],
 	_cookiesAll: [],
-	_cb: null,
+	_cb: [],
 	_cookiesTree: null,
 	supress_getCellText: false,
 	contextDelay: 0,
@@ -158,6 +160,8 @@ var coomanPlus = {
 				case "isProtected":
 					return coomanPlus.string("yesno"+(coomanPlus._cookies[row]["isProtected"]?1:0));
 
+				case "readonly":
+				 return coomanPlus.string("yesno"+(coomanPlus._cookies[row].readonly ? 1 : 0))
 			}
 			return coomanPlus._cookies[row][column.id];
 		},
@@ -300,14 +304,12 @@ log.debug("start");
 
 		this.inited = true;
 
-
 		this.isXP = window.navigator.oscpu.indexOf("Windows NT 5") != -1;
-
 		$("cookiesTreeChildren").setAttribute("xp", this.isXP);
 		this._cmpWindow = coomanPlusCore.cmpWindow;
 		coomanPlusCore.cmpWindow = window;
-		this._cb = $("bundlePreferences");
-		this._cb2 = $("changesLogPreferences");
+		this._cb.push($("bundlePreferences"));
+		this._cb.push($("changesLogPreferences"));
 
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
@@ -317,7 +319,6 @@ log.debug("start");
 
 		this.listKeys();
 
-		Cu.import("resource://gre/modules/Services.jsm");
 		Services.scriptloader.loadSubScript(coomanPlusCore.addon.getResourceURI("chrome/content/constants.js").spec, self);
 
 		var rows = $("cookieInfoRows").getElementsByTagName("row");
@@ -359,11 +360,12 @@ log.debug("start");
 		observer.addObserver(this, "cookie-changed", false);
 //		observer.addObserver(this, "private-cookie-changed", false);
 		observer.addObserver(this, "cmp-command", false);
-
+		this.autocompleteLoad();
 //		this.setFilter();
 //		this.setSort();
 		this.onPrefChange.do();
-		this.loadCookies();
+		this.doLookup();
+//		this.loadCookies();
 		this.selectLastCookie(true);
 		if ("addObserver" in this.prefs.QueryInterface(Ci.nsIPrefBranch))
 			this.prefBranch = Ci.nsIPrefBranch;
@@ -398,6 +400,7 @@ log.debug("start");
 */
 		this.setAutofit();
 		this.checkReset("main");
+		this.checkRestore("main");
 		let list = document.getElementsByAttribute("type", "ro"),
 				i = 0,
 				o;
@@ -409,6 +412,15 @@ log.debug("start");
 		}
 log.debug("end",1);
 	},//start()
+
+	searchField: function searchField()
+	{
+		coomanPlusCore.async(function()
+		{
+			coomanPlus._cookieMatchesFilter({name: "", host: "", value:""}, $('lookupcriterium').value);
+		});
+
+	},//searchField()
 
 	cookieSelectMouse: function cookieSelectMouse(e)
 	{
@@ -494,6 +506,7 @@ log.debug();
 			}
 		}
 		catch(e){}
+		coomanPlus.autocompleteSave();
 		coomanPlus.inited = false;
 	},//unload()
 
@@ -521,6 +534,15 @@ log.debug();
 			topic = typeof(topic) == "undefined" ? null : topic;
 			key = typeof(key) == "undefined" ? null : key;
 			let self = coomanPlus;
+			if (key == "searchhistory")
+				return self.autocompleteLoad();
+
+			if (key == "autofit")
+				return self.setAutofit();
+
+			if (["reset", "restore", "persist", "version"].indexOf(key) != -1)
+				return;
+
 			self.setFilter(subject, topic, key);
 
 			self.setSort(subject, topic, key);
@@ -577,6 +599,7 @@ log.debug(this.loadCookies.started);
 		this.loadCookies.started = true;
 
 		criterium = typeof(criterium) == "undefined" ? $('lookupcriterium').getAttribute("filter") : criterium;
+		
 		deleteExpired = typeof(deleteExpired) == "undefined" ? coomanPlus.pref("deleteexpired") : deleteExpired;
 log.debug("deleteExpired: " + deleteExpired);
 		// load cookies into a table
@@ -629,10 +652,11 @@ log.debug("unprotect");
 				}
 			});
 		}
+
 		for(let i = 0; i < cookiesAll.length; i++)
 		{
 			let aCookie = cookiesAll[i];
-			if (criterium && !this._cookieMatchesFilter(aCookie, criterium))
+			if (criterium && !this._cookieMatchesFilter(aCookie, criterium, true))
 				continue;
 
 //EXTRA
@@ -646,13 +670,33 @@ log.debug("unprotect");
 		{
 			this._cookies.splice(count, this._cookies.length - count);
 		}
-		this._noselectevent = true;
-		this.sortTreeData(this._cookiesTree, this._cookies);
-		this._cookiesTreeView.rowCount = this._cookies.length;
-		this._cookiesTree.treeBoxObject.view = this._cookiesTreeView;
-		this._noselectevent = false;
-		this.selectLastCookie(noresort);
-		this.loadCookies.started = false;
+		let self = this;
+		function _readonly()
+		{
+			let i = 0,
+					aCookie;
+			while(aCookie = self._cookies[i++])
+			{
+				aCookie.readonly = coomanPlusCore.readonlyCheck(aCookie);
+			}
+			if (self._cookiesTree.getAttribute("sortResource") == "readonly")
+			{
+				self._noselectevent = true;
+				self.sortTreeData(self._cookiesTree, self._cookies);
+				self._cookiesTreeView.rowCount = self._cookies.length;
+				self._cookiesTree.treeBoxObject.view = self._cookiesTreeView;
+				self._noselectevent = false;
+				self.selectLastCookie(noresort);
+			}
+		}
+		coomanPlusCore.async(_readonly);
+		self._noselectevent = true;
+		self.sortTreeData(self._cookiesTree, self._cookies);
+		self._cookiesTreeView.rowCount = self._cookies.length;
+		self._cookiesTree.treeBoxObject.view = self._cookiesTreeView;
+		self._noselectevent = false;
+		self.selectLastCookie(noresort);
+		self.loadCookies.started = false;
 	},
 
 	_updateCookieData: function _updateCookieData(aCookie, selections)
@@ -834,6 +878,13 @@ log.debug();
 			{
 				obj.value = JSON.stringify(JSON.parse(obj.value), null, 2);
 			}catch(e){}
+		}
+		if (obj.getAttribute("base64decode") != "off")
+		{
+			try
+			{
+				obj.value = atob(obj.value);
+			}catch(e){};
 		}
 		if (!fixed.value[1] && fixed.value[0].length > 0)
 		{
@@ -1182,6 +1233,13 @@ log.debug();
 
 		coomanPlusCore.lastKeyDown = keys[0];
 		let r = true;
+		if (coomanPlus.matchKeys(keys[0], ["ESCAPE"], 1))
+		{
+			e.preventDefault();
+			e.stopPropagation();
+			window.close();
+			return false
+		}
 		if (coomanPlus.matchKeys(keys[0], ["F5"], 1))
 		{
 			coomanPlus.loadCookies($('lookupcriterium').getAttribute("filter"), true);
@@ -1320,33 +1378,87 @@ log.debug();
 		this.cookieSelected(noresort);
 	},//selectLastCookie()
 
+	autocompleteLoad: function autocompleteLoad()
+	{
+		let isHistory = this.pref("searchhistory") != 0;
+		$('lookupcriterium').setAttribute("enablehistory", isHistory);
+
+		try
+		{
+			coomanPlusCore.autocomplete = JSON.parse($('lookupcriterium').getAttribute("autocompletesearchparam"));
+		}
+		catch(e)
+		{
+		}
+		let max = coomanPlusCore.pref("searchhistory");
+		if (max > 0 && coomanPlusCore.autocomplete.length > max)
+		{
+			coomanPlusCore.autocomplete.splice(0, coomanPlusCore.autocomplete.length - max);
+		}
+	},//autocompleteLoad()
+
+	autocompleteSave: function autocompleteSave()
+	{
+		let max = coomanPlusCore.pref("searchhistory");
+		if (max > 0 && coomanPlusCore.autocomplete.length > max)
+		{
+			coomanPlusCore.autocomplete.splice(0, coomanPlusCore.autocomplete.length - max);
+		}
+		$('lookupcriterium').setAttribute("autocompletesearchparam", JSON.stringify(coomanPlusCore.autocomplete));
+	},//autocompleteSave()
+
 	autofilter: function autofilter(e)
 	{
-		if (coomanPlus.pref('autofilter') && coomanPlus.checkFilter())
-			coomanPlus.autofilter.timer = coomanPlusCore.async(function()
-			{
-				coomanPlus.doLookup(undefined, false);
-			}, 250, coomanPlus.autofilter.timer)
+		if (!coomanPlus.pref('autofilter') || !coomanPlus.checkFilter())
+			return;
 
+		coomanPlus.autofilter.timer = coomanPlusCore.async(function()
+		{
+			coomanPlus.doLookup(undefined, false, 0);
+		}, 250, coomanPlus.autofilter.timer)
 	},
 
-	doLookup: function doLookup(e, website)
+	autocompleteTimer: null,
+
+	doLookup: function doLookup(e, website, delay)
 	{
 log.debug();
 		if (this.loadCookies.started)
 			return false;
 
 		website = typeof(website) == "undefined" ? this.website : website;
+		delay = typeof(delay) == "undefined" ? 0 : delay;
 		if (!website)
 			this.website = false;
 
 		this.setFilter();
 		if( (e && e.keyCode == 13) || !e || this.pref("autofilter"))
 		{
-			var searchfor = $('lookupcriterium').value;
+			let searchfor = $('lookupcriterium').value,
+					self = this;
 			$('lookupcriterium').setAttribute("filter", searchfor);
+			if (!website)
+			{
+				let filter = searchfor.trim();
+				this.autocompleteTimer = coomanPlusCore.async(function()
+				{
+					if (coomanPlusCore.pref("searchhistory") != 0 && filter)
+					{
+						let i = coomanPlusCore.autocomplete.indexOf(filter);
+							coomanPlusCore.autocomplete.push(filter);
+
+						if (i != -1)
+							coomanPlusCore.autocomplete.splice(i, 1);
+					}
+
+					self.autocompleteSave();
+				}, this.pref("autofilter") && !e ? 5000 : 0, this.autocompleteTimer);
+			}
 //			this.cookieSelected(true);
-			this.loadCookies(undefined, true);
+			this.autofilter.timer = coomanPlusCore.async(function()
+			{
+			}, delay, this.autofilter.timer);
+				self.loadCookies(undefined, true);
 		}
 	},
 
@@ -1720,6 +1832,7 @@ log.debug();
 		this.prefFiltersearchcase = this.pref("searchcase");
 		this.prefFiltersearchhosttype = this.pref("searchhosttype");
 //		this.prefFiltersearchtype = this.pref("searchtype");
+		this.prefFiltersearchregex = this.pref("searchregex");
 		this.prefFiltersearchtype = coomanPlusCore.COOKIE_NORMAL;
 
 		if (!this.prefFiltersearchtype)
@@ -1747,6 +1860,7 @@ log.debug();
 		this.setChecked("searchcase");
 		this.setChecked("searchtype1");
 		this.setChecked("searchtype2");
+		this.setChecked("searchregex");
 //		this.setChecked("searchhosttype");
 		let m = $("searchhosttype").menupopup.children;
 		for (let i of m)
@@ -1760,6 +1874,7 @@ log.debug();
 			this.prefFiltersearchcase = false;
 			this.prefFiltersearchhosttype = 1;
 			this.prefFiltersearchtype = coomanPlusCore.COOKIE_NORMAL + coomanPlusCore.COOKIE_HTML5;
+			this.prefFiltersearchregex = false;
 		}
 //		this.website = false;
 		if (!this.prefFiltersearchcontent && !this.prefFiltersearchhost && !this.prefFiltersearchname)
@@ -1778,22 +1893,24 @@ log.debug();
 
 	setChecked: function setChecked(id)
 	{
+		let obj = $(id);
 		if (this["prefFilter" + id])
-			$(id).setAttribute("checked", true);
+			obj.setAttribute("checked", true);
 		else
-			$(id).removeAttribute("checked");
+			obj.removeAttribute("checked");
 
 		if (this.website && id != "searchhost")
 //		if (this["prefFilter" + id] && this.website && id != "searchhost")
-			$(id).setAttribute("indeterminate", true);
+			obj.setAttribute("indeterminate", true);
 		else
-			$(id).removeAttribute("indeterminate");
+			obj.removeAttribute("indeterminate");
 	},
 
 	changeFilter: function changeFilter(e)
 	{
 log.debug();
 		let obj = e.originalTarget;
+
 		if (this.website)
 		{
 			this.website = false;
@@ -1842,9 +1959,23 @@ log.debug();
 
 	_match: function _match(str, needle, wildcard, start, type)
 	{
+		let regex = needle instanceof RegExp;
+		if (regex)
+		{
+			try
+			{
+				return str.substring(start).match(needle);
+			}
+			catch(e)
+			{
+//				needle = needle.toString();
+			}
+		}
 		needle = needle.replace(/[*]{2,}/g, "*");
-		start = typeof(start) == "undefined" ? 0 : start;
 		wildcard = typeof(wildcard) == "undefined" ? needle.match(/[*?]/) : wildcard;
+
+
+		start = typeof(start) == "undefined" ? 0 : start;
 		type = typeof(type) == "undefined" ? 0 : type;
 		switch (type)
 		{
@@ -1875,10 +2006,15 @@ log.debug();
 				host, name, value;
 		if (exact)
 			needle = exact[1];
+
 		if (wildcard)
 		{
-			let r = new RegExp((exact ? "^" : "")+ needle.replace(/\*/g, ".*").replace(/\?/g, ".") + (exact ? "$" : ""), "");
-			return str.substring(start).match(r);
+			try
+			{
+				let r = new RegExp((exact ? "^" : "")+ needle.replace(/\*/g, ".*").replace(/\?/g, ".") + (exact ? "$" : ""), "");
+				return str.substring(start).match(r);
+			}
+			catch(e){}
 		}
 		else
 		{
@@ -1887,14 +2023,44 @@ log.debug();
 
 			return str.substring(start).indexOf(needle) != -1;
 		}
-	},
+	},//_match()
 
 	_cookieMatchesFilter: function _cookieMatchesFilter(aCookie, filter)
 	{
 		host = aCookie.host;
 		name = aCookie.name;
 		value = aCookie.value;
-		if (!this.prefFiltersearchcase)
+		let match = filter.match(/^(\/?)(.*?)(\/([gimuy]*))?$/),
+				type = "normal";
+//		if (this.prefFiltersearchregex || (match && match[1] && match[3]))
+		if (this.prefFiltersearchregex)
+		{
+			if (match)
+			{
+				try
+				{
+					filter = new RegExp(match[2], match[4] ? match[4] : (this.prefFiltersearchcase ? "" : "i"));
+					type = "regex";
+				}
+				catch(e)
+				{
+					type = "error";
+				}
+			}
+			else
+			{
+				try
+				{
+					filter = new RegExp(filter, (this.prefFiltersearchcase ? "" : "i"));
+					type = "regex"
+				}
+				catch(e)
+				{
+					type = "error";
+				}
+			}
+		}
+		else if (!this.prefFiltersearchcase)
 		{
 			host = host.toLowerCase();
 			name = name.toLowerCase();
@@ -1902,6 +2068,7 @@ log.debug();
 			filter = filter.toLowerCase();
 		}
 //log([host,filter]);
+		$("lookupcriterium").setAttribute("entrytype", type);
 		return (this.prefFiltersearchhost && coomanPlus._match(host, filter, undefined, undefined, this.prefFiltersearchhosttype)) ||
 					 (this.prefFiltersearchname && coomanPlus._match(name, filter)) ||
 					 (this.prefFiltersearchcontent && coomanPlus._match(value, filter));
@@ -1986,6 +2153,8 @@ log.debug();
 	infoRowsShow: function infoRowsShow(resize)
 	{
 log.debug();
+		this.searchField();
+
 		$("protect_menu").collapsed = !this.protect.enabled;
 		resize = typeof(resize) == "undefined" ? false : resize
 		this.prefExpireCountdown = !$("expireProgressText").collapsed; //this.pref("expirecountdown");
@@ -2047,6 +2216,7 @@ log.debug();
 		coomanPlus.setWrap();
 		coomanPlus.setExpand();
 		coomanPlus.setDecode();
+		coomanPlus.setBase64Decode();
 		if (!resize)
 			return;
 
@@ -2143,6 +2313,7 @@ log.debug();
 		$("infoRowWrap").previousSibling.collapsed = hide;
 		$("infoRowExpand").collapsed = hide;
 		$("infoRowDecode").collapsed = hide;
+		$("infoRowBase64Decode").collapsed = hide;
 		obj.click();
 	},
 
@@ -2221,6 +2392,21 @@ log.debug();
 					else
 						o.value = o.valueOrig;
 				break;
+			case "base64decode":
+					o = $("ifl_value");
+					t = o.getAttribute("base64decode") == "off";
+					o.setAttribute("base64decode", t ? "" : "off");
+					coomanPlus.setBase64Decode();
+					if (t)
+					{
+						try
+						{
+							o.value = atob(o.valueOrig);
+						}catch(e){log.error(e)}
+					}
+					else
+						o.value = o.valueOrig;
+				break;
 		}
 		return true;
 	},
@@ -2261,6 +2447,16 @@ log.debug();
 		try
 		{
 			$("infoRowDecode2").setAttribute("checked", r);
+		}catch(e){};
+	},
+
+	setBase64Decode: function setBase64Decode()
+	{
+		let r = $("ifl_value").getAttribute("base64decode") != "off";
+		$("infoRowBase64Decode").setAttribute("checked", r);
+		try
+		{
+			$("infoRowBase64Decode2").setAttribute("checked", r);
 		}catch(e){};
 	},
 
@@ -2665,6 +2861,10 @@ log.debug();
 				clone.id += 2;
 				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
 				obj.appendChild(clone);
+				clone = document.importNode($("infoRowBase64Decode"), false);
+				clone.id += 2;
+				clone.addEventListener("command", coomanPlus.infoRowContextExec, false);
+				obj.appendChild(clone);
 			}
 			for(let i = 0; i < menu.length; i++)
 			{
@@ -2801,10 +3001,7 @@ log.debug();
 
 	setAutofit: function setAutofit(reset)
 	{
-		if (reset)
-			coomanPlus.prefs.clearUserPref("autofit");
-
-		let fit = coomanPlus.pref("autofit"),
+		let fit = coomanPlus.pref("autofit", undefined, true),
 				cols = $("treecols").childNodes,
 				i = 0,
 				col;
@@ -2872,7 +3069,7 @@ log.debug();
 			else if(event.originalTarget.id == "menu_treeView_autofit")
 			{
 				let fit = event.originalTarget.getAttribute("checked") == "true";
-				coomanPlus.pref("autofit", fit);
+				coomanPlus.pref("autofit", fit, true, true);
 				coomanPlus.setAutofit(true);
 			}
 			else
@@ -3148,7 +3345,6 @@ log.debug();
 		{
 			return !params || !params.length || params.indexOf(p) != -1;
 		}
-
 		if (execute("colsordinal"))
 		{
 			let treecols = $("treecols"),
@@ -3174,14 +3370,25 @@ log.debug();
 
 
 		if (execute("autofit"))
+		{
+			coomanPlus.prefs.clearUserPref("autofit");
 			this.setAutofit(true);
+		}
 
 		if (execute("filter"))
 			$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 
+		if (execute("searchhistory"))
+		{
+			coomanPlusCore.autocomplete = [];
+			this.autocompleteSave();
+		}
 		this.loadCookies();
 		this.selectLastCookie(true);
-		window.sizeToContent();
+
+		if (execute("persist") || execute("row"))
+			window.sizeToContent();
+
 		let reset = {};
 		try
 		{
@@ -3202,7 +3409,7 @@ log.debug();
 		switch(com)
 		{
 			case "reset":
-				this.resetWindowSettings(data.wrappedJSObject);
+				this.resetWindowSettings(data ? data.wrappedJSObject : null);
 				break;
 			case "backup":
 				this.settingsBackup();
@@ -3244,10 +3451,22 @@ log.debug();
 			this.resetPersist(undefined, data);
 			this.infoRowsSort();
 			this.infoRowsShow();
+			this.setAutofit();
 			$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 			this.loadCookies();
 			this.selectLastCookie(true);
 			window.sizeToContent();
+			try
+			{
+				restore = this.prefs.getCharPref("restore");
+				restore = JSON.parse(restore);
+				delete restore.main;
+			}catch(e){}
+			restore = JSON.stringify(restore);
+			if (restore == "{}")
+				this.prefs.clearUserPref("restore");
+			else
+				this.prefs.setCharPref("restore", restore);
 		}
 	},//settingsRestore()
 	
@@ -3276,7 +3495,16 @@ log.debug();
 		else
 			aCookie = this._cookies[this._cookiesTree.view.selection.currentIndex];
 
-		this._updateCookieData(aCookie);
+		if (this._cookiesTree.getAttribute("sortResource") == "readonly")
+		{
+			this._noselectevent = true;
+			this.sortTreeData(this._cookiesTree, this._cookies);
+			this._noselectevent = false;
+			this.selectLastCookie();
+		}
+		else
+			this._updateCookieData(aCookie);
+
 		if (type)
 		{
 			obj.parentNode.nextSibling.firstChild.focus();
@@ -3286,6 +3514,7 @@ log.debug();
 			obj.parentNode.previousSibling.firstChild.focus();
 		}
 	},//readonlySet()
+//	backupPersist: function backupPersist(){log.debug()},
 };
 
 coomanPlus.exec.push(function()

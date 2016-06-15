@@ -6,7 +6,7 @@ Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
 var	self = this,
-		log = function(){},
+		log = function logWTF(){},
 		coomanPlusCore = {
 	GUID: '{bb6bc1bb-f824-4702-90cd-35e2fb24f25d}',
 	cmpWindow: null,
@@ -36,6 +36,8 @@ var	self = this,
 	readonlyList: {},
 	readonlyFile: "cookiesManagerPlusReadonly.json",
 	readonlyFileSaved: true,
+	readonlyFileScheduled: false,
+	autocomplete: [],
 	async: function async(callback, time, timer)
 	{
 		if (timer)
@@ -112,8 +114,8 @@ var	self = this,
 	{
 		let pref = coomanPlusCore.pref;
 
-			try
-			{
+		try
+		{
 			if (!noCache && typeof(val) == "undefined")
 			{
 				return pref.prefs[key];
@@ -169,9 +171,43 @@ var	self = this,
 		return null;
 	},
 
+	_windows: [],
+	windowAdd: function windowAdd(win)
+	{
+		let id = this._windows.indexOf(win);
+		if (id != -1)
+			return id
+
+		return this._windows.push(win);
+	},//windowAdd()
+
+	windowRemove: function windowRemove(win)
+	{
+		let id = this._windows.indexOf(win);
+		if (id != -1)
+			this._windows[id] = null;
+	},//windowRemove()
+
+	notify: function notify(com, data)
+	{
+		return Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).notifyObservers(null, "cmp-command", com);
+/*
+		let i = -1;
+		while(i++ < this._windows.length)
+		{
+			let win = this._windows[i];
+			if (!win || !win.coomanPlus || !win.coomanPlus.command)
+				continue;
+
+			win.coomanPlus.command(com, data);
+		}
+*/
+	},//notify()
+
 	onPrefChange: {
 		observe: function(aSubject, aTopic, aKey)
 		{
+			let self = coomanPlusCore;
 			if(aTopic != "nsPref:changed")
 				return;
 
@@ -185,11 +221,17 @@ var	self = this,
 			else if (t == Ci.nsIPrefBranch.PREF_STRING)
 				v = aSubject.getComplexValue(aKey, Ci.nsISupportsString).data;
 
-			coomanPlusCore.pref.prefs[aKey] = v;
+			self.pref.prefs[aKey] = v;
 			if (aKey == "debug")
-				log.logLevel = coomanPlusCore.pref("debug") || 1;
+				log.logLevel = self.pref("debug") || 1;
+
+			if (aKey == "buttonaction")
+			{
+				self.notify("buttonaction");
+			}
 		}
-	},
+	},//onPrefChange
+
 	shutdown: function shutdown()
 	{
 		let save = this.readonlyCleanup();
@@ -308,6 +350,7 @@ log.debug();
 		let hash = this.cookieHash(aCookie);
 
 		aCookie.hash = hash;
+		aCookie.readonly = false;
 		delete this.readonlyList[hash];
 		this.readonlySave()
 	},//readonlyRemove()
@@ -328,10 +371,11 @@ log.debug();
 
 	readonlySave: function readonlySave(async)
 	{
-		async = typeof(async) == "undefined" ? 3000 : async;
+		async = typeof(async) == "undefined" ? 30000 : async;
 log.debug();
 		function save()
 		{
+			coomanPlusCore.readonlyFileScheduled = false;
 			let self = coomanPlusCore,
 					list = JSON.stringify(self.readonlyList),
 					data = list;
@@ -377,8 +421,11 @@ log.debug("end save readonly list file " + file.path);
 
 			save()
 		}
-		else
+		else if (!coomanPlusCore.readonlyFileScheduled)
+		{
+			coomanPlusCore.readonlyFileScheduled = true;
 			this.readonlySave.timer = this.async(save, async, this.readonlySave.timer);
+		}
 
 	},//readonlySave()
 	
@@ -509,36 +556,36 @@ coomanPlusCore.pref.types = {
 	number: "Int",
 //	string: "Char"
 }
+Services.scriptloader.loadSubScript("chrome://cookiesmanagerplus/content/dump.js");
+coomanPlusCore.log = log;
+log.folder = "";
+log.title = "CM+";
+log.showCaller = 3;
+Services.scriptloader.loadSubScript("chrome://cookiesmanagerplus/content/constants.js");
+coomanPlusCore.EMAIL = EMAIL;
+coomanPlusCore.HOMEPAGE = HOMEPAGE;
+coomanPlusCore.SUPPORTSITE = SUPPORTSITE;
+coomanPlusCore.ISSUESSITE = ISSUESSITE;
+coomanPlusCore.ADDONDOMAIN = ADDONDOMAIN;
+coomanPlusCore.prefs.QueryInterface(Ci.nsIPrefBranch).addObserver('', coomanPlusCore.onPrefChange, false);
+
+let l = coomanPlusCore.prefs.getChildList("");
+
+for(let i of l)
+	coomanPlusCore.onPrefChange.observe(coomanPlusCore.prefs, "nsPref:changed", i);
+
+log.logLevel = coomanPlusCore.pref.prefs.debug || 1;
+coomanPlusCore.prevVersion = coomanPlusCore.pref("version");
+let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+
+observer.addObserver(coomanPlusCore, "cookie-changed", false);
+observer.addObserver(coomanPlusCore, "private-cookie-changed", false);
+observer.addObserver(coomanPlusCore, "profile-change-net-teardown", false);
+coomanPlusCore.readonlyLoad();
+log.debug.startTime = new Date();
+log.debug("coomanPlusCore.jsm loaded");
 AddonManager.getAddonByID(coomanPlusCore.GUID, function(addon)
 {
 	let __dumpName__ = "log";
 	coomanPlusCore.addon = addon;
-	coomanPlusCore.prefs.QueryInterface(Ci.nsIPrefBranch).addObserver('', coomanPlusCore.onPrefChange, false);
-	Services.scriptloader.loadSubScript(addon.getResourceURI("dump.js").spec, self);
-	coomanPlusCore.log = log;
-	Services.scriptloader.loadSubScript(addon.getResourceURI("chrome/content/constants.js").spec, self);
-	coomanPlusCore.EMAIL = EMAIL;
-	coomanPlusCore.HOMEPAGE = HOMEPAGE;
-	coomanPlusCore.SUPPORTSITE = SUPPORTSITE;
-	coomanPlusCore.ISSUESSITE = ISSUESSITE;
-	coomanPlusCore.ADDONDOMAIN = ADDONDOMAIN;
-
-	log.folder = "";
-	log.title = "CM+";
-	log.showCaller = 3;
-	let l = coomanPlusCore.prefs.getChildList("");
-
-	for(let i of l)
-		coomanPlusCore.onPrefChange.observe(coomanPlusCore.prefs, "nsPref:changed", i);
-
-	log.logLevel = coomanPlusCore.pref.prefs.debug || 1;
-	coomanPlusCore.prevVersion = coomanPlusCore.pref("version");
-	let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-
-	observer.addObserver(coomanPlusCore, "cookie-changed", false);
-	observer.addObserver(coomanPlusCore, "private-cookie-changed", false);
-	observer.addObserver(coomanPlusCore, "profile-change-net-teardown", false);
-	coomanPlusCore.readonlyLoad();
-	log.debug.startTime = new Date();
-	log.debug("coomanPlusCore.jsm loaded");
 });

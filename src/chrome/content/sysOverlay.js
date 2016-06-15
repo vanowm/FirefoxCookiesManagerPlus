@@ -1,6 +1,19 @@
+//wrap code into anonymous function to prevent polution
+var coomanPlus = (function()
+{
 Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
-
-var coomanPlus = {
+let $ = function $(id)
+		{
+			return document.getElementById(id);
+		},
+		log = coomanPlusCore.log;
+return {
+	pref: coomanPlusCore.pref,
+	buttons: [
+						"coomanPlus_button_menu",
+						"coomanPlus_tools_menuitem",
+						"coomanPlus_appmenu_menuitem"
+	],
 	load: function load()
 	{
 		window.removeEventListener("load", coomanPlus.load, true);
@@ -8,7 +21,12 @@ var coomanPlus = {
 	},
 	unload: function unload()
 	{
-		window.removeEventListener("focus", coomanPlus.winFocus, true);
+		let self = coomanPlus;
+//		coomanPlusCore.windowRemove(window);
+		window.removeEventListener("focus", self.winFocus, true);
+		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+		observer.removeObserver(self, "cmp-command", false);
+		coomanPlusCore.window = null;
 	},
 	winFocus: function(e)
 	{
@@ -16,13 +34,14 @@ var coomanPlus = {
 	},
 	init: function init()
 	{
+		let self = coomanPlus;
+		window.addEventListener("focus", self.winFocus, true);
+//		coomanPlusCore.windowAdd(window);
+//		self.setActions();
+log.debug("start load sysoverlay");
 
-		window.addEventListener("focus", coomanPlus.winFocus, true);
-		
-coomanPlusCore.log.debug("start load");
-
-/*
 //open console window on startup
+/*
 try
 {
  toErrorConsole();
@@ -47,60 +66,97 @@ catch(e)
 
 
 
-
-
-
 		if (!coomanPlusCore.updateChecked)
-			coomanPlus.update();
+			self.update();
 
-coomanPlusCore.log.debug("end load", 1);
+		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+		observer.addObserver(self, "cmp-command", false);
+log.debug("end load sysoverlay", 1);
 	},
-	openCookieEditor: function openCookieEditor(args)
+
+	openCookieEditor: function openCookieEditor(type)
 	{
+		let args = {};
+		if (type == 2 || (!type && this.pref("buttonaction")))
+			args = {gBrowser: gBrowser};
+
 		args = typeof(args) == "undefined" ? {} : args
 		args.window = window;
 		coomanPlusCore.openCMP(args);
 	},
+
 	menu: function menu(e)
 	{
-		let m = document.getElementById("coomanPlus_button_menu"),
-				m2 = document.getElementById("coomanPlus_tools_menuitem"),
-				m3 = document.getElementById("coomanPlus_appmenu_menuitem"),
+		let mi = coomanPlus.buttons,
 				host;
 		try
 		{
 			host = gBrowser.currentURI.host;
 		}
 		catch(er){};
-coomanPlusCore.log.debug(host);
-		if (host && ["http","https"].indexOf(gBrowser.currentURI.scheme) != -1)
-		{
-			if (m)
-				m.label = this.strings.site + ": " + host;
+		if (!host || ["http","https"].indexOf(gBrowser.currentURI.scheme) == -1)
+			host = this.strings.na;
 
-			if (m2)
-			{
-				m2.label = this.strings.site + ": " + host;
-				m2.hidden = false;
-			}
-
-			if (m3)
-				m3.label = this.strings.site + ": " + host;
-			
-		}
-		else
+		for(let i = 0; i < mi.length; i++)
 		{
-			if (!e)
-			{
-				this.openCookieEditor();
-				return false;
-			}
-			if (m2)
-				m2.hidden = true;
+			let m = $(mi[i] + "2");
+
+			if (!m)
+				continue;
+
+			m.label = this.strings.site + ": " + host;
+			m.disabled = host == this.strings.na;
 		}
+		this.setActions(host != this.strings.na && this.pref("buttonaction"))
 		return true;
 	},
-}
+
+	observe: function observe(aTopic, aSubject, aData)
+	{
+		let self = coomanPlus;
+		if (aSubject == "cmp-command")
+			return self.command(aData,aTopic);
+
+	},
+
+	command: function command(com, data)
+	{
+log.debug();
+		switch(com)
+		{
+			case "buttonaction":
+				this.setActions();
+				break;
+		}
+	},//command()
+
+	setActions: function setActions(type)
+	{
+log.debug();
+		type = typeof(type) == "undefined" ? this.pref("buttonaction") : type;
+		type = type ? 2 : "";
+		
+		let mi = this.buttons;
+		for(let i = 0; i < mi.length; i++)
+		{
+			let m = $(mi[i]);
+			if (!m)
+				continue;
+
+			if (type)
+			{
+				m.removeAttribute("default");
+				$(mi[i] + "2").setAttribute("default", true);
+			}
+			else
+			{
+				$(mi[i] + "2").removeAttribute("default");
+				m.setAttribute("default", true);
+			}
+		}
+	},
+
+}})();
 
 window.addEventListener("load", coomanPlus.load, true);
 

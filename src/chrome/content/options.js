@@ -34,7 +34,7 @@ function $(id)
 var coomanPlus = {
 	standalone: true,
 	winid: new Date(),
-	_cb: null,
+	_cb: [],
 	instantApply: false,
 	inited: false,
 	pref: coomanPlusCore.pref,
@@ -53,7 +53,7 @@ var coomanPlus = {
 	{
 log.debug();
 		let self = this;
-		this._cb = $("cookieBundle");
+		this._cb.push($("cookieBundle"));
 		document.title += " - " + coomanPlusCore.addon.name;
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
@@ -82,7 +82,7 @@ log.debug();
 
 			let val = tree.view.getCellValue(i, tree.columns[0]) != "default" ? tree.view.getCellText(i, tree.columns[0]) : "";
 
-			tree.view.setCellText(i, tree.columns[2], ("Ex: " + this.getExpiresString(t, val)));
+			tree.view.setCellText(i, tree.columns[2], (this.getExpiresString(t, val)));
 		}
 		for(let i = 0; i < t.length; i++)
 		{
@@ -97,14 +97,17 @@ log.debug();
 		$("templatefileinput").selectionEnd = 0;
 		$("dateList").addEventListener("keydown", this.dateFormatAdd, true);
 		$("dateList").addEventListener("click", this.dateFormatAdd, true);
-		if ($("options").tabs.itemCount <= parseInt($("options").getAttribute("selectedIndex")))
-			$("options").selectedIndex = 0;
+		if ($("optionsBox").tabs.itemCount <= parseInt($("optionsBox").getAttribute("selectedIndex")))
+			$("optionsBox").selectedIndex = 0;
 
 		if ($("exportChildren").tabs.itemCount <= parseInt($("exportChildren").getAttribute("selectedIndex")))
 			$("exportChildren").selectedIndex = 0;
 
 		this.exportFilename({target: $("fieldBackupfilename")});
-		this.dateListSize();
+		coomanPlusCore.async(function()
+		{
+			coomanPlus.dateListSize();
+		});
 		this.changesLogMenu();
 		$("changesLog").addEventListener("command", coomanPlus.changesLogClick, true);
 		$("protectbox").setAttribute("collapsed", !this.protect.enabled);
@@ -122,34 +125,38 @@ log.debug();
 
 			coomanPlusCore.window.switchToTabHavingURI(link, true);
 		}, true);
-		let numBox = $("ifl_restoreselection");
-		numBox.addEventListener("DOMMouseScroll", this.mouseScroll, true);
-		numBox.addEventListener("keydown", this.keydown, true);
-		numBox.prev = [0, 0, this.pref("restoreselection")];
-		numBox._validateValue = function(aValue, aIsIncDec)
+		function replace_validateValue(numBox, value)
 		{
-			let min = numBox.min,
-					max = numBox.max;
+			numBox.addEventListener("keydown", coomanPlus.keydown, true);
+			numBox.prev = [0, 0, value];
+			numBox._validateValue = function(aValue, aIsIncDec)
+			{
+				let min = numBox.min,
+						max = numBox.max;
 
-			aValue = Number(String(aValue).replace(/[^0-9\-]/g, "")) || 0;
-			if (aValue < min)
-				aValue = min;
-			else if (aValue > max)
-				aValue = numBox._value > max ? max : numBox._value;
+				aValue = Number(String(aValue).replace(/[^0-9\-]/g, "")) || 0;
+				if (aValue < min)
+					aValue = min;
+				else if (aValue > max)
+					aValue = numBox._value > max ? max : numBox._value;
 
-			aValue = Number(aValue);
-			numBox._valueEntered = false;
-			numBox._value = aValue;
-			numBox.prev.push(numBox._value);
-			numBox.prev.splice(0,1);
-			numBox.inputField.value = aValue > 0 ? aValue : aValue == -1 ? coomanPlus.string("all") : coomanPlus.string("none");
-			numBox._enableDisableButtons();
-			return "" + aValue;
+				aValue = Number(aValue);
+				numBox._valueEntered = false;
+				numBox._value = aValue;
+				numBox.prev.push(numBox._value);
+				numBox.prev.splice(0,1);
+				numBox.inputField.value = aValue > 0 ? aValue : aValue == -1 ? coomanPlus.string("all") : coomanPlus.string("none");
+				numBox._enableDisableButtons();
+				return "" + aValue;
+			}
+			numBox.value = value;
 		}
-		numBox.value = this.pref("restoreselection");
+		$("panelGeneral").addEventListener("DOMMouseScroll", this.mouseScroll, true);
+		replace_validateValue($("ifl_restoreselection"), this.pref("restoreselection"));
+		replace_validateValue($("ifl_searchhistory"), this.pref("searchhistory"));
 		let tools = $("toolsBox");
 		document.documentElement._buttons.accept.parentNode.insertBefore(tools, document.documentElement._buttons.accept.parentNode.firstChild);
-		this.checkReset("options");
+		this.checkReset("optionsBox");
 		this.inited = true;
 	},//init()
 
@@ -281,7 +288,23 @@ log.debug();
 
 	backupEncrypt: function backupEncrypt()
 	{
-		this.backupAddPassword();
+		let r;
+		do
+		{
+			r = this.backupAddPassword(true);
+			if (r.status == 5)
+			{
+				this.alert(r.msg)
+				return;
+			}
+			if (r.status == 3)
+				return;
+
+			if (r.status && r.msg)
+				this.alert(r.msg);
+		}
+		while(r.status)
+		
 	},
 
 	dateFormatAdd: function dateFormatAdd(e)
@@ -296,7 +319,7 @@ log.debug();
 					end = new Object();
 
 			tree.view.selection.getRangeAt(0, start, end);
-			if (!tree.view.isContainer(start.value))
+			if (start.value > -1 && !tree.view.isContainer(start.value))
 			{
 				if (tree.view.getCellValue(tree.view.getParentIndex(start.value), tree.columns[0]) == "presets")
 				{
@@ -315,32 +338,20 @@ log.debug();
 				let event = document.createEvent("Events");
 				event.initEvent("change", true, true);
 				$("format").dispatchEvent(event);
+				e.preventDefault();
+				e.stopPropagation();
 			}
-			e.preventDefault();
-			e.stopPropagation();
 			return false;
 		}
 	},
 
 	dateListSize: function dateListSize(e)
 	{
-		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
-		$("dateListSplitter").setAttribute("state", $("dateListBox").collapsed ? "collapsed" : "open");
-		$("dateListSplitter").setAttribute("substate", $("dateListBox").collapsed ? "before" : "");
-
-		$("dateListBox").setAttribute("collapsed", $("dateListBox").collapsed);
-		if ($("dateListBox").collapsed)
-		{
-			$("coomanPlusWindowOptions").style.minHeight = "43em";
-		}
-		else
-		{
-			$("coomanPlusWindowOptions").style.minHeight = "52em";
-			let h = window.outerHeight;
-			window.resizeBy(0,-1);
-			if (h - window.outerHeight == 1)
-				window.resizeBy(0, 1);
-		}
+		$("coomanPlusWindowOptions").style.minHeight = ($("generalBox").lastChild.boxObject.y + $("generalBox").lastChild.boxObject.height + $("toolsBox").boxObject.parentBox.boxObject.height + 20) + "px";
+		let h = window.outerHeight;
+		window.resizeBy(0,-1);
+		if (h - window.outerHeight == 1)
+			window.resizeBy(0, 1);
 
 	},
 	
@@ -357,21 +368,13 @@ log.debug();
 			return true;
 
 		coomanPlus.mouseScrollTimeStamp = e.timeStamp;
-	/*
 
-	var t = "";
-	var a = e.target;
-	for(var i in a)
-		t = t + i + ": " + a[i] + "\n";
-	alert(t);
-	*/
-		if (e.target.id != coomanPlus.focused)
+		let obj = document.activeElement.parentNode.parentNode;
+		if (obj.tagName == "textbox" && obj.getAttribute("type") == "number")
 		{
-	//		return true;
-			e.target.focus();
+			obj.value = Number(obj.value) + (e.detail > 0 ? -1 : 1);
+			obj._fireChange();
 		}
-		$("ifl_restoreselection").value = Number($("ifl_restoreselection").value) + (e.detail > 0 ? -1 : 1);
-		$("ifl_restoreselection")._fireChange();
 	},//mouseScroll()
 	
 	resetAll: function resetAll()
@@ -379,6 +382,7 @@ log.debug();
 		let list = this.prefs.getChildList(""),
 				i = -1,
 				e = ["version"];
+//				e = ["version","debug"];
 		while(++i < list.length)
 		{
 			if (e.indexOf(list[i]) != -1)
@@ -391,11 +395,10 @@ log.debug();
 		}
 		this.resetPersist();
 		this.dateListSize();
-		window.sizeToContent();
+		this.changesLogMenu();
 		this.prefs.setCharPref("reset", JSON.stringify({main:[], edit:[]}));
-		Cc["@mozilla.org/observer-service;1"]
-			.getService(Ci.nsIObserverService)
-			.notifyObservers(list, "cmp-command", "reset");
+		Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+			.notifyObservers(null, "cmp-command", "reset");
 	},
 
 	command: function command(com, data)
@@ -407,8 +410,7 @@ log.debug();
 				this.resetAll();
 				break;
 			case "backup":
-					Cc["@mozilla.org/observer-service;1"]
-						.getService(Ci.nsIObserverService)
+					Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
 						.notifyObservers(null, "cmp-command", "backup");
 					let prefs = "";
 					coomanPlusCore.async(function()
@@ -426,6 +428,13 @@ log.debug();
 				break;
 			case "restore":
 					this.settingsRestore();
+				break;
+			case "searchhistoryclear":
+				this.prefs.setCharPref("reset", JSON.stringify({main:["searchhistory"]}));
+				let obj = {};
+				obj.wrappedJSObject = ["searchhistory"];
+				Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+					.notifyObservers(obj, "cmp-command", "reset");
 				break;
 		}
 	},//command()
@@ -481,9 +490,11 @@ log.debug();
 			if (i == "persist")
 			{
 				let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
-						observerSubject = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-				observerSubject.data = data[i];
-				observerService.notifyObservers(observerSubject, "cmp-command", "restore");
+						nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+				nsISupportsString.data = data[i];
+				this.prefs.setCharPref("restore", data[i]);
+
+				observerService.notifyObservers(nsISupportsString, "cmp-command", "restore");
 			}
 			else
 			{
@@ -493,6 +504,8 @@ log.debug();
 				}catch(e){};
 			}
 		}
+		this.dateListSize();
+		this.changesLogMenu();
 	},//settingsRestore()
 
 	topmost: function topmost(broadcast)
@@ -512,7 +525,9 @@ log.debug();
 			xulWin.zLevel = coomanPlusCore.pref("topmost") ? xulWin.highestZ : xulWin.normalZ;
 		}, 100);
 	},//topmost()
+	backupPersist: function backupPersist(){log.debug()},
 }
+
 function srGetStrBundle()
 {
 	return $("pippkiBundle");
@@ -547,6 +562,7 @@ else
 {
 	coomanPlusCore.cmpWindowOptions = window;
 	coomanPlus.topmost();
+// breaks persitent tabs https://github.com/vanowm/FirefoxCookiesManagerPlus/issues/83
 	coomanPlus.exec.push(function()
 	{
 		coomanPlus.backupPersist($("coomanPlusWindowOptions"));

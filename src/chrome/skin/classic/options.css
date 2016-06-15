@@ -1,19 +1,3 @@
-.link,
-.link *
-{
-	-moz-appearance: none;
-	margin: 0;
-	padding: 0;
-	min-width: 0;
-	min-height: 0;
-	background-color: transparent;
-	border: 0;
-	cursor: pointer;
-}
-.link:focus
-{
-	border-color: transparent;
-}
 #presets
 {
 	cursor: pointer;
@@ -60,7 +44,7 @@ textbox[multiline="true"]
 	cursor: help;
 }
 
-#options > tabpanels
+#optionsBox > tabpanels
 {
 	padding: 3px;
 }
@@ -79,4 +63,31 @@ textbox[multiline="true"]
 {
 	min-width: 430px;
 	height: 39em;
+}
+
+spinbuttonsV
+{
+	-moz-binding: url("spinbuttons.xml#spinbuttonsV");
+}
+
+checkbox
+{
+	margin-left: 0;
+}
+
+.link,
+.link *
+{
+	-moz-appearance: none;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	min-height: 0;
+	background-color: transparent;
+	border: 0;
+	cursor: pointer !important;
+}
+.link:focus
+{
+	border-color: transparent;
 }

@@ -7,8 +7,25 @@ Legend:
 * = Changed
 - = Removed
 
-v1.10.1 (2016--)
+v1.11 (2016-06-15)
+	+ e10s compatibility flag (issue #81)
+	+ option to change default behavior of toolbar button. Now it can be switched between open CM+ normally or fill out search field with currently opened website (issue #82)
+	+ options access from toolbar button
+	+ read-only tree column. Now it's easier find cookies with read-only data
+	+ RegExp (Regular Expressions) search. When activated search field changes to green when regex is correct and red when regex is bad. More info: https://developer.mozilla.org/docs/Web/JavaScript/Guide/Regular_Expressions
+	+ search keywords history
+	+ base64 encode/decode actions in content edit
+	+ option to automatically base64 decode at right click on content info field
+	* changes to read-only data now being saved to file no more then once in 30 seconds or when window closing (originally was once in 3 seconds)
+	* date format in options moved into it's own tab
+	* clicking on dropdown menu of CM+ toolbar button while not having a web page opened, shows dropdown menu instead of open CM+ window
 	! Tor Browser support (issue #79)
+	! double click on a group in date format list in options window would not expand/collapse the group
+	! resizing CM+ window would squeeze search row
+	! restore cookie would not overwrite read-only data
+	! settings restore would not restore persist data in closed windows
+	! tree auto-fit doesn't work when CM+ window was opened while settings restored
+	! cannot add/change/import session cookies (issue #84, #85)
 
 v1.10 (2016-06-06)
 	+ read-only cookie data. Ability set cookie's "content", "expire", "send for" and "http only" data as read only, which means websites will not be able change it.
@@ -33,7 +50,7 @@ v1.9 (2016-05-31)
 	+ password peek button for password fields
 	+ date picker can now select date from prev/next month when when current month is sharing same week with prev/next month
 	+ url encode/decode and JSON expand/compact for content field in edit window. Applies to entire text or only to selected part.
-	+ option to automatically apply url decode and/or JSON expand at right click of content info field
+	+ option to automatically apply url decode and/or JSON expand at right click on content info field
 	+ new option: View -> Tree view -> Auto fit columns. When disabled, the columns can be resized beyond the list width, adding horizontal scrollbar when needed. Unfortunately there is a bug in Firefox itself which might cause misalignment between column headers and list data: issue #74
 	+ open edit cookie window directly from native cookie viewer via right click (doesn't show properly newly created cookies yet)
 	+ new function: backup/restore visible cookies. This action is equal to select all + backup/restore selected

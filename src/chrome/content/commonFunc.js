@@ -51,23 +51,16 @@ coomanPlus.string = function(s)
 {
 	if (this.strings && s in this.strings)
 		return this.strings[s];
-
-	try
+	for(let i = 0; i < this._cb.length; i++)
 	{
-		return this._cb.getString(s);
-	}
-	catch(e)
-	{
-		if ("_cb2" in this)
+		let cb = this._cb[i];
 		try
 		{
-			return this._cb2.getString(s);
+			return cb.getString(s);
 		}
-		catch(e)
-		{
-			log.error("String is missing: " + s);
-		}
+		catch(e){}
 	}
+	log.error("String is missing: " + s);
 }
 
 coomanPlus._cookieEquals = function _cookieEquals(aCookieA, aCookieB)
@@ -138,6 +131,13 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	this.isSecure			= aCookie.isSecure;
 	this.expires			= aCookie.expires;
 	this.policy				= aCookie.policy;
+	this.status				= aCookie.status;
+	this.isSession		= aCookie.isSession;
+	this.expiry				= aCookie.expiry;
+	this.creationTime	= aCookie.creationTime;
+	this.lastAccessed	= aCookie.lastAccessed;
+	this.isHttpOnly		= aCookie.isHttpOnly;
+/*
 	this.status				= typeof(aCookie.status) == "undefined" ? null : aCookie.status;
 	this.isSession		= typeof(aCookie.isSession) == "undefined" ? null : aCookie.isSession;
 	this.expiry				= typeof(aCookie.expiry) == "undefined" ? null : aCookie.expiry;
@@ -145,9 +145,14 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	this.lastAccessed	= typeof(aCookie.lastAccessed) == "undefined" ? null : aCookie.lastAccessed;
 	this.isHttpOnly		= typeof(aCookie.isHttpOnly) == "undefined" ? null : aCookie.isHttpOnly;
 	this.sel					= typeof(sel) == "undefined" ? false : sel;
+*/
+
+	this.sel					= sel;
 	this.isProtected	= coomanPlus.protect.enabled ? coomanPlus.protect.obj.isProtected(this) : false;
-	this.updated			= typeof(updated) == "undefined" ? null : updated;
+//	this.updated			= typeof(updated) == "undefined" ? null : updated;
+	this.updated			= updated;
 	this.type 				= coomanPlusCore.COOKIE_NORMAL;
+	this.readonly			= false;
 //	this.valueSize 		= coomanPlus.getByteSize(this.value);
 //	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
 	this.size 				= coomanPlus.getByteSize(this.name + "=" + this.value);
@@ -253,6 +258,8 @@ coomanPlus.cookieAdd = function cookieAdd(aCookie, callback)
 	aCookie.type = typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type;
 	let r = true,
 			self = this;
+
+	coomanPlusCore.readonlyAdd(aCookie);
 	function cookieAddContinue(r)
 	{
 		if (self.protect.enabled && aCookie.isProtected !== null)
@@ -278,7 +285,7 @@ coomanPlus.cookieAdd = function cookieAdd(aCookie, callback)
 															aCookie.isSecure,
 															aCookie.isHttpOnly,
 															(aCookie.expires) ? false : true,
-															aCookie.expires,
+															aCookie.expires || Math.round((new Date()).getTime() / 1000 + 9999999999),
 															typeof(aCookie.originAttributes) != "undefined"
 																? aCookie.originAttributes
 																: aCookie._aCookie && typeof(aCookie._aCookie.originAttributes) != "undefined"
@@ -921,17 +928,20 @@ coomanPlus.backupPersist = function backupPersist(obj, backup)
 				i = 0
 		try
 		{
-			persist = obj.getAttribute("persist").split(" ");
+			if (obj.hasAttribute("persist"))
+				persist = obj.getAttribute("persist").split(" ");
 		}catch(e){}
 		while(i < persist.length)
 		{
 			let attr = persist[i++].trim();
-			if (attr == "" || attr == "screenX" || attr == "screenY")
+			if (["", "screenX", "screenY", "autocompletesearchparam"].indexOf(attr) != -1)
 				continue;
 
 			if (!backup[obj.id])
 				backup[obj.id] = {};
-			backup[obj.id][attr] = obj.getAttribute(attr);
+
+//			if (obj.hasAttribute(attr))
+				backup[obj.id][attr] = obj.getAttribute(attr);
 //WTF! without set ordinal on splitters, they break when attempting read an attribute???
 			if (attr == "ordinal")
 			{
@@ -965,14 +975,14 @@ log.debug();
 				i = 0
 		try
 		{
-			persist = obj.getAttribute("persist").split(" ");
+			if (obj.hasAttribute("persist"))
+				persist = obj.getAttribute("persist").split(" ");
 		}catch(e){}
 		while(i < persist.length)
 		{
 			let attr = persist[i++].trim();
-			if (attr == "" || attr == "screenX" || attr == "screenY")
+			if (["", "screenX", "screenY"].indexOf(attr) != -1)
 				continue;
-
 			let d = backup[obj.id][attr] || obj.getAttribute("_" + attr);
 			obj.setAttribute(attr, d);
 			if (attr == "ordinal")
@@ -1013,6 +1023,7 @@ log.debug();
 
 coomanPlus.checkReset = function checkReset(id)
 {
+log.debug();
 	let reset = "";
 	try
 	{
@@ -1024,7 +1035,22 @@ coomanPlus.checkReset = function checkReset(id)
 		param.wrappedJSObject = reset[id];
 		this.command("reset", param);
 	}
+}
 
+coomanPlus.checkRestore = function checkRestore(id)
+{
+log.debug();
+	let restore = "";
+	try
+	{
+		restore = JSON.parse(this.prefs.getCharPref("restore"));
+	}catch(e){}
+	if (restore && restore[id])
+	{
+		let nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+		nsISupportsString.data = JSON.stringify(restore);
+		this.command("restore", nsISupportsString);
+	}
 }
 
 coomanPlus.backupPersist.data = {};

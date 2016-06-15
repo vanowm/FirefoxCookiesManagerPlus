@@ -9,11 +9,11 @@
 
 <overlay id="cookiesOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 	<window id="CookiesDialog">
-		<script src="common.js"/>
-		<script src="cookiesOverlay.js"/>
+		<script type="application/javascript" src="common.js"/>
+		<script type="application/javascript" src="cookiesOverlay.js"/>
 		<script type="application/javascript" src="update.js"/>
 		<script type="application/javascript" src="libOut.js"/>
-		<script src="commonFunc.js"/>
+		<script type="application/javascript" src="commonFunc.js"/>
 		<button id="cmp" image="chrome://cookiesmanagerplus/skin/images/coomanPlus16.png"
 						tooltiptext="&coomanPlus;"
 						accesskey="&coomanPlus.open.accesskey;"

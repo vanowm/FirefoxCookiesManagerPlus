@@ -46,20 +46,26 @@
 				<preference id="html5" name="extensions.cookiesmanagerplus.html5" type="bool" />
 				<preference id="readonly" name="extensions.cookiesmanagerplus.readonly" type="bool" />
 				<preference id="readonlydelete" name="extensions.cookiesmanagerplus.readonlydelete" type="bool" />
+				<preference id="buttonaction" name="extensions.cookiesmanagerplus.buttonaction" type="bool" />
+				<preference id="searchhistory" name="extensions.cookiesmanagerplus.searchhistory" type="int" />
 			</preferences>
-			<tabbox id="options" persist="selectedIndex" flex="1">
-				<tabs>
+			<tabbox id="optionsBox" persist="selectedIndex" flex="1">
+				<tabs id="optionsBoxTabs">
 					<tab	id="general"	label="&options.tab.general;"	accesskey="&options.tab.general.accesskey;" linkedpanel="panelGeneral"/>
+					<tab	id="date"			label="&options.tab.date;"		accesskey="&options.tab.date.accesskey;"		linkedpanel="panelDate"/>
 					<tab	id="export"		label="&options.tab.export;"	accesskey="&options.tab.export.accesskey;"	linkedpanel="panelExport"/>
 				</tabs>
 				<tabpanels flex="1">
 					<tabpanel id="panelGeneral" flex="1">
-						<vbox flex="1">
+						<vbox id="generalBox" flex="1">
 							<hbox>
 								<checkbox preference="autofilter" label="&options.autofilter.label;" tooltiptext="&options.autofilter.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox>
 								<checkbox preference="autoupdate" label="&options.autoupdate.label;" tooltiptext="&options.autoupdate.info;" accessibleType="1003"/>
+							</hbox>
+							<hbox>
+								<checkbox preference="buttonaction" label="&options.buttonaction;" tooltiptext="&options.buttonaction.info;" accessibleType="1003"/>
 							</hbox>
 							<hbox id="topmostBox">
 								<checkbox preference="topmost"
@@ -86,19 +92,24 @@
 							<hbox id="protectbox" collapsed="true">
 								<checkbox id="deleteprotectedCheckbox" preference="deleteprotected" label="&options.protect.delete.label;" accessibleType="1003"/>
 							</hbox>
-							<hbox collapsed="true" align="center" tooltiptext="&options.restoreselection.info;">
-								<label value="&options.restoreselection.label;" control="restoreselection"/>
-								<textbox	id="ifl_restoreselection"
-														label="&options.restoreselection.label;"
-														size="4"
-														preference="restoreselection"
-														maxLength="5"
-														min="-1"
-														max="99999"
-														type="number"
-														accessibleType="101B"
-									/>
-								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
+							<hbox tooltiptext="&options.searchhistory.info;" align="center">
+								<textbox	id="ifl_searchhistory"
+													preference="searchhistory"
+													type="number"
+													min="-1"
+													size="4"
+													maxLength="5"
+													accessibleType="1003"
+								/>
+								<label value="&options.searchhistory.label; (" style="margin-right: 0"/>
+								<label id="clearSearchHistory"
+												class="text-link link"
+												onclick="coomanPlus.command('searchhistoryclear');"
+												tooltiptext="&options.searchhistory.clear.info;"
+												value="&options.searchhistory.clear;"
+												accessibleType="100A"
+								/>
+								<label value=")" style="margin-left: 0"/>
 							</hbox>
 							<hbox id="html5box" collapsed="true">
 								<checkbox id="html5Checkbox" preference="html5" label="&options.html5.label;" accessibleType="1003"/>
@@ -114,12 +125,26 @@
 									</menupopup>
 								</menulist>
 							</hbox>
+							<hbox collapsed="true" align="center" tooltiptext="&options.restoreselection.info;">
+								<label value="&options.restoreselection.label;" control="restoreselection"/>
+								<textbox	id="ifl_restoreselection"
+														label="&options.restoreselection.label;"
+														size="4"
+														preference="restoreselection"
+														maxLength="5"
+														min="-1"
+														max="99999"
+														type="number"
+														accessibleType="101B"
+									/>
+								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
+							</hbox>
 							<hbox tooltiptext="&options.showChangesLog.desc;">
 								<groupbox flex="1">
 									<caption>
 										<label value="&options.showChangesLog; (" control="showChangesLog" style="margin-right: 0"/>
 										<hbox pack="start" align="start">
-											<label id="showChangesLog_button"
+											<label	id="showChangesLog_button"
 															class="text-link link"
 															value="&options.showChangesLog.button;"
 															accessibleType="100A"
@@ -140,13 +165,32 @@
 									</hbox>
 								</groupbox>
 							</hbox>
+							<hbox id="toolsBox" flex="1" pack="start" align="center">
+								<vbox>
+									<button	id="tools"
+													type="menu"
+													label="&options.tools;"
+													oncommand="coomanPlus.command(event.target.value);"
+									>
+										<menupopup>
+											<menuitem value="restore" label="&options.restore;"/>
+											<menuitem value="backup" label="&options.backup;"/>
+											<menuseparator/>
+											<menuitem value="reset" label="&options.resetall;" tooltiptext="&options.resetall.desc;"/>
+										</menupopup>
+									</button>
+								</vbox>
+							</hbox>
+						</vbox>
+					</tabpanel>
+					<tabpanel id="panelDate" flex="1">
 							<groupbox id="formatBox" flex="1">
 								<caption>
 									<label value="&options.dateformat.label;" style="overflow:hidden;margin-right: 0" flex="0" tooltiptext="&options.dateformat.info;" control="format"/>
 									<label value="(" style="margin-right: 0"/>
 									<hbox pack="start" align="start">
 										<label value="&options.dateformat.moreinfo;"
-														href="http://php.net/manual/en/function.date.php"
+														href="http://php.net/manual/en/function.date.php#refsect1-function.date-parameters"
 														class="text-link link"
 														accessibleType="100A"
 										/>
@@ -161,7 +205,7 @@
 										<label value="&result;:" style="margin-right:0"/>
 										<textbox id="test" value="" tooltiptext="&result;" label="&result;" readonly="true" flex="1"/>
 									</hbox>
-									<vbox id="dateListBox" flex="1" collapsed="true" persist="collapsed">
+									<vbox id="dateListBox2" flex="1">
 										<tree id="dateList"
 													flex="1"
 													treelines="false"
@@ -256,7 +300,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateDay" container="true" open="true" persist="open">
+												<treeitem id="dateDay" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Day"/>
 													</treerow>
@@ -319,7 +363,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateWeek" container="true" open="true" persist="open">
+												<treeitem id="dateWeek" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Week"/>
 													</treerow>
@@ -328,12 +372,12 @@
 															<treerow>
 																<treecell label="W" />
 																<treecell label="ISO-8601 week number of year, weeks starting on Monday." />
-																<treecell label="Ex: 42 (the 42nd week in the year)" />
+																<treecell label="42 (the 42nd week in the year)" />
 															</treerow>
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateMonth" container="true" open="true" persist="open">
+												<treeitem id="dateMonth" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Month"/>
 													</treerow>
@@ -375,7 +419,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateYear" container="true" open="true" persist="open">
+												<treeitem id="dateYear" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Year"/>
 													</treerow>
@@ -410,7 +454,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateTime" container="true" open="true" persist="open">
+												<treeitem id="dateTime" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Time"/>
 													</treerow>
@@ -487,7 +531,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateTimezone" container="true" open="true" persist="open">
+												<treeitem id="dateTimezone" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Timezone"/>
 													</treerow>
@@ -503,14 +547,14 @@
 															<treerow>
 																<treecell label="O" />
 																<treecell label="Difference to Greenwich time (GMT) in hours." />
-																<treecell label="Ex: +0200" />
+																<treecell label="+0200" />
 															</treerow>
 														</treeitem>
 														<treeitem>
 															<treerow>
 																<treecell label="P" />
 																<treecell label="Difference to Greenwich time (GMT) with colon between hours and minutes." />
-																<treecell label="Ex: +02:00" />
+																<treecell label="+02:00" />
 															</treerow>
 														</treeitem>
 														<treeitem>
@@ -522,7 +566,7 @@
 														</treeitem>
 													</treechildren>
 												</treeitem>
-												<treeitem id="dateFullDate" container="true" open="true" persist="open">
+												<treeitem id="dateFullDate" container="true" open="false" persist="open">
 													<treerow>
 														<treecell label="Full Date/Time"/>
 													</treerow>
@@ -531,21 +575,21 @@
 															<treerow>
 																<treecell label="c" />
 																<treecell label="ISO 8601 date." />
-																<treecell label="Ex: 2004-02-12T15:19:21+00:00" />
+																<treecell label="2004-02-12T15:19:21+00:00" />
 															</treerow>
 														</treeitem>
 														<treeitem>
 															<treerow>
 																<treecell label="r" />
 																<treecell label="RFC 2822 formatted date." />
-																<treecell label="Ex: Thu, 21 Dec 2000 16:01:07 +0200" />
+																<treecell label="Thu, 21 Dec 2000 16:01:07 +0200" />
 															</treerow>
 														</treeitem>
 														<treeitem>
 															<treerow>
 																<treecell label="U" />
 																<treecell label="Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)." />
-																<treecell label="Ex: 465465476" />
+																<treecell label="465465476" />
 															</treerow>
 														</treeitem>
 													</treechildren>
@@ -554,37 +598,8 @@
 										</tree>
 										<label id="dateFormatLabel" value="&options.dateformat.tree;" disabled="true"/>
 									</vbox>
-									<splitter id="dateListSplitter"
-														disabled="true"
-														class="dateList"
-														collapse="before"
-														oncommand="coomanPlus.dateListSize(event)"
-									>
-										<grippy style="-moz-user-focus: normal;"
-														label="&options.dateformat.showhide;"
-														onfocus="this.parentNode.setAttribute('focus', true)"
-														onblur="this.parentNode.setAttribute('focus', false)"
-										/>
-									</splitter>
 								</vbox>
 							</groupbox>
-							<hbox id="toolsBox" flex="1" pack="start" align="center">
-								<vbox>
-									<button	id="tools"
-													type="menu"
-													label="&options.tools;"
-													oncommand="coomanPlus.command(event.target.value);"
-									>
-										<menupopup>
-											<menuitem value="restore" label="&options.restore;"/>
-											<menuitem value="backup" label="&options.backup;"/>
-											<menuseparator/>
-											<menuitem value="reset" label="&options.resetall;" tooltiptext="&options.resetall.desc;"/>
-										</menupopup>
-									</button>
-								</vbox>
-							</hbox>
-						</vbox>
 					</tabpanel>
 					<tabpanel id="panelExport" orient="vertical" flex="1">
 						<tabbox id="exportChildren" flex="1" persist="selectedIndex">
@@ -666,7 +681,6 @@
 	<script type="application/javascript" src="commonFunc.js"/>
 	<script type="application/javascript" src="export.js"/>
 	<script type="application/javascript" src="date.js"/>
-	<script type="application/javascript" src="base64.js"/>
 	<stringbundle id="cookieBundle" src="chrome://browser/locale/preferences/preferences.properties"/>
 	<stringbundle id="pippkiBundle" src="chrome://pippki/locale/pippki.properties"/>
 	<script>
@@ -697,6 +711,22 @@
 			restoreSettingsOpen:							"&restoreSettingsOpen;",
 			restoreSettingsError:							"&restoreSettingsError;",
 			settingsFile:											"&settingsFile;",
+			policy0:													"&policy0;",
+			policy1:													"&policy1;",
+			policy2:													"&policy2;",
+			policy3:													"&policy3;",
+			policy4:													"&policy4;",
+			policy5:													"&policy5;",
+			status0:													"&status0;",
+			status1:													"&status1;",
+			status2:													"&status2;",
+			status3:													"&status3;",
+			status4:													"&status4;",
+			yesno0:														"&yesno0;",
+			yesno1:														"&yesno1;",
+			exportFileSave:										"&export.file.save;",
+			cookieType1:											"&cookie.Type1;",
+			cookieType2:											"&cookie.Type2;",
 		};
 	</script>
 </prefwindow>

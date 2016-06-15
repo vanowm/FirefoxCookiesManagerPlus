@@ -176,7 +176,7 @@ coomanPlus.encrypt = function(data, pass, crc, version)
 	{
 		return coomanPlus["encrypt" + version](data, pass, crc, version);
 	}
-	pass = Base64.encode(pass); //work around some issues when used non-ASCII characters
+	pass = btoa(pass); //work around some issues when used non-ASCII characters
 	let n = 0, r = "";
 
 	for(let i = 0; i < data.length; i++)
@@ -276,10 +276,13 @@ coomanPlus.backupAll = function(sel, file, templ, header, nsIFile)
 
 coomanPlus.encryptData = function(password, data)
 {
-	let md5 = this.getHash(data),
+	let date = this.getHash((new Date()).getTime()),
+			md5 = this.getHash(data),
+//			e = this.encrypt(md5 + data, password + date),
 			e = this.encrypt(md5 + data, password),
 			md5e = this.getHash(e);
 	return "#encrypted" + md5e + e;
+//	return "#encrypted" + md5e + date + e;
 }
 coomanPlus.exportGetHeader = function(header)
 {
@@ -288,22 +291,20 @@ coomanPlus.exportGetHeader = function(header)
 										.replace("{HEADER}",	(typeof(header) == "undefined" ? "" : header));
 }
 
-coomanPlus.backupAddPassword = function()
+coomanPlus.backupAddPassword = function(confirm)
 {
 	let file = this.restoreOpen(true);
 	if (!file)
 	{
-		this.alert(this.string("restore_file_open_error"));
-		return;
+		return {status: 1, msg: this.string("restore_file_open_error")};
 	}
 	if (file.encrypted)
 	{
-		this.alert(this.string("backup_already_encrypted"));
-		return;
+		return {status: 2, msg: this.string("backup_already_encrypted")};
 	}
 	let cookies = file.cookies;
 	if (!cookies)
-		return;
+		return {status: 3, msg: this.string("no_cookies_found")};
 
 	let l = [];
 	for(let i = 0; i < cookies.length; i++)
@@ -316,7 +317,7 @@ coomanPlus.backupAddPassword = function()
 	let data = this.exportGetData(t, l, cookies, true);
 
 	if (!data.length)
-		return;
+		return {status: 4, msg: this.string("no_cookies_found")};
 
 	let password = this.promptPassword(null, null, true, true);
 	if (password)
@@ -325,14 +326,12 @@ coomanPlus.backupAddPassword = function()
 	}
 	else
 	{
-		this.alert(this.string("password_notset"));
-		return;
+		return {status: 5, msg: this.string("password_notset")};
 	}
 	let fp = this.saveFileSelect(file.fp.file.leafName, "txt", file.fp.displayDirectory, this.string("exportFileSave"));
 	if (!fp)
 	{
-		this.alert(this.string("password_notset"))
-		return;
+		return {status: 6, msg: this.string("password_notset")};
 	}
 	l = /^(#Created by Cookies Manager.*)$/m.exec(file.fileData);
 	let h;
@@ -341,9 +340,11 @@ coomanPlus.backupAddPassword = function()
 	else
 		h = this.exportGetHeader();
 
-	if (this.saveFile(fp, h + data))
+	if (confirm && this.saveFile(fp, h + data))
 		if (this.confirm(this.string("export_openfolder"), this.string("password_set")))
 			fp.file.reveal();
+
+	return {status: 0, msg: "ok", fp: fp}
 }
 
 coomanPlus.backupRemovePassword = function()
@@ -388,7 +389,18 @@ coomanPlus.backupRemovePassword = function()
 		this.alert(this.string("backup_decrypt_failed"))
 		return;
 	}
-	let pos = file.fileData.indexOf("#encrypted" + file.encrypted[2] + file.encrypted[3]);
+	let version = new RegExp("^" + RegExp.escape(this.header.substring(0, this.header.indexOf("{DATE}"))).replace("\\{VERSION\\}", "([^\\s]+)"), "m").exec(file.fileData),
+			compare = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator).compare,
+			pos = -1;
+/*
+	if (version && compare(version[1], "1.11") >= 0)
+	{
+		pos = file.fileData.indexOf("#encrypted" + file.encrypted[3] + file.encrypted[2]);
+	}
+*/
+	if (pos == -1)
+		pos = file.fileData.indexOf("#encrypted" + file.encrypted[2] + file.encrypted[3]);
+
 	if (pos == -1)
 		pos = file.fileData.indexOf(file.encrypted[2] + file.encrypted[3]);
 
@@ -491,6 +503,12 @@ coomanPlus.restoreFile = function(sel, fp, pass)
 	{
 		if (!sel || this._isSelected(cookies[i], sel))
 		{
+			cookies[i].readonly = coomanPlusCore.readonlyCheck(cookies[i]);
+			if (cookies[i].readonly)
+			{
+				for(let r in cookies[i].readonly)
+					cookies[i].readonly[r] = cookies[i][r];
+			}
 			this.cookieAdd(cookies[i]);
 			restored.push(cookies[i]);
 		}
@@ -526,12 +544,12 @@ coomanPlus.restoreOpen = function(nopass, templ, fp, pass)
 	let data = fileData,
 			encrypted = /^(#encrypted)?([0-9a-f]{32})([0-9a-f]{32})?/m.exec(data),
 			version = new RegExp("^" + RegExp.escape(this.header.substring(0, this.header.indexOf("{DATE}"))).replace("\\{VERSION\\}", "([^\\s]+)"), "m").exec(data),
-			encryptVersion = this.encryptVersion;
+			encryptVersion = this.encryptVersion,
+			compare = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator).compare,
+			salt = "";
 	if (version)
 	{
 		version = version[1];
-		let compare = Cc["@mozilla.org/xpcom/version-comparator;1"]
-										.getService(Ci.nsIVersionComparator).compare;
 		if (compare(version, "1.9") < 0)
 		{
 			encryptVersion = "";
@@ -540,8 +558,19 @@ coomanPlus.restoreOpen = function(nopass, templ, fp, pass)
 		{
 			if (encrypted)
 			{
-				encrypted[3] = encrypted[2];
-				encrypted[2] = "";
+				if (1 || compare(version, "1.11") < 0)
+				{
+					encrypted[3] = encrypted[2];
+					encrypted[2] = "";
+				}
+				else
+				{
+
+					let e = encrypted[3];
+					encrypted[3] = encrypted[2];
+					encrypted[2] = e;
+					salt = e;
+				}
 			}
 		}
 	}
@@ -561,6 +590,13 @@ coomanPlus.restoreOpen = function(nopass, templ, fp, pass)
 		let str = "#encrypted" + encrypted[2] + encrypted[3],
 				pos = data.indexOf(str);
 
+/*
+		if (compare(version, "1.11") >= 0)
+		{
+			str = encrypted[3] + encrypted[2];
+			pos = data.indexOf(str);
+		}
+*/
 		if (pos == -1)
 		{
 			str = encrypted[2] + encrypted[3];
@@ -592,7 +628,7 @@ coomanPlus.restoreOpen = function(nopass, templ, fp, pass)
 			}
 			if (password !== null)
 			{
-				let d = this.decrypt(data, password, encrypted[2], encryptVersion);
+				let d = this.decrypt(data, password + salt, encrypted[2], encryptVersion);
 				if (d !== null)
 				{
 					pass.push(password);
@@ -632,7 +668,6 @@ coomanPlus.restoreOpen = function(nopass, templ, fp, pass)
 			cookies.push(aCookie);
 		}
 	}
-
 	return {
 		status:			this.restoreStatusDecrypted,
 		cookies:		cookies,
@@ -807,11 +842,10 @@ coomanPlus.pass2bytes = function pass2bytes(str)
 
 coomanPlus.encrypt2 = function(data, pass, crc)
 {
-	let	base64 = Base64.encode(pass),
+	let	base64 = btoa(pass),
 			n = 0,
 			r = "";
-
-	pass = this.pass2bytes(pass + Base64.encode(base64) + this.getHash(pass) + base64);
+	pass = this.pass2bytes(pass + btoa(base64) + this.getHash(pass) + base64);
 
 	for(let i = 0; i < data.length; i++)
 	{

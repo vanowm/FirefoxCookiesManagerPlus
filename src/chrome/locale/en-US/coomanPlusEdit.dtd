@@ -55,3 +55,5 @@
 <!ENTITY	escape		 										"Actions">
 <!ENTITY	encode		 										"URL Encode">
 <!ENTITY	decode		 										"URL Decode">
+<!ENTITY	base64encode									"Base64 encode">
+<!ENTITY	base64decode									"Base64 decode">

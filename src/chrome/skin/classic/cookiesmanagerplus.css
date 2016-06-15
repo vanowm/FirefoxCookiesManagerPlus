@@ -3,18 +3,18 @@
 #cookieInfoBox
 {
 }
-tree
+#cookiesTree
 {
 	min-height: 7em;
 	margin-bottom: 5px;
 }
-treecol:not([type="checkbox"])
+#cookiesTree treecol:not([type="checkbox"])
 {
 	min-width: 3em;
 }
-treecol#rawHost,
-treecol#name,
-treecol#content
+#cookiesTree treecol#rawHost,
+#cookiesTree treecol#name,
+#cookiesTree treecol#content
 {
 	min-width: 4em;
 }
@@ -104,22 +104,22 @@ row[dragable="true"][dragover="true"][dragupdown="down"]
 	margin: 0 2px 0 2px;
 }
 
-treechildren::-moz-tree-row(odd)
+#cookiesTree treechildren::-moz-tree-row(odd)
 {
 	background-color:#F5F5F5;
 }
 /*
-treechildren::-moz-tree-row(odd, selected) {
+#cookiesTree treechildren::-moz-tree-row(odd, selected) {
 	background-color: #E7E7E7;
 }
-treechildren::-moz-tree-row(even, selected) {
+#cookiesTree treechildren::-moz-tree-row(even, selected) {
 	background-color: #E0E0E0;
 }
 */
 
 	/* css for checked cells */
 /*
-treechildren::-moz-tree-checkbox
+#cookiesTree treechildren::-moz-tree-checkbox
 {
 	margin: 1px 3px;
 	-moz-box-align: center;
@@ -130,169 +130,169 @@ treechildren::-moz-tree-checkbox
 	-moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
 	background: -moz-Field no-repeat 50% 50%;
 }
-treechildren:-moz-system-metric(windows-classic)::-moz-tree-checkbox,
-treechildren[xp="true"]::-moz-tree-checkbox
+#cookiesTree treechildren:-moz-system-metric(windows-classic)::-moz-tree-checkbox,
+#cookiesTree treechildren[xp="true"]::-moz-tree-checkbox
 {
 	margin: 1px 0px;
 }
-treechildren::-moz-tree-checkbox(checked)
+#cookiesTree treechildren::-moz-tree-checkbox(checked)
 {
 	list-style-image: url("chrome://global/skin/checkbox/cbox-check.gif");
 
 }
 */
 
-treecol[type="checkbox"] > label
+#cookiesTree treecol[type="checkbox"] > label
 {
 	display: none;
 }
 
 /*
-treecol[type="checkbox"] > label
+#cookiesTree treecol[type="checkbox"] > label
 {
 	display: block;
 	-moz-appearance: checkbox;
 }
 */
 
-treecol[type="checkbox"] > image,
-treechildren::-moz-tree-checkbox {
+#cookiesTree treecol[type="checkbox"] > image,
+#cookiesTree treechildren::-moz-tree-checkbox {
 	list-style-image: url("images/checkbox.png");
 	-moz-image-region: rect(0, 14px, 14px, 0);
 }
 
-treecol[type="checkbox"][checked="true"] > image,
-treechildren::-moz-tree-checkbox(checked) {
+#cookiesTree treecol[type="checkbox"][checked="true"] > image,
+#cookiesTree treechildren::-moz-tree-checkbox(checked) {
 	-moz-image-region: rect(0, 28px, 14px, 14px);
 }
 
-treechildren::-moz-tree-checkbox(protected) {
+#cookiesTree treechildren::-moz-tree-checkbox(protected) {
 	-moz-image-region: rect(0, 42px, 14px, 28px);
 }
 
-treechildren::-moz-tree-checkbox(checked, protected) {
+#cookiesTree treechildren::-moz-tree-checkbox(checked, protected) {
 	-moz-image-region: rect(0, 56px, 14px, 42px);
 }
 
 @media (-moz-windows-classic) {
-	treechildren::-moz-tree-checkbox {
+	#cookiesTree treechildren::-moz-tree-checkbox {
 		list-style-image: url("images/checkbox.png");
 		-moz-image-region: rect(0, 16px, 16px, 0);
 	}
 
-	treechildren::-moz-tree-checkbox(checked) {
+	#cookiesTree treechildren::-moz-tree-checkbox(checked) {
 		-moz-image-region: rect(0, 32px, 16px, 16px);
 	}
 }
 
 
-treechildren::-moz-tree-cell-text(selected),
-treechildren::-moz-tree-cell-text(selected, odd)
+#cookiesTree treechildren::-moz-tree-cell-text(selected),
+#cookiesTree treechildren::-moz-tree-cell-text(selected, odd)
 {
 	color: highlighttext;
 }
-treechildren::-moz-tree-cell-text(updated)
+#cookiesTree treechildren::-moz-tree-cell-text(updated)
 {
 	color: green;
 }
 
-treechildren::-moz-tree-cell-text(expired)
+#cookiesTree treechildren::-moz-tree-cell-text(expired)
 {
 	text-decoration: line-through;
 	color: red;
 }
-treechildren::-moz-tree-cell-text(protected)
+#cookiesTree treechildren::-moz-tree-cell-text(protected)
 {
 	font-style: italic;
 	color: GrayText;
 }
-treechildren::-moz-tree-cell-text(expired, protected)
+#cookiesTree treechildren::-moz-tree-cell-text(expired, protected)
 {
 	color: brown;
 }
 /*
-treechildren::-moz-tree-cell-text(selected, expired)
+#cookiesTree treechildren::-moz-tree-cell-text(selected, expired)
 {
 	color: #FF5B5B;
 }
 */
-/*treechildren::-moz-tree-cell-text(selected, expired, focus)*/
-treechildren::-moz-tree-cell-text(selected, expired)
+/*#cookiesTree treechildren::-moz-tree-cell-text(selected, expired, focus)*/
+#cookiesTree treechildren::-moz-tree-cell-text(selected, expired)
 {
 	color: pink;
 }
 /*
-treechildren::-moz-tree-cell-text(protected, selected)
+#cookiesTree treechildren::-moz-tree-cell-text(protected, selected)
 {
 	color: Grey;
 }
 */
-/*treechildren::-moz-tree-cell-text(protected, selected, focus)*/
-treechildren::-moz-tree-cell-text(protected, selected)
+/*#cookiesTree treechildren::-moz-tree-cell-text(protected, selected, focus)*/
+#cookiesTree treechildren::-moz-tree-cell-text(protected, selected)
 {
 	color: lightgrey;
 }
 /*
-treechildren::-moz-tree-cell-text(protected, selected, expired)
+#cookiesTree treechildren::-moz-tree-cell-text(protected, selected, expired)
 {
 	color: #FE6A50;
 }
 */
-/*treechildren::-moz-tree-cell-text(protected, selected, expired, focus)*/
-treechildren::-moz-tree-cell-text(protected, selected, expired)
+/*#cookiesTree treechildren::-moz-tree-cell-text(protected, selected, expired, focus)*/
+#cookiesTree treechildren::-moz-tree-cell-text(protected, selected, expired)
 {
 	color: #FFDFDF;
 }
-/*treechildren::-moz-tree-cell-text(selected, deleted2, focus)*/
-treechildren::-moz-tree-cell-text(selected, deleted2)
+/*#cookiesTree treechildren::-moz-tree-cell-text(selected, deleted2, focus)*/
+#cookiesTree treechildren::-moz-tree-cell-text(selected, deleted2)
 {
 	color: -moz-cellhighlighttext;
 }
-treechildren::-moz-tree-row()
+#cookiesTree treechildren::-moz-tree-row()
 {
 	border: 0;
 }
 /*
-treechildren::-moz-tree-row(current, focus),
-treechildren::-moz-tree-row(current, selected, focus),
+#cookiesTree treechildren::-moz-tree-row(current, focus),
+#cookiesTree treechildren::-moz-tree-row(current, selected, focus),
 */
-treechildren::-moz-tree-row(current),
-treechildren::-moz-tree-row(current, selected)
+#cookiesTree treechildren::-moz-tree-row(current),
+#cookiesTree treechildren::-moz-tree-row(current, selected)
 {
 	border: 1px dashed black;
 }
 /*
-treechildren::-moz-tree-row(selected, focus),
-treechildren::-moz-tree-row(selected, odd, focus),
-treechildren::-moz-tree-cell(selected, focus),
-treechildren::-moz-tree-cell(selected, odd, focus)
+#cookiesTree treechildren::-moz-tree-row(selected, focus),
+#cookiesTree treechildren::-moz-tree-row(selected, odd, focus),
+#cookiesTree treechildren::-moz-tree-cell(selected, focus),
+#cookiesTree treechildren::-moz-tree-cell(selected, odd, focus)
 */
-treechildren::-moz-tree-row(selected),
-treechildren::-moz-tree-row(selected, odd),
-treechildren::-moz-tree-cell(selected),
-treechildren::-moz-tree-cell(selected, odd)
+#cookiesTree treechildren::-moz-tree-row(selected),
+#cookiesTree treechildren::-moz-tree-row(selected, odd),
+#cookiesTree treechildren::-moz-tree-cell(selected),
+#cookiesTree treechildren::-moz-tree-cell(selected, odd)
 {
 	background-color: Highlight;
 }
-treechildren::-moz-tree-cell(insertbefore),
-treechildren::-moz-tree-cell(insertbefore odd),
-treechildren::-moz-tree-cell(insertbefore selected),
-treechildren::-moz-tree-cell(insertbefore selected odd)
+#cookiesTree treechildren::-moz-tree-cell(insertbefore),
+#cookiesTree treechildren::-moz-tree-cell(insertbefore odd),
+#cookiesTree treechildren::-moz-tree-cell(insertbefore selected),
+#cookiesTree treechildren::-moz-tree-cell(insertbefore selected odd)
 {
   -moz-border-start: 1px solid ThreeDShadow;
   margin-left: -1px;
 }
 
-treechildren::-moz-tree-cell(insertafter),
-treechildren::-moz-tree-cell(insertafter odd),
-treechildren::-moz-tree-cell(insertafter selected),
-treechildren::-moz-tree-cell(insertafter selected odd)
+#cookiesTree treechildren::-moz-tree-cell(insertafter),
+#cookiesTree treechildren::-moz-tree-cell(insertafter odd),
+#cookiesTree treechildren::-moz-tree-cell(insertafter selected),
+#cookiesTree treechildren::-moz-tree-cell(insertafter selected odd)
 {
   -moz-border-end: 1px solid ThreeDShadow;
   margin-right: -1px;
 }
 
-treechildren::-moz-tree-cell-text(deleted2)
+#cookiesTree treechildren::-moz-tree-cell-text(deleted2)
 {
 	font-style: italic;
 	text-decoration: line-through;
@@ -300,60 +300,60 @@ treechildren::-moz-tree-cell-text(deleted2)
 	color: black;
 }
 
-treechildren::-moz-tree-cell-text(deleted1)
+#cookiesTree treechildren::-moz-tree-cell-text(deleted1)
 {
 	font-weight: bold;
 	color: white
 }
-treechildren::-moz-tree-row(deleted2),
-treechildren::-moz-tree-cell(deleted2)
+#cookiesTree treechildren::-moz-tree-row(deleted2),
+#cookiesTree treechildren::-moz-tree-cell(deleted2)
 {
 	background-color: pink;
 }
-treechildren::-moz-tree-row(deleted1),
-treechildren::-moz-tree-cell(deleted1)
+#cookiesTree treechildren::-moz-tree-row(deleted1),
+#cookiesTree treechildren::-moz-tree-cell(deleted1)
 {
 	background-color: red;
 }
-treechildren::-moz-tree-row(deleted1)
+#cookiesTree treechildren::-moz-tree-row(deleted1)
 {
 	border: 1px solid pink;
 }
 
-treechildren::-moz-tree-progressmeter
+#cookiesTree treechildren::-moz-tree-progressmeter
 {
 	color: #00D228;
 }
 
-treechildren::-moz-tree-image(type1)
+#cookiesTree treechildren::-moz-tree-image(type1)
 {
 	-moz-image-region: rect(0, 16px, 16px, 0px);
 	list-style-image: url("images/type1.png");
 }
-treechildren::-moz-tree-image(type1, protected)
+#cookiesTree treechildren::-moz-tree-image(type1, protected)
 {
 	-moz-image-region: rect(0, 32px, 16px, 16px);
 }
-treechildren::-moz-tree-image(type2)
+#cookiesTree treechildren::-moz-tree-image(type2)
 {
 	-moz-image-region: rect(0, 16px, 16px, 0px);
 	list-style-image: url("images/type2.png");
 }
-treechildren::-moz-tree-image(type2, protected)
+#cookiesTree treechildren::-moz-tree-image(type2, protected)
 {
 	-moz-image-region: rect(0, 32px, 16px, 16px);
 }
-treechildren::-moz-tree-progressmeter(expired)
+#cookiesTree treechildren::-moz-tree-progressmeter(expired)
 {
 }
 
-treechildren::-moz-tree-progressmeter(session)
+#cookiesTree treechildren::-moz-tree-progressmeter(session)
 {
 	border: 0;
 	background-color: transparent;
 }
 
-treechildren::-moz-tree-image(ros)
+#cookiesTree treechildren::-moz-tree-image(ros)
 {
 	list-style-image: url("images/readwrite2.png") !important;
 	-moz-image-region: rect(0px, 38px, 12px, 27px);
@@ -362,7 +362,7 @@ treechildren::-moz-tree-image(ros)
 	margin: 0 5px 0 0;
 	padding: 0;
 }
-treechildren::-moz-tree-cell-text(ro)
+#cookiesTree treechildren::-moz-tree-cell-text(ro)
 {
 	opacity: 0.7;
 	border-color: rgba(0,0,0,0.2);
@@ -372,7 +372,7 @@ treechildren::-moz-tree-cell-text(ro)
 	border-bottom-style: solid;
 	box-shadow: inset 0 1px 0 red, 0 1px 0 white;
 }
-treechildren::-moz-tree-cell-text(ro selected)
+#cookiesTree treechildren::-moz-tree-cell-text(ro selected)
 {
 	opacity: 0.8;
 	border-color: rgba(200,200,200,0.5);
@@ -598,10 +598,10 @@ menuitem[indeterminate] *
 	max-width: 0px;
 }
 
-treecol
+#cookiesTree treecol
 {
 /* work around for a bug https://bugzilla.mozilla.org/show_bug.cgi?id=1274862 */
-	-moz-binding: url("chrome://cookiesmanagerplus/content/tree.xml#treecol") !important;
+	-moz-binding: url("chrome://cookiesmanagerplus/content/bindings/tree.xml#treecol") !important;
 }
 
 #lookupstart .button-box
@@ -645,4 +645,25 @@ row:not([ro="true"]):not([multiro="true"]) hbox.ro vbox:last-child > button
 	width: 16px;
 	height: 16px;
 	margin-right: 5px;
+}
+
+#lookupcriterium
+{
+	-moz-binding: url("chrome://cookiesmanagerplus/content/bindings/autocomplete.xml#autocomplete");
+  cursor: default;
+
+}
+
+#lookupcriterium[entrytype="regex"],
+#lookupcriterium[entrytype="regex"] .autocomplete-textbox-container,
+#lookupcriterium[entrytype="regex"] .autocomplete-textbox-container *
+{
+	background-color: #ECFFEA;
+}
+
+#lookupcriterium[entrytype="error"],
+#lookupcriterium[entrytype="error"] .autocomplete-textbox-container,
+#lookupcriterium[entrytype="error"] .autocomplete-textbox-container *
+{
+	background-color: #FFEAEA;
 }

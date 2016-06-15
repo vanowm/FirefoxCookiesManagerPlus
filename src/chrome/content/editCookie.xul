@@ -98,6 +98,9 @@
 								<menuseparator/>
 								<menuitem id="mnu_expand" label="&expand;"/>
 								<menuitem id="mnu_compact" label="&compact;"/>
+								<menuseparator/>
+								<menuitem id="mnu_base64encode" label="&base64encode;"/>
+								<menuitem id="mnu_base64decode" label="&base64decode;"/>
 							</menupopup>
 						</button>
 <!--
