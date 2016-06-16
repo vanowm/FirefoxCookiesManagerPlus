@@ -1455,10 +1455,7 @@ log.debug();
 				}, this.pref("autofilter") && !e ? 5000 : 0, this.autocompleteTimer);
 			}
 //			this.cookieSelected(true);
-			this.autofilter.timer = coomanPlusCore.async(function()
-			{
-			}, delay, this.autofilter.timer);
-				self.loadCookies(undefined, true);
+			self.loadCookies(undefined, true);
 		}
 	},
 
@@ -2442,7 +2439,7 @@ log.debug();
 
 	setDecode: function setDecode()
 	{
-		let r = $("ifl_value").getAttribute("decode") != "off";
+		let r = $("ifl_value").getAttribute("decode") == "off";
 		$("infoRowDecode").setAttribute("checked", r);
 		try
 		{
@@ -2452,7 +2449,7 @@ log.debug();
 
 	setBase64Decode: function setBase64Decode()
 	{
-		let r = $("ifl_value").getAttribute("base64decode") != "off";
+		let r = $("ifl_value").getAttribute("base64decode") == "off";
 		$("infoRowBase64Decode").setAttribute("checked", r);
 		try
 		{
