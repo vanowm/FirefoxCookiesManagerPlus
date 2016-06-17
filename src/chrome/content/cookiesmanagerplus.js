@@ -868,24 +868,7 @@ log.debug();
 			expires.setAttribute("tooltip", "expiresProgressTooltip");
 		let obj = $("ifl_value");
 		obj.valueOrig = obj.value;
-		if (obj.getAttribute("decode") != "off")
-		{
-			obj.value = decodeURIComponent(obj.value);
-		}
-		if (obj.getAttribute("expand") != "off")
-		{
-			try
-			{
-				obj.value = JSON.stringify(JSON.parse(obj.value), null, 2);
-			}catch(e){}
-		}
-		if (obj.getAttribute("base64decode") != "off")
-		{
-			try
-			{
-				obj.value = atob(obj.value);
-			}catch(e){};
-		}
+		obj.value = this.parseValue(obj.value);
 		if (!fixed.value[1] && fixed.value[0].length > 0)
 		{
 			$("ifl_value").setAttribute("tooltip", "tooltipValue");
@@ -2328,6 +2311,7 @@ log.debug();
 
 	infoRowContextExec: function infoRowContextExec(e)
 	{
+log.debug();
 		let obj = document.popupNode,
 				o = coomanPlus.infoRowGetRowObj(obj),
 				t;
@@ -2356,69 +2340,75 @@ log.debug();
 				break;
 			case "wrap":
 					o = $("ifl_value");
-					o.setAttribute("wrap", o.getAttribute("wrap") == "off" ? "" : "off");
+					o.setAttribute("wrap", o.getAttribute("wrap") == "on" ? "off" : "on");
 					coomanPlus.setWrap();
 				break;
 			case "expand":
 					o = $("ifl_value");
-					t = o.getAttribute("expand") == "off";
-					o.setAttribute("expand", t ? "" : "off");
+					t = o.getAttribute("expand") == "on";
+					o.setAttribute("expand", t ? "off" : "on");
 					coomanPlus.setExpand();
-					if (t)
-					{
-						try
-						{
-							o.value = JSON.stringify(JSON.parse(o.value), null, 2);
-						}catch(e){};
-					}
-					else
-						o.value = o.valueOrig;
+					o.value = coomanPlus.parseValue(o.valueOrig);
 				break;
 			case "decode":
 					o = $("ifl_value");
-					t = o.getAttribute("decode") == "off";
-					o.setAttribute("decode", t ? "" : "off");
+					t = o.getAttribute("decode") == "on";
+					o.setAttribute("decode", t ? "off" : "on");
 					coomanPlus.setDecode();
-					if (t)
-					{
-						try
-						{
-							o.value = decodeURIComponent(o.valueOrig);
-						}catch(e){}
-					}
-					else
-						o.value = o.valueOrig;
+					o.value = coomanPlus.parseValue(o.valueOrig);
 				break;
 			case "base64decode":
 					o = $("ifl_value");
-					t = o.getAttribute("base64decode") == "off";
-					o.setAttribute("base64decode", t ? "" : "off");
+					t = o.getAttribute("base64decode") == "on";
+					o.setAttribute("base64decode", t ? "off" : "on");
 					coomanPlus.setBase64Decode();
-					if (t)
-					{
-						try
-						{
-							o.value = atob(o.valueOrig);
-						}catch(e){log.error(e)}
-					}
-					else
-						o.value = o.valueOrig;
+					o.value = coomanPlus.parseValue(o.valueOrig);
 				break;
 		}
 		return true;
 	},
 
+	parseValue: function parseValue(value)
+	{
+		let o = $("ifl_value");
+		if (o.getAttribute("decode") == "on")
+		{
+			try
+			{
+				value = decodeURIComponent(value);
+			}catch(e){};
+		}
+
+		if (o.getAttribute("base64decode") == "on")
+		{
+			try
+			{
+				value = atob(value);
+			}catch(e){}
+		}
+
+		if (o.getAttribute("expand") == "on")
+		{
+			try
+			{
+				value = JSON.stringify(JSON.parse(value), null, 2);
+			}catch(e){};
+		}
+
+		return value;
+	},//parseValue()
+
 	setWrap: function setWrap()
 	{
 		let o = $("ifl_value"),
-				r = o.getAttribute("wrap") != "off";
+				r = o.getAttribute("wrap") == "on";
 		$("infoRowWrap").setAttribute("checked", r);
 		try
 		{
 			$("infoRowWrap2").setAttribute("checked", r);
 		}catch(e){};
 /*
-		$("infoSplitter").collapsed = o.collapsed || o.getAttribute("wrap") == "off";
+		$("infoSplitter").collapsed = o.collapsed || o.getAttribute("wrap") != "on";
 		if ($("infoSplitter").collapsed)
 		{
 			$("cookieInfoBox").setAttribute("height", "");
@@ -2428,7 +2418,7 @@ log.debug();
 
 	setExpand: function setExpand()
 	{
-		let r = $("ifl_value").getAttribute("expand") != "off";
+		let r = $("ifl_value").getAttribute("expand") == "on";
 
 		$("infoRowExpand").setAttribute("checked", r);
 		try
@@ -2439,7 +2429,8 @@ log.debug();
 
 	setDecode: function setDecode()
 	{
-		let r = $("ifl_value").getAttribute("decode") == "off";
+log.debug();
+		let r = $("ifl_value").getAttribute("decode") == "on";
 		$("infoRowDecode").setAttribute("checked", r);
 		try
 		{
@@ -2449,7 +2440,8 @@ log.debug();
 
 	setBase64Decode: function setBase64Decode()
 	{
-		let r = $("ifl_value").getAttribute("base64decode") == "off";
+log.debug();
+		let r = $("ifl_value").getAttribute("base64decode") == "on";
 		$("infoRowBase64Decode").setAttribute("checked", r);
 		try
 		{

@@ -374,19 +374,6 @@
 									accessibleType="101B"
 				/>
 -->
-				<textbox	id="lookupcriterium"
-									default="true"
-									flex="1"
-									onkeyup="if (event.keyCode == 13) {coomanPlus.doLookup(event);}"
-									oncommand="coomanPlus.autofilter()"
-									persist="filter autocompletesearchparam"
-									filter=""
-									type="autocomplete"
-									autocompletesearch="cmp-autocomplete"
-									enablehistory="true"
-									aria-controls="cookiesTree"
-									accessibleType="101B"
-				/>
 				<button	id="filtermenu"
 								type="panel"
 								tooltiptext="&menu.filter.label;"
@@ -484,6 +471,19 @@ hidden="true"
 						/>
 					</menupopup>
 				</button>
+				<textbox	id="lookupcriterium"
+									default="true"
+									flex="1"
+									onkeyup="if (event.keyCode == 13) {coomanPlus.doLookup(event);}"
+									oncommand="coomanPlus.autofilter()"
+									persist="filter autocompletesearchparam"
+									filter=""
+									type="autocomplete"
+									autocompletesearch="cmp-autocomplete"
+									enablehistory="true"
+									aria-controls="cookiesTree"
+									accessibleType="101B"
+				/>
 				<button id="lookupstart" oncommand="coomanPlus.doLookup(undefined, true)" accessibleType="1002"/>
 			</hbox>
 			</vbox>
@@ -709,6 +709,10 @@ hidden="true"
 														class="plain infofield"
 														flex="1"
 														rows="1"
+														wrap="on"
+														expand="on"
+														decode="off"
+														base64decode="off"
 														persist="wrap expand decode base64decode"
 														multiline="true"
 														empty="true"

@@ -7,6 +7,11 @@ Legend:
 * = Changed
 - = Removed
 
+v1.11.2 (2016-06-16)
+	* moved filter menu to the left of search field
+	! URL decode for content info row not properly disabled by default
+	! base64 decode for content info row not properly disabled by default
+
 v1.11.1 (2016-06-16)
 	* URL decode for content info row is disabled by default
 	* base64 decode for content info row is disabled by default
