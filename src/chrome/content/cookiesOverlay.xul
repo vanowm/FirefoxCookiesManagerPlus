@@ -14,18 +14,16 @@
 		<script type="application/javascript" src="update.js"/>
 		<script type="application/javascript" src="libOut.js"/>
 		<script type="application/javascript" src="commonFunc.js"/>
-		<button id="cmp" image="chrome://cookiesmanagerplus/skin/images/coomanPlus16.png"
+		<button	id="cmp"
 						tooltiptext="&coomanPlus;"
 						accesskey="&coomanPlus.open.accesskey;"
 						type="menu"
-						style="min-width: 18px;"
 		>
 			<menupopup>
 				<menuitem label="&coomanPlus.open;"
-									image="chrome://cookiesmanagerplus/skin/images/coomanPlus16.png"
 									oncommand="coomanPlus.openCMP();"
 									accesskey="&coomanPlus.open.accesskey;"
-									class="menuitem-iconic"
+									class="menuitem-iconic cmp"
 				/>
 				<menuseparator/>
 				<menuitem id="cmpSync"

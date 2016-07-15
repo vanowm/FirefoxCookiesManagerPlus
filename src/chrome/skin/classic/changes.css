@@ -153,14 +153,13 @@ hbox.border,
 #changesLogMenu .button-icon
 {
 	margin-right: 0.5em;
-	list-style-image: url("images/options16x16.png");
-	-moz-image-region: rect(0 16px 16px 0);
+	list-style-image: url("images/icons.png");
+	-moz-image-region: rect(0 48px 16px 32px);
 }
 
 #changesLogMenu button .button-icon
 {
 	margin-right: 0.5em;
-	list-style-image: url("images/coomanPlus16.png");
 	-moz-image-region: rect(0 16px 16px 0);
 }
 
@@ -188,13 +187,19 @@ hbox.border,
 	font-weight: bold;
 }
 
-.changesLog_copy
-{
-	list-style-image:url("images/copy.png") !important;
-}
+.changesLog_copy,
 .changesLog_copy_link
 {
-	list-style-image:url("images/copy_link.png") !important;
+	list-style-image:url("images/icons.png") !important;
+}
+.changesLog_copy
+{
+	-moz-image-region: rect(0, 192px, 16px, 176px);
+}
+
+.changesLog_copy_link
+{
+	-moz-image-region: rect(0, 207px, 16px, 191px);
 }
 
 #changesLogContext menuitem[disabled="true"] .menu-iconic-left

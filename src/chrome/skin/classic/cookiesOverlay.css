@@ -1,0 +1,10 @@
+#cmp,
+.cmp
+{
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/icons.png");
+	-moz-image-region: rect(0 16px 16px 0);
+}
+#cmp
+{
+	min-width: 18px;
+}

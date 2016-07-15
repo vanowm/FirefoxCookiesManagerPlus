@@ -48,6 +48,7 @@
 				<preference id="readonlydelete" name="extensions.cookiesmanagerplus.readonlydelete" type="bool" />
 				<preference id="buttonaction" name="extensions.cookiesmanagerplus.buttonaction" type="bool" />
 				<preference id="searchhistory" name="extensions.cookiesmanagerplus.searchhistory" type="int" />
+				<preference id="alwaysusecmp" name="extensions.cookiesmanagerplus.alwaysusecmp" type="bool" />
 			</preferences>
 			<tabbox id="optionsBox" persist="selectedIndex" flex="1">
 				<tabs id="optionsBoxTabs">
@@ -125,7 +126,7 @@
 									</menupopup>
 								</menulist>
 							</hbox>
-							<hbox collapsed="true" align="center" tooltiptext="&options.restoreselection.info;">
+							<hbox align="baseline" tooltiptext="&options.restoreselection.info;">
 								<label value="&options.restoreselection.label;" control="restoreselection"/>
 								<textbox	id="ifl_restoreselection"
 														label="&options.restoreselection.label;"
@@ -137,7 +138,7 @@
 														type="number"
 														accessibleType="101B"
 									/>
-								<label value="&options.restoreselection.warning;" control="restoreselection" class="info"/>
+								<label control="restoreselection" class="info" flex="1">&options.restoreselection.warning;</label>
 							</hbox>
 							<hbox tooltiptext="&options.showChangesLog.desc;">
 								<groupbox flex="1">
@@ -181,6 +182,21 @@
 									</button>
 								</vbox>
 							</hbox>
+							<hbox>
+								<button id="debug" type="menu" label="&options.debug;" tooltiptext="&options.debug.desc;">
+									<panel position="after_start">
+										<vbox id="debugMenu">
+											<checkbox id="debug_1" value="1" type="checkbox" label="&options.debug1;" tooltiptext="&options.debug1.desc;" disabled="true"/>
+											<checkbox id="debug_2" value="2" type="checkbox" label="&options.debug2;" tooltiptext="&options.debug2.desc;"/>
+											<checkbox id="debug_4" value="4" type="checkbox" label="&options.debug4;" tooltiptext="&options.debug4.desc;"/>
+										</vbox>
+									</panel>
+								</button>
+							</hbox>
+							<hbox>
+								<checkbox preference="alwaysusecmp" label="&options.alwaysusecmp;" tooltiptext="&options.alwaysusecmp.info;" accessibleType="1003"/>
+							</hbox>
+
 						</vbox>
 					</tabpanel>
 					<tabpanel id="panelDate" flex="1">

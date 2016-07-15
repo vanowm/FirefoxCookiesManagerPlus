@@ -228,6 +228,7 @@
 																tabindex="2000"
 																onkeydown="return coomanPlus.numbersOnly(event);"
 																maxLength="4"
+																size="2"
 																onchange="coomanPlus.changeYear(this);coomanPlus.setDateField();"
 																oninput="coomanPlus.changeYear(this);coomanPlus.setDateField();"
 																onkeypress="coomanPlus.saveCookiesCheck(event)"

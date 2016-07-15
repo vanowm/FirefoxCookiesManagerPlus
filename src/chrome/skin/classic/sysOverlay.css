@@ -27,13 +27,20 @@
 	-moz-image-region: rect(0 24px 24px 0);
 }
 
+#coomanPlus_tools_menu,
+#coomanPlus_tools_menuitem,
+#coomanPlus_appmenu_menu,
+#coomanPlus_appmenu_menuitem,
+#coomanPlus_button_menuitem,
 toolbar[iconsize="small"] #coomanPlus_button
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus16.png");
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/icons.png");
 	-moz-image-region: rect(0 16px 16px 0);
 }
-#coomanPlus_menuitem,
-#coomanPlus_appmenu
+#coomanPlus_button_options,
+#coomanPlus_tools_options,
+#coomanPlus_appmenu_options
 {
-	list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus16.png");
+	list-style-image: url("chrome://cookiesmanagerplus/skin/images/icons.png");
+	-moz-image-region: rect(0 48px 16px 32px);
 }

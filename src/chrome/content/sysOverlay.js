@@ -10,7 +10,7 @@ let $ = function $(id)
 return {
 	pref: coomanPlusCore.pref,
 	buttons: [
-						"coomanPlus_button_menu",
+						"coomanPlus_button_menuitem",
 						"coomanPlus_tools_menuitem",
 						"coomanPlus_appmenu_menuitem"
 	],
@@ -88,7 +88,8 @@ log.debug("end load sysoverlay", 1);
 	menu: function menu(e)
 	{
 		let mi = coomanPlus.buttons,
-				host;
+				host,
+				icon = "";
 		try
 		{
 			host = gBrowser.currentURI.host;
@@ -96,6 +97,11 @@ log.debug("end load sysoverlay", 1);
 		catch(er){};
 		if (!host || ["http","https"].indexOf(gBrowser.currentURI.scheme) == -1)
 			host = this.strings.na;
+
+		if (host != this.strings.na)
+		{
+			icon = gBrowser.getIcon();
+		}
 
 		for(let i = 0; i < mi.length; i++)
 		{
@@ -106,6 +112,7 @@ log.debug("end load sysoverlay", 1);
 
 			m.label = this.strings.site + ": " + host;
 			m.disabled = host == this.strings.na;
+			m.setAttribute("image", icon);
 		}
 		this.setActions(host != this.strings.na && this.pref("buttonaction"))
 		return true;

@@ -240,7 +240,6 @@ var	self = this,
 	},//shutdown()
 	observe: function observe(aTopic, aSubject, aData)
 	{
-log.debug();
 		if (aSubject == "profile-change-net-teardown")
 			return this.shutdown()
 
@@ -268,7 +267,10 @@ log.debug();
 				{
 					let hash = this.cookieHash(aCookie);
 					if (!this.readonlyList[hash])
+					{
+log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == "/" ? "" : "/")  + aCookie.name);
 						continue;
+					}
 
 					let newCookie = {
 						host: aCookie.host,
@@ -298,10 +300,10 @@ log.debug();
 					if (save)
 					{
 
-log.debug("Attempt to change readonly cookie " + newCookie.name + "@" + newCookie.host + ", restoring readonly data");
+log.debug("Attempt to change readonly cookie " + newCookie.host + newCookie.path + (newCookie.path[newCookie.path.length-1] == "/" ? "" : "/")  + newCookie.name + ", restoring readonly data");
 
 						if (newCookie.expires * 1000 < (new Date()).getTime())
-							newCookie.expires = (new Date()).getTime() / 1000 + 1;  //we can't add expired cookies, adding 1 sec
+							newCookie.expires = (new Date()).getTime() / 1000 + 1;  //we can't add already expired cookies, adding 1 sec
 
 						this._cm2.add(newCookie.host,
 													newCookie.path,
@@ -312,11 +314,15 @@ log.debug("Attempt to change readonly cookie " + newCookie.name + "@" + newCooki
 													(newCookie.expires) ? false : true,
 													newCookie.expires);
 					}
+					else
+log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == "/" ? "" : "/")  + aCookie.name);
+
 				}
 				break;
 		}
 
 	},//observe()
+
 	readonlyAdd: function readonlyAdd(aCookie)
 	{
 log.debug();

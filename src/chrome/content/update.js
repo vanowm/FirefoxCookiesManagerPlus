@@ -427,6 +427,12 @@ coomanPlus.update = function update()
 			{
 				coomanPlusCore.prefs.setCharPref("reset", JSON.stringify({main:["colsordinal"]}));
 			}
+			if (compare(v, "1.12") < 0)
+			{
+				coomanPlusCore.prefs.setCharPref("reset", JSON.stringify({main:["update1_12"]}));
+				if (coomanPlusCore.pref("restoreselection") > 100)
+					coomanPlusCore.pref("restoreselection", 100);
+			}
 		}
 		catch(e)
 		{

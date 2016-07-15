@@ -445,7 +445,7 @@ var changesLog = {
 			$("changesLogLinkCopy").setAttribute("label", _("menu_copy_url"));
 		}
 		let sup = $("supportSite");
-		sup.setAttribute("href", SUPPORTSITE);
+		sup.setAttribute("href", SUPPORTSITE + SUPPORTSITEQUERY);
 		sup.setAttribute("link", SUPPORTSITE);
 		sup.setAttribute("tooltiptext", SUPPORTSITE);
 		sup = $("supportHomepage");

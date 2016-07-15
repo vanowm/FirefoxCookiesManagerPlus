@@ -16,7 +16,7 @@
 ]>
 
 
-<window id="cookiesmanagerplusWindow"
+<window	id="cookiesmanagerplusWindow"
 				title="Cookies Manager+"
 				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 				onload="coomanPlus.load()"
@@ -28,94 +28,195 @@
 				_height="400"
 				flex="1"
 >
-	<vbox id="main" flex="1">
+	<vbox	id="main" flex="1">
 		<keyset>
-			<key id="esc" keycode="VK_ESCAPE" oncommand="window.close();" />
-			<key key="&windowClose.key;" modifiers="accel" oncommand="window.close();"/>
-			<key key="&focusSearch1.key;" modifiers="accel" oncommand="document.getElementById('lookupcriterium').focus();"/>
-			<key key="&focusSearch2.key;" modifiers="accel" oncommand="document.getElementById('lookupcriterium').focus();"/>
-			<key key="L" modifiers="alt" oncommand="document.getElementById('cookiesTree').focus();"/>
+			<key	id="esc"
+						keycode="VK_ESCAPE"
+						oncommand="window.close();"
+			/>
+			<key	key="&windowClose.key;"
+						modifiers="accel"
+						oncommand="window.close();"
+			/>
+			<key	key="&focusSearch1.key;"
+						modifiers="accel"
+						oncommand="document.getElementById('lookupcriterium').focus();"
+			/>
+			<key	key="&focusSearch2.key;"
+						modifiers="accel"
+						oncommand="document.getElementById('lookupcriterium').focus();"
+			/>
+			<key	key="L"
+						modifiers="alt"
+						oncommand="document.getElementById('cookiesTree').focus();"
+			/>
 		</keyset>
 
 
-		<stringbundle id="changesLogPreferences" src="chrome://cookiesmanagerplus/locale/changesLog.properties"/>
-		<stringbundle id="bundlePreferences" src="chrome://browser/locale/preferences/preferences.properties"/>
-		<stringbundle id="platformKeys" src="chrome://global-platform/locale/platformKeys.properties"/>
-		<stringbundle id="localeKeys" src="chrome://global/locale/keys.properties"/>
+		<stringbundle	id="changesLogPreferences" src="chrome://cookiesmanagerplus/locale/changesLog.properties" />
+		<stringbundle	id="bundlePreferences" src="chrome://browser/locale/preferences/preferences.properties" />
+		<stringbundle	id="platformKeys" src="chrome://global-platform/locale/platformKeys.properties" />
+		<stringbundle	id="localeKeys" src="chrome://global/locale/keys.properties" />
 
 		<popupset>
-			<menupopup id="coomanPlus_inforow_menu"
-								 oncommand="return coomanPlus.infoRowContextExec(event)"
-								 onpopupshowing="coomanPlus.infoRowContextCheck(event);"
-								 position="after_pointer"
-								 accessibleType="100F"
+			<menupopup	id="coomanPlus_inforow_menu"
+									oncommand="return coomanPlus.infoRowContextExec(event)"
+									onpopupshowing="coomanPlus.infoRowContextCheck(event);"
+									position="after_pointer"
+									accessibleType="100F"
 			>
-				<menuitem id="infoRowCopy" label="&infoRow.copy;" value="copy" accessibleType="100E"/>
-				<menuseparator />
-				<menuitem id="infoRowWrap" type="checkbox" label="&infoRow.wrap;" value="wrap" accessibleType="100E"/>
-				<menuitem id="infoRowExpand" type="checkbox" label="&infoRow.expand;" value="expand" accessibleType="100E"/>
-				<menuitem id="infoRowDecode" type="checkbox" label="&infoRow.urlDecode;" value="decode" accessibleType="100E"/>
-				<menuitem id="infoRowBase64Decode" type="checkbox" label="&infoRow.base64decode;" value="base64decode" accessibleType="100E"/>
-				<menuseparator />
-				<menuitem id="infoRowUp" label="&infoRow.move.up;" value="up" accessibleType="100E" />
-				<menuitem id="infoRowDown" label="&infoRow.move.down;" value="down" accessibleType="100E" />
+				<menuitem
+									id="infoRowCopy"
+									label="&infoRow.copy;"
+									value="copy"
+									accessibleType="100E"/>
+				<menuseparator/>
+				<menuitem
+									id="infoRow_wrap"
+									type="checkbox"
+									label="&infoRow.wrap;"
+									value="wrap"
+									accessibleType="100E"/>
+				<menuitem
+									id="infoRow_expand"
+									type="checkbox"
+									label="&infoRow.expand;"
+									value="expand"
+									accessibleType="100E"/>
+				<menuitem
+									id="infoRow_decode"
+									type="checkbox"
+									label="&infoRow.urlDecode;"
+									value="decode"
+									accessibleType="100E"/>
+				<menuitem
+									id="infoRow_base64decode"
+									type="checkbox"
+									label="&infoRow.base64decode;"
+									value="base64decode"
+									accessibleType="100E"/>
+				<menuitem
+									id="infoRowActionBtns"
+									type="checkbox"
+									label="&infoRow.actions;"
+									value="actions"
+									accessibleType="100E"/>
+				<menuseparator/>
+				<menuitem
+									id="infoRowUp"
+									label="&infoRow.move.up;"
+									value="up"
+									accessibleType="100E"
+									/>
+				<menuitem
+									id="infoRowDown"
+									label="&infoRow.move.down;"
+									value="down"
+									accessibleType="100E"
+									/>
 			</menupopup>
 
-			<menupopup id="coomanPlus_tree_menu"
+			<menupopup	id="coomanPlus_tree_menu"
 								 onpopuphiding="coomanPlus.contextDelay = (new Date()).getTime();"
 								 oncommand="coomanPlus.menuView(event)"
 								 accessibleType="100F"
 			>
-				<menuitem id="tree_menu_edit" label="&menu.edit.label;" oncommand="coomanPlus.openEdit()" accessibleType="100E"/>
-				<menuitem id="tree_menu_delete" label="&menu.delete.label;" oncommand="coomanPlus.deleteCookies()" accessibleType="100E"/>
-				<menuitem id="tree_menu_delete_block" label="&menu.delete.block.label;" oncommand="coomanPlus.deleteCookies(true)" accessibleType="100E"/>
-				<menuseparator accessibleType="1010"/>
-				<menuitem label="&menu.selectAllShown.label;" oncommand="coomanPlus.selectAllShown()" accesskey="&button.all.accesskey;" accessibleType="100E"/>
-				<menuitem label="&menu.invertSelection.label;" oncommand="coomanPlus.invertSelection()" accesskey="&button.invert.accesskey;" accessibleType="100E"/>
-				<menuseparator id="tree_protectMenuSeparator" accessibleType="1010"/>
-				<menuitem id="tree_menu_protect" label="&protect.protect;" accesskey="&protect.protect.accesskey;" class="menuitem-iconic" oncommand="coomanPlus.protect.obj.protect()" accessibleType="100E"/>
-				<menuitem id="tree_menu_unprotect" label="&protect.unprotect;" accesskey="&protect.unprotect.accesskey;" class="menuitem-iconic" oncommand="coomanPlus.protect.obj.unprotect()" accessibleType="100E"/>
-				<menuseparator id="separator_export" accessibleType="1010"/>
-				<menuitem id="menu_exportclipboard" label="&export.clipboard;" accesskey="&export.clipboard.accesskey;" oncommand="coomanPlus.exportClipboard()" accessibleType="100E"/>
-				<menuitem id="menu_exportfile" label="&export.file;" accesskey="&export.file.accesskey;" oncommand="coomanPlus.exportFile()" accessibleType="100E"/>
-				<menu id="menu_backup"
+				<menuitem	id="tree_menu_edit"
+									label="&menu.edit.label;"
+									oncommand="coomanPlus.openEdit()"
+									accessibleType="100E"
+				/>
+				<menuitem	id="tree_menu_delete"
+									label="&menu.delete.label;"
+									oncommand="coomanPlus.deleteCookies()"
+									accessibleType="100E"
+				/>
+				<menuitem	id="tree_menu_delete_block"
+									label="&menu.delete.block.label;"
+									oncommand="coomanPlus.deleteCookies(true)"
+									accessibleType="100E"
+				/>
+				<menuseparator	accessibleType="1010"/>
+				<menuitem	label="&menu.selectAllShown.label;"
+									oncommand="coomanPlus.selectAllShown()"
+									accesskey="&button.all.accesskey;"
+									accessibleType="100E"
+				/>
+				<menuitem	label="&menu.invertSelection.label;"
+									oncommand="coomanPlus.invertSelection()"
+									accesskey="&button.invert.accesskey;"
+									accessibleType="100E"
+				/>
+				<menuseparator	id="tree_protectMenuSeparator"
+									accessibleType="1010"
+				/>
+				<menuitem	id="tree_menu_protect"
+									label="&protect.protect;"
+									accesskey="&protect.protect.accesskey;"
+									class="menuitem-iconic"
+									oncommand="coomanPlus.protect.obj.protect()"
+									accessibleType="100E"
+				/>
+				<menuitem	id="tree_menu_unprotect"
+									label="&protect.unprotect;"
+									accesskey="&protect.unprotect.accesskey;"
+									class="menuitem-iconic"
+									oncommand="coomanPlus.protect.obj.unprotect()"
+									accessibleType="100E"
+				/>
+				<menuseparator	id="separator_export"
+									accessibleType="1010"
+				/>
+				<menuitem	id="menu_exportclipboard"
+									label="&export.clipboard;"
+									accesskey="&export.clipboard.accesskey;"
+									oncommand="coomanPlus.exportClipboard()"
+									accessibleType="100E"
+				/>
+				<menuitem	id="menu_exportfile"
+									label="&export.file;"
+									accesskey="&export.file.accesskey;"
+									oncommand="coomanPlus.exportFile()"
+									accessibleType="100E"
+				/>
+				<menu	id="menu_backup"
 							type="menu"
 							label="&backup.button;"
 							accesskey="&backup.button.accesskey;"
 				>
-					<menupopup accessibleType="100F">
-						<menuitem id="menu_backupselected"
+					<menupopup	accessibleType="100F">
+						<menuitem	id="menu_backupselected"
 											label="&backup.selected;"
 											accesskey="&backup.selected.accesskey;"
 											oncommand="coomanPlus.backupSelected()"
 											accessibleType="100E"
 						/>
-						<menuitem id="menu_backupvisible"
+						<menuitem	id="menu_backupvisible"
 											label="&backup.visible;"
 											accesskey="&backup.visible.accesskey;"
 											oncommand="coomanPlus.backupVisible()"
 											accessibleType="100E"
 						/>
-						<menuitem id="menu_backupall"
+						<menuitem	id="menu_backupall"
 											label="&backup.all;"
 											accesskey="&backup.all.accesskey;"
 											oncommand="coomanPlus.backupAll()"
 											accessibleType="100E"
 						/>
-						<menuseparator accessibleType="1010"/>
-						<menuitem id="menu_restoreselected"
+						<menuseparator	accessibleType="1010"/>
+						<menuitem	id="menu_restoreselected"
 											label="&restore.selected;"
 											accesskey="&restore.selected.accesskey;"
 											oncommand="coomanPlus.restoreSelected()"
 											accessibleType="100E"
 						/>
-						<menuitem id="menu_restorevisible"
+						<menuitem	id="menu_restorevisible"
 											label="&restore.visible;"
 											accesskey="&restore.visible.accesskey;"
 											oncommand="coomanPlus.restoreVisible()"
 											accessibleType="100E"
 						/>
-						<menuitem id="menu_restoreAll"
+						<menuitem	id="menu_restoreAll"
 											label="&restore.all;"
 											accesskey="&restore.all.accesskey;"
 											oncommand="coomanPlus.restoreAll()"
@@ -123,75 +224,120 @@
 						/>
 					</menupopup>
 				</menu>
-				<menuseparator accessibleType="1010"/>
-				<menu type="menu" label="&menu.view.tree;" accesskey="&menu.view.tree.accesskey;">
-					<menupopup id="treeView" onpopupshowing="coomanPlus.treeView(this)" oncommand="coomanPlus.treeViewSelect(event)" accessibleType="100F">
-						<menuseparator accessibleType="1010"/>
-						<menuitem id="treeView_realHost" anonid="treeView_realHost" type="checkbox" label="&menu.realHost.label;" closemenu="none" stationary="true"/>
-						<menuitem anonid="treeViewReset" label="&restoreColumnOrder.label;" stationary="true"/>
-						<menuseparator accessibleType="1010"/>
-						<menu type="menu" label="&columnSort.label;" accesskey="&columnSort.accesskey;">
-							<menupopup id="treeViewSort" onpopupshowing="coomanPlus.treeViewSort(this)" accessibleType="100F"/>
+				<menuseparator	accessibleType="1010"/>
+				<menu	type="menu"
+							label="&menu.view.tree;"
+							accesskey="&menu.view.tree.accesskey;"
+				>
+					<menupopup	id="treeView"
+											onpopupshowing="coomanPlus.treeView(this)"
+											oncommand="coomanPlus.treeViewSelect(event)"
+											accessibleType="100F"
+					>
+						<menuseparator	accessibleType="1010"/>
+						<menuitem	id="treeView_realHost"
+											anonid="treeView_realHost"
+											type="checkbox"
+											label="&menu.realHost.label;"
+											closemenu="none"
+											stationary="true"
+											/>
+						<menuitem	anonid="treeViewReset"
+											label="&restoreColumnOrder.label;"
+											stationary="true"
+											/>
+						<menuseparator	accessibleType="1010"/>
+						<menu	type="menu"
+									label="&columnSort.label;"
+									accesskey="&columnSort.accesskey;"
+						>
+							<menupopup	id="treeViewSort"
+													onpopupshowing="coomanPlus.treeViewSort(this)"
+													accessibleType="100F"
+							/>
 						</menu>
 					</menupopup>
 				</menu>
 			</menupopup>
-			<menupopup id="coomanPlus_inforow_drag_menu">
-				<menuseparator coomanPlus="true"/>
-				<menuitem coomanPlus="true" label="&infoRow.move.up;" value="up" oncommand="return coomanPlus.infoRowContextExec(event)"/>
-				<menuitem coomanPlus="true" label="&infoRow.move.down;" value="down" oncommand="return coomanPlus.infoRowContextExec(event)"/>
+			<menupopup	id="coomanPlus_inforow_drag_menu">
+				<menuseparator	coomanPlus="true"/>
+				<menuitem	coomanPlus="true"
+									label="&infoRow.move.up;"
+									value="up"
+									oncommand="return
+									coomanPlus.infoRowContextExec(event)"
+				/>
+				<menuitem	coomanPlus="true"
+									label="&infoRow.move.down;"
+									value="down"
+									oncommand="return
+									coomanPlus.infoRowContextExec(event)"
+				/>
 			</menupopup>
-			<tooltip id="expiresProgressTooltip" onpopupshowing="coomanPlus.expiresProgress.init(true)" onpopuphiding="if (!coomanPlus.prefExpireProgress &amp;&amp; !coomanPlus.prefExpireCountdown)coomanPlus.expiresProgress.cancel(true)"/>
+			<tooltip	id="expiresProgressTooltip"
+								onpopupshowing="coomanPlus.expiresProgress.init(true)"
+								onpopuphiding="if
+								(!coomanPlus.prefExpireProgress
+								&amp;&amp;
+								!coomanPlus.prefExpireCountdown)coomanPlus.expiresProgress.cancel(true)"
+			/>
 		</popupset>
-		<menubar id="menu">
-			<menu label="&menu.file;" type="menu" accesskey="&menu.file.accesskey;">
-				<menupopup accessibleType="100F">
-					<menuitem id="menu_new"
+		<menubar	id="menu">
+			<menu	label="&menu.file;"
+						type="menu"
+						accesskey="&menu.file.accesskey;"
+			>
+				<menupopup	accessibleType="100F">
+					<menuitem	id="menu_new"
 										label="&menu.new.label;"
 										oncommand="coomanPlus.openAdd()"
 										accesskey="&menu.new.accesskey;"
 										accessibleType="100E"
 					/>
-					<menuitem id="menuExportFile"
+					<menuitem	id="menuExportFile"
 										oncommand="coomanPlus.exportFile();"
 										label="&export.file;"
 										accesskey="&export.file.accesskey;"
 										accessibleType="100E"
 					/>
-					<menu id="backup" type="menu" label="&backup.button;" accesskey="&backup.button.accesskey;">
-						<menupopup id="backupMenu" accessibleType="100F">
-							<menuitem id="menuBackupSelected"
+					<menu	id="backup"
+								type="menu"
+								label="&backup.button;"
+								accesskey="&backup.button.accesskey;"
+					>
+						<menupopup	id="backupMenu" accessibleType="100F">
+							<menuitem	id="menuBackupSelected"
 												oncommand="coomanPlus.backupSelected();"
 												label="&backup.selected;"
 												accesskey="&backup.selected.accesskey;"
 												accessibleType="100E"
 							/>
-							<menuitem id="menuBackupVisible"
+							<menuitem	id="menuBackupVisible"
 												oncommand="coomanPlus.backupVisible();"
 												label="&backup.visible;"
 												accesskey="&backup.visible.accesskey;"
 												accessibleType="100E"
 							/>
-							<menuitem id="menuBackupAll"
+							<menuitem	id="menuBackupAll"
 												oncommand="coomanPlus.backupAll();"
 												label="&backup.all;"
 												accesskey="&backup.all.accesskey;"
 												accessibleType="100E"
 							/>
-							<menuseparator accessibleType="1010"/>
-							<menuitem id="menuRestoreSelected"
+							<menuseparator	accessibleType="1010"/>
+							<menuitem	id="menuRestoreSelected"
 												label="&restore.selected;"
 												accesskey="&restore.selected.accesskey;"
 												oncommand="coomanPlus.restoreSelected()"
 												accessibleType="100E"
 							/>
-							<menuitem id="menuRestoreVisible"
+							<menuitem	id="menuRestoreVisible"
 												label="&restore.visible;"
 												accesskey="&restore.visible.accesskey;"
 												oncommand="coomanPlus.restoreVisible()"
 												accessibleType="100E"
 							/>
-							<menuitem id="menuRestoreAll"
+							<menuitem	id="menuRestoreAll"
 												label="&restore.all;"
 												accesskey="&restore.all.accesskey;"
 												oncommand="coomanPlus.restoreAll()"
@@ -201,29 +347,29 @@
 					</menu>
 				</menupopup>
 			</menu>
-			<menu label="&menu.edit;" accesskey="&menu.edit.accesskey;">
-				<menupopup accessibleType="100F">
-				<menuitem id="menu_edit"
+			<menu	label="&menu.edit;" accesskey="&menu.edit.accesskey;">
+				<menupopup	accessibleType="100F">
+				<menuitem	id="menu_edit"
 									label="&menu.edit.label;"
 									oncommand="coomanPlus.openEdit()"
 									accesskey="&menu.edit.accesskey;"
 									accessibleType="100E"
 				/>
-				<menuitem id="menu_delete"
+				<menuitem	id="menu_delete"
 									label="&menu.delete.label;"
 									oncommand="coomanPlus.deleteCookies()"
 									accesskey="&menu.delete.accesskey;"
 									accessibleType="100E"
 				/>
-				<menu label="&menu.delete.more.label;" accesskey="&menu.delete.more.accesskey;">
+				<menu	label="&menu.delete.more.label;" accesskey="&menu.delete.more.accesskey;">
 					<menupopup>
-						<menuitem id="menu_delete_block"
+						<menuitem	id="menu_delete_block"
 											label="&menu.delete.block.label;"
 											oncommand="coomanPlus.deleteCookies(true)"
 											accesskey="&menu.delete.block.accesskey;"
 											accessibleType="100E"
 						/>
-						<menuitem id="menu_delete_expred"
+						<menuitem	id="menu_delete_expred"
 											label="&menu.delete.expired.label;"
 											oncommand="coomanPlus.deleteExpiredCookies(true)"
 											accesskey="&menu.delete.expired.accesskey;"
@@ -231,34 +377,34 @@
 						/>
 					</menupopup>
 				</menu>
-				<menuseparator accessibleType="1010"/>
-				<menuitem label="&menu.selectAllShown.label;"
+				<menuseparator	accessibleType="1010"/>
+				<menuitem	label="&menu.selectAllShown.label;"
 									oncommand="coomanPlus.selectAllShown()"
 									accesskey="&button.all.accesskey;"
 									accessibleType="100E"
 				/>
-				<menuitem label="&menu.invertSelection.label;"
+				<menuitem	label="&menu.invertSelection.label;"
 									oncommand="coomanPlus.invertSelection()"
 									accesskey="&button.invert.accesskey;"
 									accessibleType="100E"
 				/>
-				<menuseparator id="protectMenuSeparator" accessibleType="1010"/>
-				<menuitem id="menu_protect"
+				<menuseparator	id="protectMenuSeparator" accessibleType="1010" />
+				<menuitem	id="menu_protect"
 									label="&protect.protect;"
 									class="menuitem-iconic"
 									accesskey="&protect.protect.accesskey;"
 									oncommand="coomanPlus.protect.obj.protect()"
 									accessibleType="100E"
 				/>
-				<menuitem id="menu_unprotect"
+				<menuitem	id="menu_unprotect"
 									label="&protect.unprotect;"
 									class="menuitem-iconic"
 									accesskey="&protect.unprotect.accesskey;"
 									oncommand="coomanPlus.protect.obj.unprotect()"
 									accessibleType="100E"
 				/>
-				<menuseparator accessibleType="1010"/>
-					<menuitem id="menuExportClipboard"
+				<menuseparator	accessibleType="1010"/>
+					<menuitem	id="menuExportClipboard"
 										oncommand="coomanPlus.exportClipboard();"
 										label="&export.clipboard;"
 										accesskey="&export.clipboard.accesskey;"
@@ -266,89 +412,209 @@
 					/>
 				</menupopup>
 			</menu>
-			<menu label="&menu.view;"
+			<menu	label="&menu.view;"
 						accesskey="&menu.view.accesskey;"
 						oncommand="coomanPlus.menuView(event)"
 			>
-				<menupopup accessibleType="100F">
-					<menuitem id="menu_info_name" type="checkbox" label="&cookie.name.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_value" type="checkbox" label="&cookie.value.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_host" type="checkbox" label="&cookie.domain.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_path" type="checkbox" label="&cookie.path.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_isSecure" type="checkbox" label="&cookie.isSecure.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_expires" type="checkbox" label="&cookie.expire.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_expireProgress" type="checkbox" label="&menu.expireprogress.label;" tooltiptext="&menu.expireprogress.info;" class="offset" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_expireProgressText" type="checkbox" label="&menu.expirecountdown.label;" class="offset" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_creationTime" type="checkbox" label="&cookie.creationTime.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_lastAccessed" type="checkbox" label="&cookie.lastAccessed.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_isHttpOnly" type="checkbox" label="&cookie.isHttpOnly.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_policy" type="checkbox" label="&cookie.policy.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_status" type="checkbox" label="&cookie.status.label;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_isProtected" type="checkbox" label="&protect.isProtected;" closemenu="none" accessibleType="100E"/>
-					<menuitem id="menu_info_size" type="checkbox" label="&cookie.size.label;" closemenu="none" accessibleType="100E"/>
-					<menuseparator accessibleType="1010"/>
-					<menuitem id="menu_info_topmost" type="checkbox" label="&options.topmost.label;" tooltiptext="&options.topmost.info;" accessibleType="100E"/>
-					<menuseparator accessibleType="1010"/>
-					<menu label="&menu.view.tree;" accesskey="&menu.view.tree.accesskey;">
-						<menupopup id="menu_treeView" onpopupshowing="coomanPlus.treeView(this)" oncommand="coomanPlus.treeViewSelect(event)" accessibleType="100F">
-							<menuseparator accessibleType="1010"/>
-							<menuitem id="menu_treeView_realHost" anonid="treeView_realHost" type="checkbox" label="&menu.realHost.label;" closemenu="none" stationary="true" accessibleType="100E"/>
-							<menuitem id="menu_treeView_autofit" type="checkbox" label="&menu.autofit.label;" closemenu="none" stationary="true" accessibleType="100E"/>
-							<menuitem anonid="treeViewReset" label="&restoreColumnOrder.label;" accessibleType="100E"/>
-							<menuseparator accessibleType="1010"/>
-							<menu type="menu" label="&columnSort.label;" accesskey="&columnSort.accesskey;">
-								<menupopup id="menu_treeViewSort" onpopupshowing="coomanPlus.treeViewSort(this)" accessibleType="100F"/>
+				<menupopup	accessibleType="100F">
+					<menuitem	id="menu_info_name"
+										type="checkbox"
+										label="&cookie.name.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_value"
+										type="checkbox"
+										label="&cookie.value.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_host"
+										type="checkbox"
+										label="&cookie.domain.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_path"
+										type="checkbox"
+										label="&cookie.path.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_isSecure"
+										type="checkbox"
+										label="&cookie.isSecure.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_expires"
+										type="checkbox"
+										label="&cookie.expire.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_expireProgress"
+										type="checkbox"
+										label="&menu.expireprogress.label;"
+										tooltiptext="&menu.expireprogress.info;"
+										class="offset"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_expireProgressText"
+										type="checkbox"
+										label="&menu.expirecountdown.label;"
+										class="offset"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_creationTime"
+										type="checkbox"
+										label="&cookie.creationTime.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_lastAccessed"
+										type="checkbox"
+										label="&cookie.lastAccessed.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_isHttpOnly"
+										type="checkbox"
+										label="&cookie.isHttpOnly.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_policy"
+										type="checkbox"
+										label="&cookie.policy.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_status"
+										type="checkbox"
+										label="&cookie.status.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_isProtected"
+										type="checkbox"
+										label="&protect.isProtected;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_originAttributes"
+										type="checkbox"
+										label="&cookie.originAttributes.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_size"
+										type="checkbox"
+										label="&cookie.size.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuitem	id="menu_info_type"
+										type="checkbox"
+										label="&cookie.type.label;"
+										closemenu="none"
+										accessibleType="100E"
+					/>
+					<menuseparator	accessibleType="1010"/>
+					<menuitem	id="menu_info_topmost"
+										type="checkbox"
+										label="&options.topmost.label;"
+										tooltiptext="&options.topmost.info;"
+										accessibleType="100E"
+					/>
+					<menuseparator	accessibleType="1010"/>
+					<menu	label="&menu.view.tree;" accesskey="&menu.view.tree.accesskey;">
+						<menupopup	id="menu_treeView"
+												onpopupshowing="coomanPlus.treeView(this)"
+												oncommand="coomanPlus.treeViewSelect(event)"
+												accessibleType="100F"
+						>
+							<menuseparator	accessibleType="1010"/>
+							<menuitem	id="menu_treeView_realHost"
+												anonid="treeView_realHost"
+												type="checkbox"
+												label="&menu.realHost.label;"
+												closemenu="none"
+												stationary="true"
+												accessibleType="100E"
+							/>
+							<menuitem	id="menu_treeView_autofit"
+												type="checkbox"
+												label="&menu.autofit.label;"
+												closemenu="none"
+												stationary="true"
+												accessibleType="100E"
+							/>
+							<menuitem	anonid="treeViewReset"
+												label="&restoreColumnOrder.label;"
+												accessibleType="100E"
+							/>
+							<menuseparator	accessibleType="1010"/>
+							<menu	type="menu"
+												label="&columnSort.label;"
+												accesskey="&columnSort.accesskey;"
+							>
+								<menupopup	id="menu_treeViewSort"
+												onpopupshowing="coomanPlus.treeViewSort(this)"
+												accessibleType="100F"
+							/>
 							</menu>
 						</menupopup>
 					</menu>
-					<menuseparator accessibleType="1010"/>
-					<menuitem id="menu_info_reset" label="&infoRow.reset;" accessibleType="100E"/>
+					<menuseparator	accessibleType="1010"/>
+					<menuitem	id="menu_info_reset" label="&infoRow.reset;" accessibleType="100E" />
 				</menupopup>
 			</menu>
-			<menu label="&menu.tools;" accesskey="&menu.tools.accesskey;">
-				<menupopup accessibleType="100F">
-					<menuitem image="chrome://cookiesmanagerplus/skin/images/ffcm.png"
-										oncommand="coomanPlus.openCookies();"
+			<menu	label="&menu.tools;" accesskey="&menu.tools.accesskey;">
+				<menupopup	accessibleType="100F">
+					<menuitem	oncommand="coomanPlus.openCookies();"
 										label="&menu.FirefoxCM.label;"
 										accesskey="&menu.FirefoxCM.accesskey;"
-										class="menuitem-iconic"
+										class="menuitem-iconic ffcm"
 										accessibleType="100E"
 					/>
-					<menuitem oncommand="coomanPlus.openCookiesPermissions();"
+					<menuitem	oncommand="coomanPlus.openCookiesPermissions();"
 										label="&cookieExceptions.label;"
 										accesskey="&cookieExceptions.accesskey;"
 										accessibleType="100E"
 					/>
-					<menuitem id="protect_menu"
+					<menuitem	id="protect_menu"
 										_label="&protect.open;"
 										accesskey="&protect.open.accesskey;"
 										oncommand="coomanPlus.protect.obj.open()"
 										class="menuitem-iconic"
 					/>
-					<menuseparator accessibleType="1010"/>
-					<menuitem oncommand="coomanPlus.options();"
+					<menuseparator	accessibleType="1010"/>
+					<menuitem	oncommand="coomanPlus.options();"
 										label="&menu.Options.label;"
 										accesskey="&menu.Options.accesskey;"
-										class="menuitem-iconic"
+										class="menuitem-iconic options"
 										accessibleType="100E"
 					/>
 				</menupopup>
 			</menu>
-			<menu id="menu_help" label="&menu.help;" accesskey="&menu.help.accesskey;">
-				<menupopup accessibleType="100F">
+			<menu	id="menu_help" label="&menu.help;" accesskey="&menu.help.accesskey;">
+				<menupopup	accessibleType="100F">
 					<menuitem	id="supportSite"
 										oncommand="coomanPlus.supportSite();"
 										label="&menu.supportSite;"
 										accesskey="&menu.supportSite.accesskey;"
 										accessibleType="100E"
 					/>
-					<menuseparator accessibleType="1010"/>
-					<menuitem oncommand="coomanPlus.showChangesLog(coomanPlus.CHANGESLOG_FULL);"
+					<menuseparator	accessibleType="1010"/>
+					<menuitem	oncommand="coomanPlus.showChangesLog(coomanPlus.CHANGESLOG_FULL);"
 										label="&menu.changes;"
 										accesskey="&menu.changes.accesskey;"
 										accessibleType="100E"
 					/>
-					<menuitem oncommand="coomanPlus.openAbout();"
+					<menuitem	oncommand="coomanPlus.openAbout();"
 										label="&menu.about;"
 										accesskey="&menu.about.accesskey;"
 										accessibleType="100E"
@@ -356,11 +622,11 @@
 				</menupopup>
 			</menu>
 		</menubar>
-		<vbox flex="1" class="contentPane">
+		<vbox	flex="1" class="contentPane">
 			<vbox>
-			<hbox id="nav-bar" align="center">
+			<hbox	id="nav-bar" align="center">
 <!--
-				<label control="lookupcriterium">&filter.label;</label>
+				<label	control="lookupcriterium">&filter.label;</label>
 				<textbox	id="lookupcriterium"
 									default="true"
 									flex="1"
@@ -374,103 +640,7 @@
 									accessibleType="101B"
 				/>
 -->
-				<button	id="filtermenu"
-								type="panel"
-								tooltiptext="&menu.filter.label;"
-								label="&menu.filter.label;"
-								class="menubutton"
-								align="center"
-								pack="center"
-								accessibleType="1002"
-				>
-					<menupopup id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
-						<menuitem label=" "
-											description="&menu.filter.label;"
-											class="menuheader"
-											disabled="true"
-						/>
-						<menuitem id="searchtype1"
-											type="checkbox"
-											closemenu="none"
-											label="&cookie.Type1;"
-											accessibleType="100E"
-hidden="true"
-						/>
-						<menuitem id="searchtype2"
-											type="checkbox"
-											closemenu="none"
-											label="&cookie.Type2;"
-											accessibleType="100E"
-hidden="true"
-						/>
-						<menuseparator accessibleType="1010"/>
-						<menuitem id="searchname"
-											type="checkbox"
-											closemenu="none"
-											label="&menu.filter.name;"
-											accessibleType="100E"
-						/>
-						<menuitem id="searchhost"
-											type="checkbox"
-											closemenu="none"
-											label="&menu.filter.host;"
-											accessibleType="100E"
-						/>
-						<menuitem id="searchcontent"
-											type="checkbox"
-											closemenu="none"
-											label="&menu.filter.content;"
-											accessibleType="100E"
-						/>
-	
-						<menuseparator accessibleType="1010"/>
-						<menu id="searchhosttype"
-									label="&menu.filter.hostType;">
-							<menupopup>
-								<menuitem id="searchhosttype0"
-													name="searchhosttype"
-													type="radio"
-													closemenu="none"
-													label="&menu.filter.normal;"
-													tooltiptext="&menu.filter.normal.info;"
-													accessibleType="100E"
-													value="0"
-								/>
-								<menuitem id="searchhosttype1"
-													name="searchhosttype"
-													type="radio"
-													closemenu="none"
-													label="&menu.filter.relaxed;"
-													tooltiptext="&menu.filter.relaxed.info;"
-													accessibleType="100E"
-													value="1"
-								/>
-								<menuitem id="searchhosttype2"
-													name="searchhosttype"
-													type="radio"
-													closemenu="none"
-													label="&menu.filter.exact;"
-													tooltiptext="&menu.filter.exact.info;"
-													accessibleType="100E"
-													value="2"
-								/>
-							</menupopup>
-						</menu>
-						<menuitem id="searchcase"
-											type="checkbox"
-											closemenu="none"
-											label="&menu.filter.case;"
-											accessibleType="100E"
-						/>
-						<menuitem id="searchregex"
-											type="checkbox"
-											closemenu="none"
-											label="&menu.filter.regex;"
-											checked="false"
-											accessibleType="100E"
-						/>
-					</menupopup>
-				</button>
+				<label	control="lookupcriterium">&filter.label;</label>
 				<textbox	id="lookupcriterium"
 									default="true"
 									flex="1"
@@ -484,27 +654,130 @@ hidden="true"
 									aria-controls="cookiesTree"
 									accessibleType="101B"
 				/>
-				<button id="lookupstart" oncommand="coomanPlus.doLookup(undefined, true)" accessibleType="1002"/>
+<!--
+				<button	id="filtermenu"
+								type="panel"
+								tooltiptext="&menu.filter.label;"
+								label="&menu.filter.label;"
+								class="menubutton"
+								align="center"
+								pack="center"
+								accessibleType="1002"
+				>
+-->
+<popupset>
+					<menupopup	id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
+						<menuitem	label=" "
+											description="&menu.filter.label;"
+											class="menuheader menuitem-iconic filtermenu"
+											disabled="true"
+						/>
+						<menuitem	id="searchtype1"
+											type="checkbox"
+											closemenu="none"
+											label="&cookie.Type1;"
+											accessibleType="100E"
+hidden="true"
+						/>
+						<menuitem	id="searchtype2"
+											type="checkbox"
+											closemenu="none"
+											label="&cookie.Type2;"
+											accessibleType="100E"
+hidden="true"
+						/>
+						<menuseparator	accessibleType="1010"/>
+						<menuitem	id="searchname"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.name;"
+											accessibleType="100E"
+						/>
+						<menuitem	id="searchhost"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.host;"
+											accessibleType="100E"
+						/>
+						<menuitem	id="searchcontent"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.content;"
+											accessibleType="100E"
+						/>
+
+						<menuseparator	accessibleType="1010"/>
+						<menu	id="searchhosttype"
+									label="&menu.filter.hostType;">
+							<menupopup>
+								<menuitem	id="searchhosttype0"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.normal;"
+													tooltiptext="&menu.filter.normal.info;"
+													accessibleType="100E"
+													value="0"
+								/>
+								<menuitem	id="searchhosttype1"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.relaxed;"
+													tooltiptext="&menu.filter.relaxed.info;"
+													accessibleType="100E"
+													value="1"
+								/>
+								<menuitem	id="searchhosttype2"
+													name="searchhosttype"
+													type="radio"
+													closemenu="none"
+													label="&menu.filter.exact;"
+													tooltiptext="&menu.filter.exact.info;"
+													accessibleType="100E"
+													value="2"
+								/>
+							</menupopup>
+						</menu>
+						<menuitem	id="searchcase"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.case;"
+											accessibleType="100E"
+						/>
+						<menuitem	id="searchregex"
+											type="checkbox"
+											closemenu="none"
+											label="&menu.filter.regex;"
+											tooltiptext="&menu.filter.regex.info;"
+											checked="false"
+											onclick="if(event.button == 2) coomanPlus.regexInfo()"
+											accessibleType="100E"
+						/>
+					</menupopup>
+</popupset>
+
+<!--
+				</button>
+-->
+				<button	id="lookupstart" oncommand="coomanPlus.doLookup(undefined, true)" accessibleType="1002" />
 			</hbox>
 			</vbox>
-			<tree id="cookiesTree"
+			<tree	id="cookiesTree"
 						flex="1"
 						hidecolumnpicker="false"
 						treelines="true"
 						seltype="multiple"
-						persist="scrollPos selectedHost selectedPath selectedName sortDirection sortResource hidden"
+						persist="scrollPos sortDirection sortResource hidden"
 						editable="true"
 						enableColumnDrag="true"
 						scrollPos=""
-						selectedHost=""
-						selectedPath=""
-						selectedName=""
 						sortDirection="ascending"
 						sortResource="rawHost"
 						accessibleType="101D"
 			>
-				<treecols id="treecols" pickertooltiptext="&tree.picker;" accessibleType="101E">
-					<splitter class="tree-splitter" resizeafter="grow"/>
+				<treecols	id="treecols" pickertooltiptext="&tree.picker;" accessibleType="101E">
+					<splitter	class="tree-splitter" resizeafter="grow" />
 					<treecol	id="sel"
 										flex="0"
 										type="checkbox"
@@ -515,8 +788,9 @@ hidden="true"
 										pack="center"
 										editable="true"
 										persist="ordinal"
+										ordinal="0"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="1" />
 					<treecol	id="rawHost"
 										label="&cookie.domain.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
@@ -524,9 +798,10 @@ hidden="true"
 										ignoreincolumnpicker="true"
 										width="280"
 										_width="280"
+										ordinal="1"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="2" />
 					<treecol	id="name"
 										label="&cookie.name.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
@@ -534,36 +809,40 @@ hidden="true"
 										ignoreincolumnpicker="true"
 										width="250"
 										_width="250"
+										ordinal="3"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="4" />
 					<treecol	id="value"
 										label="&cookie.value.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="5"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="6" />
 					<treecol	id="path"
 										label="&cookie.path.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="7"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="8" />
 					<treecol	id="expires"
 										label="&cookie.expire.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="9"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="10" />
 					<treecol	id="creationTimeString"
 										display="&cookie.creationTime.label;"
 										label="&cookie.creationTime.label;"
@@ -571,9 +850,10 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="11"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="12" />
 					<treecol	id="lastAccessedString"
 										display="&cookie.lastAccessed.label;"
 										label="&cookie.lastAccessed.label;"
@@ -581,9 +861,10 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="13"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="14" />
 					<treecol	id="isHttpOnly"
 										display="&cookie.isHttpOnly.label;"
 										label="&cookie.isHttpOnly.label;"
@@ -591,18 +872,20 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="15"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="16" />
 					<treecol	id="policyString"
 										label="&cookie.policy.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="17"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="18" />
 					<treecol	id="statusString"
 										display="&cookie.status.label;"
 										label="&cookie.status.label;"
@@ -610,70 +893,107 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="19"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="20" />
 					<treecol	id="isProtected"
 										label="&protect.isProtected;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="21"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="22" />
 					<treecol	id="isSecure"
 										label="&cookie.secure.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="23"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="24" />
 					<treecol	id="readonly"
 										label="&cookie.readonly.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="25"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow"/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="26" />
 					<treecol	id="size"
 										label="&cookie.size.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
+										ordinal="27"
 										persist="width hidden ordinal"
 					/>
-					<splitter class="tree-splitter" resizeafter="grow" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="28" />
+					<treecol	id="originAttributes"
+										label="&cookie.originAttributes.label;"
+										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
+										context="coomanPlus_tree_menu"
+										hidden="true"
+										_hidden="true"
+										ordinal="29"
+										persist="width hidden ordinal"
+					/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="30" />
+					<treecol	id="type"
+										label="&cookie.type.label;"
+										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
+										context="coomanPlus_tree_menu"
+										type="image"
+										hidden="true"
+										_hidden="true"
+										ordinal="31"
+										persist="width hidden ordinal"
+					/>
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="32" />
 				</treecols>
-				<treechildren id="cookiesTreeChildren"
+				<treechildren	id="cookiesTreeChildren"
 											context="coomanPlus_tree_menu"
 											onkeypress="coomanPlus.treeContextMenu(event)"
 											accessibleType="101F"
 				/>
 			</tree>
-			<splitter id="infoSplitter">
-				<hbox flex="1"/>
+			<splitter	id="infoSplitter">
+				<hbox	flex="1"/>
 			</splitter>
-			<groupbox id="cookieInfoBox" persist="height">
-				<grid flex="1">
+			<groupbox	id="cookieInfoBox" persist="height">
+				<grid	flex="1">
 					<columns>
 						<column/>
-						<column flex="1" style="padding-right: 5px"/>
+						<column	flex="1" style="padding-right: 5px" />
 					</columns>
-					<rows id="cookieInfoRows" persist="order">
-						<row id="row_start" hidden="true" collapsed="true"/>
+					<rows	id="cookieInfoRows" persist="order">
+						<row	id="row_start" hidden="true" collapsed="true" />
 
-						<row id="row_name" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.name.label;" disabled="true" control="ifl_name"/>
+						<row	id="row_name"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.name.label;" disabled="true" control="ifl_name" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_name"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_name"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -687,46 +1007,104 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_value" pack="center" dragable="true" persist="collapsed" flex="1">
-							<hbox class="inforowdataheader dragme" align="start" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<hbox class="dragme ro" flex="1" align="start" control="value" type="ro">
-									<vbox pack="center">
-										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
-									</vbox>
-									<vbox pack="center">
-										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
-									</vbox>
+						<row	id="row_value"
+									pack="center"
+									dragable="true"
+									persist="collapsed"
+									flex="1"
+						>
+							<vbox	id="opt_value"
+										flex="1"
+										class="inforowdataheader dragme"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<hbox>
+									<hbox	class="ro" flex="1" align="start" control="value" type="ro">
+										<vbox>
+											<button	value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)" />
+										</vbox>
+										<vbox>
+											<button	label="R" oncommand="coomanPlus.readonlySet(this)" />
+										</vbox>
+									</hbox>
+									<label	value="&props.value.label;" disabled="true" control="ifl_value" />
 								</hbox>
-								<label value="&props.value.label;" disabled="true" control="ifl_value"/>
-							</hbox>
-							<vbox class="inforowdata">
-									<textbox id="ifl_value"
-														onfocus="coomanPlus.infoRowHighlight(event);"
-														onblur="coomanPlus.infoRowHighlight(event);"
-														onpopupshowing="coomanPlus.dragMenu(event);"
-														accesskey="&props.value.accesskey;"
-														readonly="true"
-														class="plain infofield"
-														flex="1"
-														rows="1"
-														wrap="on"
-														expand="on"
-														decode="off"
-														base64decode="off"
-														persist="wrap expand decode base64decode"
-														multiline="true"
-														empty="true"
-														accessibleType="101B"/>
-									<tooltip id="tooltipValue" style="white-space: pre-wrap; max-width: none;"/>
+								<hbox	id="value_actions" persist="collapsed">
+									<button	id="value_wrap"
+													label="WRAP"
+													class="wrap"
+													oncommand="coomanPlus.infoRowContextExec({target:{value:'wrap'}})"
+													tooltiptext="&infoRow.wrap;"
+													ordinal="1"
+									/>
+									<button	id="value_decode"
+													label="URL"
+													class="url"
+													oncommand="coomanPlus.infoRowContextExec({target:{value:'decode'}})"
+													tooltiptext="&infoRow.urlDecode;"
+													ordinal="2"
+													persist="ordinal"
+									/>
+									<button	id="value_expand"
+													label="JSON"
+													class="json"
+													oncommand="coomanPlus.infoRowContextExec({target:{value:'expand'}})"
+													tooltiptext="&infoRow.expand;"
+													ordinal="3"
+													persist="ordinal"
+									/>
+									<button	id="value_base64decode"
+													label="B64"
+													class="b64"
+													oncommand="coomanPlus.infoRowContextExec({target:{value:'base64decode'}})"
+													tooltiptext="&infoRow.base64decode;"
+													ordinal="4"
+													persist="ordinal"
+									/>
+								</hbox>
+							</vbox>
+							<vbox	class="inforowdata" pack="start">
+								<textbox	id="ifl_value"
+													onfocus="coomanPlus.infoRowHighlight(event);"
+													onblur="coomanPlus.infoRowHighlight(event);"
+													onpopupshowing="coomanPlus.dragMenu(event);"
+													accesskey="&props.value.accesskey;"
+													readonly="true"
+													class="plain infofield"
+													flex="1"
+													rows="1"
+													wrap="on"
+													expand="on"
+													decode="off"
+													base64decode="off"
+													persist="wrap expand decode base64decode"
+													multiline="true"
+													empty="true"
+													ccessibleType="101B"
+								/>
+								<tooltip	id="tooltipValue"/>
 							</vbox>
 						</row>
 
-						<row id="row_host" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label id="ifl_isDomain" value="&cookie.domain.label;:" disabled="true" control="ifl_host"/>
+						<row	id="row_host"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	id="ifl_isDomain" value="&cookie.domain.label;:" disabled="true" control="ifl_host" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_host"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_host"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -739,12 +1117,23 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_path" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.path.label;" disabled="true" control="ifl_path"/>
+						<row	id="row_path"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.path.label;" disabled="true" control="ifl_path" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_path"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_path"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -757,21 +1146,31 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_isSecure" align="center" dragable="true" persist="collapsed">
-
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<hbox class="dragme ro" flex="1" align="start" control="isSecure" type="ro">
-									<vbox pack="center">
-										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+						<row	id="row_isSecure"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<hbox	class="dragme ro" flex="1" align="start" control="isSecure" type="ro">
+									<vbox	pack="center">
+										<button	value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
-									<vbox pack="center">
-										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									<vbox	pack="center">
+										<button	label="R" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
 								</hbox>
-								<label value="&props.secure.label;" disabled="true" control="ifl_isSecure"/>
+								<label	value="&props.secure.label;" disabled="true" control="ifl_isSecure" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_isSecure"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_isSecure"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -782,27 +1181,38 @@ hidden="true"
 													empty="true"
 													accessibleType="101B">
 									<vbox>
-										<image id="secure" src="chrome://cookiesmanagerplus/skin/images/Secure.png" hidden="true"/>
+										<image	id="secure" hidden="true" />
 									</vbox>
 								</textbox>
 							</hbox>
 						</row>
 
-						<row id="row_expires" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<hbox class="dragme ro" flex="1" align="start" control="expires" type="ro">
-									<vbox pack="center">
-										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+						<row	id="row_expires"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<hbox	class="dragme ro" flex="1" align="start" control="expires" type="ro">
+									<vbox	pack="center">
+										<button	value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
-									<vbox pack="center">
-										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									<vbox	pack="center">
+										<button	label="R" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
 								</hbox>
-								<label value="&props.expires.label;" disabled="true" control="ifl_expires"/>
+								<label	value="&props.expires.label;" disabled="true" control="ifl_expires" />
 							</hbox>
-							<hbox class="inforowdata">
+							<hbox	class="inforowdata">
 								<deck>
-									<textbox id="ifl_expires"
+									<textbox	id="ifl_expires"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -814,12 +1224,18 @@ hidden="true"
 													width="0"
 													accessibleType="101B"
 									/>
-									<description id="ifl_expires2"/>
+									<description	id="ifl_expires2"/>
 								</deck>
-								<stack flex="1" id="expireProgressDeck">
-									<progressmeter id="expireProgress" flex="1" tooltip="expiresProgressTooltip" persist="collapsed" hidden="true" accessibleType="1012"/>
-									<hbox align="center" style="overflow: hidden" flex="1">
-										<label id="expireProgressText"
+								<stack	flex="1" id="expireProgressDeck">
+									<progressmeter	id="expireProgress"
+																	flex="1"
+																	tooltip="expiresProgressTooltip"
+																	persist="collapsed"
+																	hidden="true"
+																	accessibleType="1012"
+									/>
+									<hbox	align="center" style="overflow: hidden" flex="1">
+										<label	id="expireProgressText"
 													class="plain infofield"
 													persist="collapsed"
 													empty="true"/>
@@ -828,12 +1244,25 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_creationTime" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.creationTime.label;" disabled="true" control="ifl_creationTime"/>
+						<row	id="row_creationTime"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.creationTime.label;" disabled="true" control="ifl_creationTime" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_creationTime"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_creationTime"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -846,12 +1275,25 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_lastAccessed" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.lastAccessed.label;" disabled="true" control="ifl_lastAccessed"/>
+						<row	id="row_lastAccessed"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.lastAccessed.label;" disabled="true" control="ifl_lastAccessed" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_lastAccessed"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_lastAccessed"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -864,20 +1306,33 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_isHttpOnly" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<hbox class="dragme ro" flex="1" align="start" control="isHttpOnly" type="ro">
-									<vbox pack="center">
-										<button value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)"/>
+						<row	id="row_isHttpOnly"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<hbox	class="dragme ro" flex="1" align="start" control="isHttpOnly" type="ro">
+									<vbox	pack="center">
+										<button	value="1" label="R/W" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
-									<vbox pack="center">
-										<button label="R" oncommand="coomanPlus.readonlySet(this)"/>
+									<vbox	pack="center">
+										<button	label="R" oncommand="coomanPlus.readonlySet(this)" />
 									</vbox>
 								</hbox>
-								<label value="&props.isHttpOnly.label;" disabled="true" control="ifl_isHttpOnly"/>
+								<label	value="&props.isHttpOnly.label;" disabled="true" control="ifl_isHttpOnly" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_isHttpOnly"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_isHttpOnly"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -890,12 +1345,25 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_policy" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.policy.label;" disabled="true" control="ifl_policy"/>
+						<row	id="row_policy"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.policy.label;" disabled="true" control="ifl_policy" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_policy"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_policy"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -908,12 +1376,25 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_status" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.status.label;" disabled="true" control="ifl_status"/>
+						<row	id="row_status"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.status.label;" disabled="true" control="ifl_status" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_status"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_status"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -926,13 +1407,24 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_isProtected" align="center" dragable="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&protect.isProtected;" disabled="true" control="ifl_isProtected"/>
+						<row	id="row_isProtected"
+									align="center"
+									dragable="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&protect.isProtected;" disabled="true" control="ifl_isProtected" />
 							</hbox>
-							<hbox class="inforowdata">
+							<hbox	class="inforowdata">
 								<deck>
-									<textbox id="ifl_isProtected"
+									<textbox	id="ifl_isProtected"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -942,16 +1434,16 @@ hidden="true"
 													flex="1"
 													empty="true"
 													accessibleType="101B"/>
-									<description id="ifl_isProtected2"/>
+									<description	id="ifl_isProtected2"/>
 								</deck>
 								<hbox>
-									<button id="protect_btn"
+									<button	id="protect_btn"
 													label="&protect.protect;"
 													accesskey="&protect.protect.accesskey;"
 													oncommand="coomanPlus.protect.obj.protect()"
 													collapsed="true"
 													class="inputbutton"/>
-									<button id="unprotect_btn"
+									<button	id="unprotect_btn"
 													label="&protect.unprotect;"
 													accesskey="&protect.unprotect.accesskey;"
 													oncommand="coomanPlus.protect.obj.unprotect()"
@@ -961,12 +1453,25 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_size" align="center" dragable="true" collapsed="true" _collapsed="true" persist="collapsed">
-							<hbox class="inforowdataheader dragme" align="center" pack="end" context="coomanPlus_inforow_menu" onclick="coomanPlus.infoRowAction(event)" ondblclick="coomanPlus.infoRowAction(event)">
-								<label value="&props.size.label;" disabled="true" control="ifl_size"/>
+						<row	id="row_size"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.size.label;" disabled="true" control="ifl_size" />
 							</hbox>
-							<hbox class="inforowdata">
-								<textbox id="ifl_size"
+							<hbox	class="inforowdata">
+								<textbox	id="ifl_size"
 													onfocus="coomanPlus.infoRowHighlight(event);"
 													onblur="coomanPlus.infoRowHighlight(event);"
 													onpopupshowing="coomanPlus.dragMenu(event);"
@@ -979,20 +1484,100 @@ hidden="true"
 							</hbox>
 						</row>
 
-						<row id="row_end"/>
+						<row	id="row_type"
+									align="center"
+									dragable="true"
+									collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	class="inforowdataheader
+										dragme"
+										align="center"
+										pack="end"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.type.label;" disabled="true" control="ifl_type" />
+							</hbox>
+							<hbox	class="inforowdata">
+								<vbox>
+									<image	id="img_type" />
+								</vbox>
+								<textbox	id="ifl_type"
+													onfocus="coomanPlus.infoRowHighlight(event);"
+													onblur="coomanPlus.infoRowHighlight(event);"
+													onpopupshowing="coomanPlus.dragMenu(event);"
+													accesskey="&props.type.accesskey;"
+													readonly="true"
+													class="plain infofield"
+													flex="1"
+													empty="true"
+													accessibleType="101B"/>
+							</hbox>
+						</row>
+
+						<row	id="row_originAttributes"
+									pack="center"
+									dragable="true"
+									collapsed="true"
+									_collapsed="true"
+									persist="collapsed"
+						>
+							<hbox	align="start"
+										pack="end"
+										class="inforowdataheader
+										dragme"
+										context="coomanPlus_inforow_menu"
+										onclick="coomanPlus.infoRowAction(event)"
+										ondblclick="coomanPlus.infoRowAction(event)"
+							>
+								<label	value="&props.originAttributes.label;" disabled="true" control="ifl_originAttributes" />
+							</hbox>
+							<vbox	class="inforowdata" flex="1">
+								<textbox	id="ifl_originAttributes"
+													onfocus="coomanPlus.infoRowHighlight(event);"
+													onblur="coomanPlus.infoRowHighlight(event);"
+													onpopupshowing="coomanPlus.dragMenu(event);"
+													accesskey="&props.originAttributes.accesskey;"
+													readonly="true"
+													class="plain infofield"
+													flex="1"
+													empty="true"
+													accessibleType="101B"/>
+							</vbox>
+						</row>
+
+						<row	id="row_end"/>
 					</rows>
 				</grid>
 			</groupbox>
 		</vbox>
-		<hbox align="end">
-			<hbox class="actionButtons" flex="1">
-				<button id="newCookie" label="&menu.new.label;" oncommand="coomanPlus.openAdd()" accesskey="&button.new.accesskey;" accessibleType="1002"/>
-				<button id="editCookie" label="&menu.edit.label;" oncommand="coomanPlus.openEdit()" accesskey="&button.edit.accesskey;" accessibleType="1002"/>
-				<button id="deleteCookie" label="&menu.delete.label;" oncommand="coomanPlus.deleteCookies()" accesskey="&button.delete.accesskey;" disabled="true" accessibleType="1002"/>
-				<spacer style="width: 20px"/>
-				<hbox  flex="1" pack="end">
-					<vbox pack="end">
-					<button icon="close"
+		<hbox	align="end">
+			<hbox	class="actionButtons" flex="1">
+				<button	id="newCookie"
+								label="&menu.new.label;"
+								oncommand="coomanPlus.openAdd()"
+								accesskey="&button.new.accesskey;"
+								accessibleType="1002"
+				/>
+				<button	id="editCookie"
+								label="&menu.edit.label;"
+								oncommand="coomanPlus.openEdit()"
+								accesskey="&button.edit.accesskey;"
+								accessibleType="1002"
+				/>
+				<button	id="deleteCookie"
+								label="&menu.delete.label;"
+								oncommand="coomanPlus.deleteCookies()"
+								accesskey="&button.delete.accesskey;"
+								disabled="true"
+								accessibleType="1002"
+				/>
+				<spacer	style="width: 20px"/>
+				<hbox	 flex="1" pack="end">
+					<vbox	pack="end">
+					<button	icon="close"
 									label="&button.close.label;"
 									accesskey="&button.close.accesskey;"
 									oncommand="window.close()"
@@ -1002,19 +1587,19 @@ hidden="true"
 					</vbox>
 				</hbox>
 			</hbox>
-			<resizer dir="bottomend"/>
+			<resizer	dir="bottomend"/>
 		</hbox>
 	</vbox>
-  <script type="application/javascript" src="chrome://global/content/strres.js"/>
-	<script type="application/javascript" src="common.js"/>
-	<script type="application/javascript" src="cookiesmanagerplus.js"/>
-	<script type="application/javascript" src="update.js"/>
-	<script type="application/javascript" src="libOut.js"/>
-	<script type="application/javascript" src="commonFunc.js"/>
-	<script type="application/javascript" src="export.js"/>
-	<script type="application/javascript" src="treeUtils.js"/>
-	<script type="application/javascript" src="date.js"/>
-	<script type="application/javascript">
+  <script	type="application/javascript" src="chrome://global/content/strres.js" />
+	<script	type="application/javascript" src="common.js" />
+	<script	type="application/javascript" src="cookiesmanagerplus.js" />
+	<script	type="application/javascript" src="update.js" />
+	<script	type="application/javascript" src="libOut.js" />
+	<script	type="application/javascript" src="commonFunc.js" />
+	<script	type="application/javascript" src="export.js" />
+	<script	type="application/javascript" src="treeUtils.js" />
+	<script	type="application/javascript" src="date.js" />
+	<script	type="application/javascript">
 		coomanPlus.strings = {
 			protect_protect_accesskey:		"&protect.protect.accesskey;",
 			protect_unprotect_accesskey:	"&protect.unprotect.accesskey;",

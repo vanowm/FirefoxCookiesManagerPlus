@@ -78,7 +78,7 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY options.showChangesLogFull.desc		"Open full changes log in a tab">
 <!ENTITY options.restoreselection.label			"Preserve selection:">
 <!ENTITY options.restoreselection.info			"How many selected items will be remembered when CM+ closed and re-selected when CM+ opened again">
-<!ENTITY options.restoreselection.warning		"* might affect startup time">
+<!ENTITY options.restoreselection.warning		"* large number might freeze browser when CM+ launched">
 <!ENTITY options.html5.label								"Enable Local Storage (HTML5 Cookies) support">
 <!ENTITY options.html5.warning							"(experimental might not work properly)">
 <!ENTITY options.resetall										"Reset all settings">
@@ -100,3 +100,13 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY options.searchhistory.info					"How many search keywords to remember">
 <!ENTITY options.searchhistory.clear				"clear">
 <!ENTITY options.searchhistory.clear.info 	"Clear search history">
+<!ENTITY options.alwaysusecmp								"Set as default cookies manager">
+<!ENTITY options.alwaysusecmp.info 					"Replace built-in cookies manager with CM+">
+<!ENTITY options.debug											"Debug level">
+<!ENTITY options.debug1											"Errors (default)">
+<!ENTITY options.debug2											"Info">
+<!ENTITY options.debug4											"Debug">
+<!ENTITY options.debug.desc									"What kind of information display in browser console? (CTRL+SHIFT+J or CMD+SHIFT+J)">
+<!ENTITY options.debug1.desc								"Error messages">
+<!ENTITY options.debug2.desc								"Information messages">
+<!ENTITY options.debug4.desc								"Debug messages (this will flood the console, turn it off to improve performance)">

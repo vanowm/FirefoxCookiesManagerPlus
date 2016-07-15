@@ -26,6 +26,7 @@
 <!ENTITY		menu.filter.content 																		"Content">
 <!ENTITY		menu.filter.case																				"Case sensitive">
 <!ENTITY		menu.filter.regex																				"RegExp">
+<!ENTITY		menu.filter.regex.info																	"Right click for more info">
 <!ENTITY		menu.cookiesPermissions.label														"Cookies Permissions">
 
 <!ENTITY		menu.filter.hostType																		"Domain match">
@@ -102,6 +103,7 @@
 <!ENTITY		cookie.type.label																				"Type">
 <!ENTITY		cookie.size.label																				"Size">
 <!ENTITY		cookie.readonly.label																		"Read-only">
+<!ENTITY		cookie.originAttributes.label														"originAttributes">
 
 <!ENTITY		datepickerwindow.title.label														"Date Picker">
 <!ENTITY		datepickerwindow.button.label														"Calendar">
@@ -113,6 +115,7 @@
 <!ENTITY		props.creationTime.label																"Created:">
 <!ENTITY		props.type.label																				"Type:">
 <!ENTITY		props.size.label																				"Size:">
+<!ENTITY		props.originAttributes.label														"originAttributes:">
 
 <!ENTITY		props.name.accesskey																		"M">
 <!ENTITY		props.value.accesskey																		"N">
@@ -127,6 +130,7 @@
 <!ENTITY		props.isProtected.accesskey															"T">
 <!ENTITY		props.type.accesskey																		"Y">
 <!ENTITY		props.size.accesskey																		"Z">
+<!ENTITY		props.originAttributes.accesskey												"B">
 
 <!ENTITY		infoRow.select																					"Select">
 <!ENTITY		infoRow.copy																						"Copy to clipboard">
@@ -137,6 +141,8 @@
 <!ENTITY		infoRow.expand																					"JSON Expand">
 <!ENTITY		infoRow.urlDecode																				"URL Decode">
 <!ENTITY		infoRow.base64decode																		"Base64 decode">
+<!ENTITY		infoRow.actions																					"Show action buttons">
+<!ENTITY		infoRow.actions.info																		"Action buttons allow change order in which actions applied to the content">
 
 <!ENTITY		protect.protect																					"Protect">
 <!ENTITY		protect.protect.accesskey																"P">

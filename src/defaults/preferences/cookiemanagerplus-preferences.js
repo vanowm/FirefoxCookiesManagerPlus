@@ -24,12 +24,12 @@ pref("extensions.cookiesmanagerplus.autofit", true);
 pref("extensions.cookiesmanagerplus.restoreselection", 1);
 pref("extensions.cookiesmanagerplus.readonly", true);
 pref("extensions.cookiesmanagerplus.readonlydelete", true);
+pref("extensions.cookiesmanagerplus.searchhistory", 1000); //number of previous searches to remember
+pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
+pref("extensions.cookiesmanagerplus.debug", 1); //bitwise; 1 = errors, 2 = info, 4 = debug
 
 //hidden options:
-pref("extensions.cookiesmanagerplus.searchhistory", 1000); //number of previous searches to remember
-pref("extensions.cookiesmanagerplus.buttonaction", false);//toolbar button default action 0 = default, 1 = open CM+ with current site filter
+pref("extensions.cookiesmanagerplus.buttonaction", false);//toolbar button default action false = default, true = open CM+ with current site filter
 pref("extensions.cookiesmanagerplus.readonlyencrypt", true);
-pref("extensions.cookiesmanagerplus.alwaysusecmp", false); //replace native cookie viewer with Cookies Manager+
-pref("extensions.cookiesmanagerplus.debug", 1);
 pref("extensions.cookiesmanagerplus.persist", ""); //persist data from windows
 pref("extensions.cookiesmanagerplus.version", "");

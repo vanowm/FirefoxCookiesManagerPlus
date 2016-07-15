@@ -1,5 +1,3 @@
-Components.utils.import("resource://cookiesmanagerplus/coomanPlusCore.jsm");
-var log = coomanPlusCore.log;
 var coomanPlus = {
 	_cw: null,
 	args: null,
@@ -16,8 +14,8 @@ var coomanPlus = {
 		this._cw = gCookiesWindow;
 		this._cw._tree.view.selection.clearSelection();
 		document.getElementById("removeAllCookies").parentNode.insertBefore(document.getElementById("cmp"), document.getElementById("removeAllCookies").nextSibling);
-		document.getElementById("cookiesList").addEventListener("select", this._selected, false);
-		document.getElementById("cookiesList").addEventListener("click", this._click, false);
+		document.getElementById("cookiesList").addEventListener("select", this._selected, true);
+		document.getElementById("cookiesList").addEventListener("click", this._click, true);
 		this.sync = coomanPlusCore.pref("nativesync")
 		document.getElementById("cmpSync").setAttribute("checked", this.sync);
 
@@ -90,9 +88,9 @@ var coomanPlus = {
 	_selected: function _selected(e)
 	{
 		var args = coomanPlus.args;
-		if (!args || !coomanPlusCore.cmpWindow || !coomanPlus.sync || !("coomanPlus" in coomanPlusCore.cmpWindow))
+//		if (!args || !coomanPlusCore.cmpWindow || !coomanPlus.sync || !("coomanPlus" in coomanPlusCore.cmpWindow))
+		if (!coomanPlusCore.cmpWindow || !coomanPlus.sync || !("coomanPlus" in coomanPlusCore.cmpWindow))
 			return;
-
 		var cmp = coomanPlusCore.cmpWindow.coomanPlus;
 		var _cw = coomanPlus._cw;
 		var seln = _cw._tree.view.selection;
@@ -139,15 +137,26 @@ var forced = false;
 if ("arguments" in window && window.arguments.length > 0 && window.arguments[0] && typeof(window.arguments[0]) == "object")
 {
 	coomanPlus.args = window.arguments[0].wrappedJSObject;
-	forced = coomanPlus.args.type == "forced";
+	forced = coomanPlus.args && coomanPlus.args.type == "forced";
 }
-
 if (coomanPlusCore.pref("alwaysusecmp") && !forced)
 {
 	gCookiesWindow.init = function(){};
 	gCookiesWindow.uninit = function(){};
 	coomanPlusCore.openCMP();
-	window.close();
+	let i = 3000;
+	function winClose()
+	{
+		if (i-- && !window.closed)
+		{
+			window.close();
+			try
+			{
+				coomanPlusCore.async(winClose);
+			}catch(e){}
+		}
+	}
+	winClose();
 }
 else
 {

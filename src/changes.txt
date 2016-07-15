@@ -7,6 +7,33 @@ Legend:
 * = Changed
 - = Removed
 
+v1.12 (2016-07-15)
+	+ right click on RegExp filter menu item opens webpage with basic explanation what RegExp is
+	+ site's icon at "Search: example.com" submenu of tools menu / toolbar button
+	+ view originAttributes data of a cookie
+	+ action buttons at content info row
+	+ ability change order of automatic actions at content info row by dragging action buttons
+	+ active action buttons highlighted when it's action changed the content
+	+ option to save and restore NN number of selections. This means when CM+ window opened it will pre-select NN number of items in the list that were previously selected
+	+ clean up xulstore.json file during settings reset
+	+ option to make CM+ as default cookies manager
+	+ debug options
+	* updated some icons, they should look a little better on dark backgrounds. (still need help with icons)
+	* more dark theme friendly
+	! sync of native cookies manager didn't work, when opened from browser's options
+	! error in console when opened native cookies manager from page info window
+	! missing icons in tools menu (issue #92)
+	! errors in console with right click on rw/r buttons
+	! CM+ / Edit window settings would not restore properly if window was not opened during settings restore
+	! list scroll position restored at CM+ window re-open, unless selected cookie was outside of the view when window was closed
+	! R / RW buttons shown when no cookies selected (issue #94)
+	! changing URL Decode, Expand or Base64 Decode setting at content info row shows data even when no cookies or when multiple cookies selected (issue #95)
+	! checkboxes are incorrectly shown on systems with basic theme (issue #97)
+	! when changed multiple cookies via native cookie manager, CM+ shows new value only for one cookie
+	! list jumps when sorted by read-only and hit delete button (issue #98)
+	! incorrect content tooltip shown after changing it's actions (JSON expand, url decode, base64 decode) (issue #99)
+	! CM+ as default cookie manager doesn't close native CM when opened from browser preferences window (issue #100)
+
 v1.11.2 (2016-06-16)
 	* moved filter menu to the left of search field
 	! URL decode for content info row not properly disabled by default
@@ -87,7 +114,7 @@ v1.9 (2016-05-31)
 	! incorrect tooltip shown on expired info row when multiple or no cookies selected
 	! password prompt for encrypted cookies file would allow submit empty password
 	! remove password would leave {PROTECTED_RAW} tag in decrypted file when CookieKeeper is not installed/enabled
-	- "Always on top" option on non-Windows OS (issue #53)
+	- "Always on top" option for non-Windows OS (issue #53)
 
 v1.8 (2016-05-17)
 	+ invert selection via right click on "select all" checkbox at tree column header

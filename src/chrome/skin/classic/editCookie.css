@@ -24,14 +24,20 @@ checkbox:focus > .checkbox-label-box {
 	margin-right: 0 !important;
 }
 
+.up,
+.down
+{
+	list-style-image: url("images/icons.png");
+}
+
 .up
 {
-	list-style-image: url("images/up.png");
+	-moz-image-region: rect(0, 305px, 9px, 296px);
 }
 
 .down
 {
-	list-style-image: url("images/down.png");
+	-moz-image-region: rect(0, 313px, 9px, 304px);
 }
 .up,
 .down,
@@ -82,13 +88,14 @@ checkbox:focus > .checkbox-label-box {
 	cursor:pointer;
 	margin-left: 2px;
 	margin-right: 2px;
-	list-style-image: url("images/calendar.png");
+	list-style-image: url("images/icons.png");
+	-moz-image-region: rect(0, 223px, 16px, 207px);
 }
 
 .calendar[disabled="true"]
 {
 	cursor:auto;
-	list-style-image: url("images/calendar_dis.png");
+	-moz-image-region: rect(0, 239px, 16px, 223px);
 }
 
 #ifl_expires_date
@@ -104,12 +111,13 @@ checkbox:focus > .checkbox-label-box {
 
 #secure
 {
-	list-style-image: url("images/secure.png");
+	list-style-image: url("images/icons.png");
+	-moz-image-region: rect(0 133px 16px 117px);
 }
 
 #secure[disabled="true"]
 {
-	list-style-image: url("images/secure_dis.png");
+	-moz-image-region: rect(0, 146px, 16px, 130px);
 }
 
 #warning
@@ -228,11 +236,6 @@ textbox[readonly="true"]
 #valuePopup scrollbox
 {
 	overflow-y: auto !important;
-}
-
-#ifl_expires_Year
-{
-	width: 3em;
 }
 
 #buttons
@@ -407,53 +410,4 @@ textbox[readonly="true"]
 				transform: translate(0, -2px) rotate(0)
 		}
 	to {color: red; }
-}
-
-/* ..... checkbox readonly ..... */
-
-checkbox.readonly,
-checkbox.readonly *,
-checkbox.readonly[checked="true"],
-checkbox.readonly[checked="true"] *
-{
-	-moz-appearance: none;
-	border: 0;
-	background-color: transparent;
-	margin: 0;
-}
-
-checkbox.readonly,
-checkbox.readonly[checked="true"]
-{
-	-moz-binding: url("checkbox.xml#checkbox-button");
-	border: 1px solid transparent;
-}
-checkbox.readonly:not([disabled="true"]),
-checkbox.readonly[checked="true"]:not([disabled="true"])
-{
-	cursor: pointer;
-}
-checkbox.readonly:focus
-{
-	border: 1px dotted ThreeDDarkShadow;
-}
-checkbox.readonly .checkbox-check
-{
-	-moz-appearance: none;
-	background-image: none;
-	background-color: transparent;
-	list-style-image: url("images/readwrite.png") !important;
-	-moz-image-region: rect(0, 16px, 16px, 0);
-}
-checkbox.readonly[checked="true"] .checkbox-check
-{
-	-moz-appearance: none;
-	background-image: none;
-	background-color: transparent;
-	list-style-image: url("images/readwrite.png") !important;
-	-moz-image-region: rect(0, 32px, 16px, 16px);
-}
-checkbox.readonly[disabled="true"]
-{
-	opacity: 0.5;
 }

@@ -21,22 +21,28 @@
 										tooltiptext="&cookiesmanagerplus.label;"
 										type="menu-button"
 		>
-			<menupopup onpopupshown="return coomanPlus.menu();">
-				<menuitem id="coomanPlus_button_menu"
+			<menupopup	onpopupshowing="return coomanPlus.menu(event);"
+									onpopupshown="return coomanPlus.menu(event);"
+			>
+				<menuitem id="coomanPlus_button_menuitem"
 									label="&cookiesmanagerplus.label;"
-									accesskey="&cookiesmanagerplus.accesskey;"
 									command="openCookieEditor1"
+									class="menuitem-iconic"
+									accesskey="&cookiesmanagerplus.accesskey;"
 				/>
-				<menuitem id="coomanPlus_button_menu2"
+				<menuitem id="coomanPlus_button_menuitem2"
 									label="&cookiesmanagerplus.site;"
 									command="openCookieEditor2"
+									class="menuitem-iconic"
 									accesskey="&cookiesmanagerplus.site.accesskey;"
 									tooltiptext="&cookiesmanagerplus.site.tooltip;"
 									disabled="true"
 				/>
 				<menuseparator/>
-				<menuitem label="&cookiesmanagerplus.menu_options;"
+				<menuitem	id="coomanPlus_button_options"
+									label="&cookiesmanagerplus.menu_options;"
 									command="openCookieEditorOptions"
+									class="menuitem-iconic"
 									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>
@@ -51,21 +57,27 @@
 					class="menu-iconic"
 					onclick="if(event.originalTarget.id != 'coomanPlus_tools_menu') return false;this.parentNode.hidePopup();coomanPlus.openCookieEditor();"
 		>
-			<menupopup onpopupshown="return coomanPlus.menu(event);">
+			<menupopup	onpopupshowing="return coomanPlus.menu(event);"
+									onpopupshown="return coomanPlus.menu(event);"
+			>
 				<menuitem id="coomanPlus_tools_menuitem"
 									label="&cookiesmanagerplus.label;"
-									accesskey="&cookiesmanagerplus.accesskey;"
 									command="openCookieEditor1"
+									class="menuitem-iconic"
+									accesskey="&cookiesmanagerplus.accesskey;"
 				/>
 				<menuitem id="coomanPlus_tools_menuitem2"
 									label="&cookiesmanagerplus.site;"
 									command="openCookieEditor2"
+									class="menuitem-iconic"
 									tooltiptext="&cookiesmanagerplus.site.tooltip;"
 									accesskey="&cookiesmanagerplus.site.accesskey;"
 				/>
 				<menuseparator/>
-				<menuitem label="&cookiesmanagerplus.menu_options;"
+				<menuitem	id="coomanPlus_tools_options"
+									label="&cookiesmanagerplus.menu_options;"
 									command="openCookieEditorOptions"
+									class="menuitem-iconic"
 									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>
@@ -78,23 +90,30 @@
 							accesskey="&cookiesmanagerplus.accesskey;"
 							command="openCookieEditor"
 							iconic="true"
+							onclick="if(event.originalTarget.id != 'coomanPlus_tools_menu') return false;this.parentNode.hidePopup();coomanPlus.openCookieEditor();"
 							insertafter="appmenu_errorConsole"
 		>
-			<menupopup onpopupshown="return coomanPlus.menu();">
+			<menupopup	onpopupshowing="return coomanPlus.menu(event);"
+									onpopupshown="return coomanPlus.menu(event);"
+			>
 				<menuitem id="coomanPlus_appmenu_menuitem"
 									label="&cookiesmanagerplus.label;"
-									accesskey="&cookiesmanagerplus.accesskey;"
 									command="openCookieEditor1"
+									class="menuitem-iconic"
+									accesskey="&cookiesmanagerplus.accesskey;"
 				/>
 				<menuitem id="coomanPlus_appmenu_menuitem2"
 									label="&cookiesmanagerplus.site;"
 									command="openCookieEditor2"
+									class="menuitem-iconic"
 									tooltiptext="&cookiesmanagerplus.site.tooltip;"
 									accesskey="&cookiesmanagerplus.site.accesskey;"
 				/>
 				<menuseparator/>
-				<menuitem label="&cookiesmanagerplus.menu_options;"
+				<menuitem	id="coomanPlus_appmenu_options"
+									label="&cookiesmanagerplus.menu_options;"
 									command="openCookieEditorOptions"
+									class="menuitem-iconic"
 									accesskey="&cookiesmanagerplus.menu_options_key;"
 				/>
 			</menupopup>

@@ -63,11 +63,23 @@ coomanPlus.string = function(s)
 	log.error("String is missing: " + s);
 }
 
-coomanPlus._cookieEquals = function _cookieEquals(aCookieA, aCookieB)
+coomanPlus._cookieEquals = function _cookieEquals(aCookieA, aCookieB, checkAttrib)
 {
-	return aCookieA.host == aCookieB.host &&
-				 aCookieA.name == aCookieB.name &&
-				 aCookieA.path == aCookieB.path;
+	let r = true;
+	if (checkAttrib)
+	{
+		if (!aCookieA.originAttributes || !aCookieB.originAttributes)
+			r = false;
+		else
+		{
+			for(let i in aCookieA.originAttributes)
+				r = r && aCookieA.originAttributes[i] == aCookieB.originAttributes[i];
+		}
+	}
+	return	r &&
+					aCookieA.host == aCookieB.host &&
+					aCookieA.name == aCookieB.name &&
+					aCookieA.path == aCookieB.path;
 }
 
 coomanPlus._cookieGetExtraInfo = function(aCookie)
@@ -157,6 +169,8 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 //	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
 	this.size 				= coomanPlus.getByteSize(this.name + "=" + this.value);
 	this.sizeText			= coomanPlus.getByteSizeText(this.size);
+	this.originAttributes = aCookie.originAttributes;
+	this.originAttributesText = JSON.stringify(aCookie.originAttributes);
 }
 
 coomanPlus.resizeWindow = function(f)
@@ -316,6 +330,136 @@ log.debug("normal cookie");
 				coomanPlusCore.readonlyRemove(aCookie);
 			try
 			{
+/*
+log({host: aCookie.host,
+		name: aCookie.name,
+		path: aCookie.path,
+		block: aCookie.block,
+		originAttributes: typeof(aCookie.originAttributes) != "undefined"
+				? aCookie.originAttributes
+				: aCookie._aCookie && typeof(aCookie._aCookie.originAttributes) != "undefined"
+					? aCookie._aCookie.originAttributes 
+				: {}}, 3);
+*/
+/*
+host (string): .google.com
+name (string): NID
+path (string): /
+originAttributes (object): [object Object]
+{
+    addonId (string): 
+    appId (number): 0
+    inIsolatedMozBrowser (boolean): false
+    privateBrowsingId (number): 0
+    signedPkg (string): 
+    userContextId (number): 0
+}
+
+host (string): .google.com
+name (string): NID
+path (string): /
+originAttributes (object): [object Object]
+{
+    addonId (string): 
+    appId (number): 4294967294
+    inIsolatedMozBrowser (boolean): false
+    privateBrowsingId (number): 0
+    signedPkg (string): 
+    userContextId (number): 0
+}
+
+
+*/
+/*
+(object):[xpconnect wrapped (nsISupports, nsICookie, nsICookie2)]
+POLICY_EXPLICIT_CONSENT (number): 4
+POLICY_IMPLICIT_CONSENT (number): 3
+POLICY_NONE (number): 1
+POLICY_NO_CONSENT (number): 2
+POLICY_NO_II (number): 5
+POLICY_UNKNOWN (number): 0
+QueryInterface (function): function QueryInterface() {
+    [native code]
+}
+
+
+STATUS_ACCEPTED (number): 1
+STATUS_DOWNGRADED (number): 2
+STATUS_FLAGGED (number): 3
+STATUS_REJECTED (number): 4
+STATUS_UNKNOWN (number): 0
+creationTime (number): 1467642953633000
+expires (number): 1483455885
+expiry (number): 1483455885
+host (string): .google.com
+isDomain (boolean): true
+isHttpOnly (boolean): true
+isSecure (boolean): false
+isSession (boolean): false
+lastAccessed (number): 1467644905358000
+name (string): NID
+originAttributes (object): [object Object]
+{
+    addonId (string): 
+    appId (number): 0
+    inIsolatedMozBrowser (boolean): false
+    privateBrowsingId (number): 0
+    signedPkg (string): 
+    userContextId (number): 0
+}//originAttributes (object)
+path (string): /
+policy (number): 0
+rawHost (string): google.com
+status (number): 0
+value (string): 81=KvvedEJKrsWfnBUVJxSBQXg_G46MhRK0GRUhDYFAjjb4Zcrf1DuxJCnwRbYk_1Mfq-KWMfRN9abhYqVNC9rwX7_I8g1eks0kkiWvuLyjbr5IsIUwEikTiEKhQNDiuhzeAS8POvDelj8eXTTO9XFDDRfPfJ6D7zyey69H-6WJdgbm-Gx4QPbcGQGvRbA-RpNdWKkQMDindlTG0sJ_NatnpAMjan9jZ8_pZUeJFRUO3NTfnPkd
+
+
+
+(object):[xpconnect wrapped (nsISupports, nsICookie, nsICookie2)]
+POLICY_EXPLICIT_CONSENT (number): 4
+POLICY_IMPLICIT_CONSENT (number): 3
+POLICY_NONE (number): 1
+POLICY_NO_CONSENT (number): 2
+POLICY_NO_II (number): 5
+POLICY_UNKNOWN (number): 0
+QueryInterface (function): function QueryInterface() {
+    [native code]
+}
+
+
+STATUS_ACCEPTED (number): 1
+STATUS_DOWNGRADED (number): 2
+STATUS_FLAGGED (number): 3
+STATUS_REJECTED (number): 4
+STATUS_UNKNOWN (number): 0
+creationTime (number): 1467644518724000
+expires (number): 1483455718
+expiry (number): 1483455718
+host (string): .google.com
+isDomain (boolean): true
+isHttpOnly (boolean): true
+isSecure (boolean): false
+isSession (boolean): false
+lastAccessed (number): 1467644518724000
+name (string): NID
+originAttributes (object): [object Object]
+{
+    addonId (string): 
+    appId (number): 4294967294
+    inIsolatedMozBrowser (boolean): false
+    privateBrowsingId (number): 0
+    signedPkg (string): 
+    userContextId (number): 0
+}//originAttributes (object)
+path (string): /
+policy (number): 0
+rawHost (string): google.com
+status (number): 0
+value (string): 81=KWMraPnbY8AwIHiZAFBsQ6oejRhthMtA2PlBZX_ZKj8xJE5PdPlQ5xIpoAbN5VYwUYnar2XRN-PrHfCNqlRrsLo0gPOP7ieOrp3QTC56CotwLKBoxr8MiHrw-ncxzChz
+
+
+*/
+
 				result = coomanPlusCore._cm.remove(	aCookie.host,
 																						aCookie.name,
 																						aCookie.path,
@@ -342,7 +486,7 @@ log.debug("normal cookie");
 	}
 }
 
-coomanPlus._isSelected = function _isSelected(aCookie, list, r, ignoreval)
+coomanPlus._isSelected = function _isSelected(aCookie, list, r, checkAttrib)
 {
 	try
 	{
@@ -351,7 +495,7 @@ coomanPlus._isSelected = function _isSelected(aCookie, list, r, ignoreval)
 		
 		for(let i = 0; i < list.length; i++)
 		{
-			if (this._cookieEquals(list[i], aCookie, ignoreval))
+			if (this._cookieEquals(list[i], aCookie, checkAttrib))
 			{
 				r[0] = i;
 				return true;
@@ -560,7 +704,13 @@ log.debug("protect observer added");
 					$("tree_menu_unprotect").setAttribute("image", self.icon);
 				}
 				if (startup && coomanPlus.infoRowsShow)
-					coomanPlus.infoRowsShow(true);
+				{
+					coomanPlusCore.async(function()
+					{
+						coomanPlus.loadCookies();
+						coomanPlus.infoRowsShow(true);
+					});
+				}
 log.debug("end", 1);
 			});
 		},//init()
@@ -571,7 +721,9 @@ log.debug();
 			if (!shutdown)
 			{
 log.debug("protect observer removed");
-				this.obs.removeObserver(this, this.OBS_TOPIC, false);
+				if (this.observerAdded)
+					this.obs.removeObserver(this, this.OBS_TOPIC, false);
+
 				this.observerAdded = false;
 			}
 			else if (coomanPlus.infoRowsShow) //only for main window
@@ -706,7 +858,7 @@ log.debug(aTopic);
 					if (!aCookie)
 						return;
 
-					coomanPlus._isSelected(aCookie, coomanPlus._cookies, r, true);
+					coomanPlus._isSelected(aCookie, coomanPlus._cookies, r);
 					try
 					{
 						coomanPlus._cookies[r[0]].isProtected = aData == CookieKeeper.OBS_ADD;
@@ -969,6 +1121,33 @@ log.debug();
 	if (!backup)
 		backup = coomanPlus.backupPersist.data;
 
+	let XULStore,
+			skip = ["", "screenX", "screenY"];
+	try
+	{
+		XULStore = Cc["@mozilla.org/xul/xulstore;1"].getService(Ci.nsIXULStore);
+	}catch(e){}
+	if (XULStore && window.location)
+	{
+		let url = window.location.href,
+				enumerator = XULStore.getIDsEnumerator(url);
+//clean up xulstore.json
+		while(enumerator.hasMore())
+		{
+			let id = enumerator.getNext(),
+					attrEnum = XULStore.getAttributeEnumerator(url, id)
+			while(attrEnum.hasMore())
+			{
+				let attr = attrEnum.getNext();
+				if (skip.indexOf(attr) != -1)
+					continue;
+
+//log(id + ": " + attr + " = " + XULStore.getValue(url, id, attr), 1);
+				XULStore.removeValue(url, id, attr);
+			}
+		}
+	}
+
 	function resetPersist(obj)
 	{
 		let persist = [],
@@ -981,8 +1160,9 @@ log.debug();
 		while(i < persist.length)
 		{
 			let attr = persist[i++].trim();
-			if (["", "screenX", "screenY"].indexOf(attr) != -1)
+			if (skip.indexOf(attr) != -1)
 				continue;
+
 			let d = backup[obj.id][attr] || obj.getAttribute("_" + attr);
 			obj.setAttribute(attr, d);
 			if (attr == "ordinal")
@@ -1078,7 +1258,7 @@ if (!coomanPlus.noFuncInit)
 		observe: function(aSubject, aTopic, aData)
 		{
 			aSubject.QueryInterface(Components.interfaces.nsISupportsString);
-			if (aTopic != this._name || !coomanPlus[aSubject.data])
+			if (aTopic != this._name || !coomanPlus[aSubject.data] || typeof(coomanPlus[aSubject.data]) != "function")
 				return;
 
 			coomanPlus[aSubject.data](aData);

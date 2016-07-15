@@ -418,9 +418,11 @@ log.debug();
 			{id: "ifl_host", value: this._curCookie.host, readonly: true, hidden: false },
 			{id: "ifl_path", value: this._curCookie.path, readonly: true, hidden: false },
 			{id: "ifl_isSecure",
-			 value: this._curCookie.isSecure ?
+				value: this._curCookie.isSecure ?
 							this.string("forSecureOnly") :
-							this.string("forAnyConnection"), readonly: false, hidden: false },
+							this.string("forAnyConnection"),
+				readonly: false,
+				hidden: false },
 			{id: "ifl_expires", value: this._curCookie.expires, readonly: true, hidden: true },
 			{id: "ifl_expires_date", value: "", readonly: true, hidden: false },
 			{id: "ifl_expires_time", value: "", readonly: true, hidden: false },
@@ -435,8 +437,8 @@ log.debug();
 			field.readonly	= props[i].readonly;
 			field.hidden		= props[i].hidden;
 		}
-
-		this.secure();
+		//FF50 has a delay before field.value is populated???
+		coomanPlusCore.async(function(){coomanPlus.secure()});
 		//rearrange radio bttons if this is a session cookie
 		var sel = "new";
 		if (this._curCookie.expires)
@@ -941,7 +943,7 @@ log.debug();
 		switch(com)
 		{
 			case "reset":
-				this.resetWindowSettings(data.wrappedJSObject);
+				this.resetWindowSettings(data ? data.wrappedJSObject : null);
 				break;
 			case "backup":
 				this.settingsBackup();

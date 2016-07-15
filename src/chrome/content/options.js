@@ -109,7 +109,9 @@ log.debug();
 			coomanPlus.dateListSize();
 		});
 		this.changesLogMenu();
+		this.debugMenu();
 		$("changesLog").addEventListener("command", coomanPlus.changesLogClick, true);
+		$("debug").addEventListener("command", coomanPlus.debugClick, true);
 		$("protectbox").setAttribute("collapsed", !this.protect.enabled);
 		coomanPlusCore.async(function()
 		{
@@ -181,6 +183,7 @@ log.debug();
 		if (coomanPlus.inited)
 		{
 			coomanPlus.changesLogSave();
+			coomanPlus.debugSave();
 			try
 			{
 				coomanPlus.protect.unload();
@@ -246,6 +249,50 @@ log.debug();
 
 		$("changesLog").setAttribute("label", (t.join(" + ")));
 	},
+
+	debugParse: function debugParse()
+	{
+		let c = $("debugMenu").children,
+		r = 0;
+		for (let i = 0; i < c.length; i++)
+			if (c[i].getAttribute("checked"))
+				r += Number(c[i].getAttribute("value"));
+
+		return r;
+	},
+	debugSave: function()
+	{
+		coomanPlusCore.pref("debug", this.debugParse());
+	},
+
+	debugClick: function debugClick(e)
+	{
+		coomanPlus.debugMenu(coomanPlus.debugParse());
+	},
+
+	debugMenu: function debugMenu(v)
+	{
+		v = typeof(v) == "undefined" ? coomanPlusCore.pref("debug") : v;
+		let c = $("debugMenu"),
+				t = [];
+
+		c = c.children;
+		for (let i = 0; i < c.length; i++)
+		{
+			let val = Number(c[i].getAttribute("value"));
+			if (v & val)
+			{
+				c[i].setAttribute("checked", true);
+			}
+			else
+			{
+				c[i].removeAttribute("checked");
+			}
+			if (val & 1)
+				c[i].disabled = (v & val);
+		}
+	},
+
 
 	template: function template(e)
 	{
@@ -396,6 +443,7 @@ log.debug();
 		this.resetPersist();
 		this.dateListSize();
 		this.changesLogMenu();
+		this.debugMenu();
 		this.prefs.setCharPref("reset", JSON.stringify({main:[], edit:[]}));
 		Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
 			.notifyObservers(null, "cmp-command", "reset");
@@ -464,6 +512,7 @@ log.debug();
 		let rv = fp.show();
 		if (rv != nsIFilePicker.returnOK)
 			return false;
+
 		let istream = Cc["@mozilla.org/network/file-input-stream;1"].
 									createInstance(Ci.nsIFileInputStream);
 		istream.init(fp.file, -1, -1, false);
@@ -487,14 +536,16 @@ log.debug();
 		}
 		for(let i in data)
 		{
+			if (i == "restore" || i == "reset")
+				continue;
+
 			if (i == "persist")
 			{
-				let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
-						nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+				let nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
 				nsISupportsString.data = data[i];
-				this.prefs.setCharPref("restore", data[i]);
+				//can't use this.pref() because "restore" key doesn't exist;
+				this.prefs.setComplexValue("restore", Ci.nsISupportsString, nsISupportsString);
 
-				observerService.notifyObservers(nsISupportsString, "cmp-command", "restore");
 			}
 			else
 			{
@@ -504,8 +555,18 @@ log.debug();
 				}catch(e){};
 			}
 		}
+		if (data.persist)
+		{
+			let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
+					nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
+			nsISupportsString.data = data.persist;
+			observerService.notifyObservers(nsISupportsString, "cmp-command", "restore");
+		}
+
+		this.prefs.clearUserPref("reset");
 		this.dateListSize();
 		this.changesLogMenu();
+		this.debugMenu();
 	},//settingsRestore()
 
 	topmost: function topmost(broadcast)

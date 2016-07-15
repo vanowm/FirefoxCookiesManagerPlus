@@ -2,6 +2,7 @@ const	EMAIL = "737570706f72742e636f6f6b6965732d6d616e616765722d706c75732e756e697
 			HOMEPAGE = "https://addons.mozilla.org/addon/cookies-manager-plus/",
 			_SUPPORTSITE = "https://github.com/vanowm/FirefoxCookiesManagerPlus/",
 			SUPPORTSITE = _SUPPORTSITE + "issues",
+			SUPPORTSITEQUERY = "?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc",
 			ISSUESSITE = SUPPORTSITE + "/",
 			SOURCESITE = _SUPPORTSITE + "commit/",
 			ADDONDOMAIN = "cookiesmanagerplus";
