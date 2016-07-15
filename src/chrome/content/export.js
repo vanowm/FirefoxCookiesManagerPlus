@@ -333,7 +333,7 @@ coomanPlus.backupAddPassword = function(confirm)
 	{
 		return {status: 6, msg: this.string("password_notset")};
 	}
-	l = /^(#Created by Cookies Manager.*)$/m.exec(file.fileData);
+	l = /^(# HTTP Cookie File created by Cookies Manager.*)$/m.exec(file.fileData);
 	let h;
 	if (l)
 		h = l[1] + "\r\n\r\n";
