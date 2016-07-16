@@ -5,7 +5,7 @@ coomanPlus.prefTemplateClipboard = {value: "", extra: false}
 coomanPlus.prefTemplateFile = {value: "", extra: false};
 coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT}", extra: false};
 coomanPlus.restoreTemplate = [["host", "string"],["isDomain", "bool"],["path", "string"],["isSecure", "bool"],["expires", "int"],["name", "string"],["value", "string"],["isProtected", "bool"]];
-coomanPlus.header = "#Created by Cookies Manager+ v{VERSION} on {DATE}{HEADER}\r\n\r\n";
+coomanPlus.header = "# HTTP Cookie File created by Cookies Manager+ v{VERSION} on {DATE}{HEADER}\r\n\r\n";
 coomanPlus.restoreStatusCanceled = 0;
 coomanPlus.restoreStatusDecrypted = 1;
 coomanPlus.restoreStatusEncrypted = 2;
@@ -333,7 +333,7 @@ coomanPlus.backupAddPassword = function(confirm)
 	{
 		return {status: 6, msg: this.string("password_notset")};
 	}
-	l = /^(#Created by Cookies Manager.*)$/m.exec(file.fileData);
+	l = /^(# HTTP Cookie File created by Cookies Manager.*)$/m.exec(file.fileData);
 	let h;
 	if (l)
 		h = l[1] + "\r\n\r\n";
