@@ -164,7 +164,12 @@ row[dragable="true"][dragover="true"][dragupdown="down"]
 	-moz-image-region: rect(0, 78px, 14px, 64px);
 }
 
-#cookiesTree treecol[type="checkbox"][checked="true"] > image,
+#cookiesTree treecol[type="checkbox"][checked="2"] > image
+{
+	-moz-image-region: rect(0, 327px, 14px, 313px);
+}
+
+#cookiesTree treecol[type="checkbox"][checked="3"] > image,
 #cookiesTree treechildren::-moz-tree-checkbox(checked) {
 	-moz-image-region: rect(0, 91px, 14px, 77px);
 }
@@ -597,7 +602,7 @@ row hbox.ro button
 	min-width: 2.5em;
 	min-height: 1.5em;
 	font-size: 0.8em;
-	cursor: default;
+	cursor: help;
 }
 row hbox.ro button .button-icon,
 row:not([ro]) hbox.ro vbox:first-child > button,
@@ -724,7 +729,7 @@ row:not([ro="true"]):not([multiro="true"]) hbox.ro vbox:last-child > button
 	min-height: 0;
 	margin: 0 !important;
 	padding: 0 !important;
-	cursor: default;
+	cursor: help;
 	border-width: 1px;
 	-moz-appearance: groupbox
 }
@@ -805,4 +810,9 @@ row:not([ro="true"]):not([multiro="true"]) hbox.ro vbox:last-child > button
 {
 	white-space: pre-wrap;
 	max-width: none;
+}
+
+#value_wrap
+{
+	display: none;
 }

@@ -34,7 +34,8 @@
 	white-space: pre-wrap;
 	text-align: left;
 }
-#changesLog > hbox
+#changesLog > hbox,
+#changesLog > vbox > hbox
 {
 	padding: 1px 0 1px 0;
 	margin-top: 1px;
@@ -241,4 +242,31 @@ hbox:not(.legend) > vbox > description.comment
 #changesLog[type="0"] :not(.legend) [type="1"]
 {
 	display: none;
+}
+.titlelog
+{
+	list-style-image: url("images/icons.png");
+}
+.titlelog,
+.titlelog[hide="0"]
+{
+	-moz-image-region: rect(0, 313px, 9px, 304px);
+}
+#changesLog[hide="1"] .titlelog:not([hide="0"]),
+.titlelog[hide="1"]
+{
+	-moz-image-region: rect(0, 305px, 9px, 296px);
+}
+#changesLog[hide="1"] .titlelog:not([hide="0"]) + vbox,
+.titlelog[hide="1"] + vbox
+{
+	display: none;
+}
+.titlelog > vbox:first-child
+{
+	margin-right: 5px !important;
+}
+.titlelog > vbox *
+{
+	cursor: pointer !important;
 }

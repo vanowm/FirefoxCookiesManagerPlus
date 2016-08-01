@@ -17,3 +17,5 @@
 <!ENTITY changesLog.options.addon						"Addon options">
 <!ENTITY changesLog.menu.copyIssueUrl				"Copy issues URL">
 <!ENTITY changesLog.menu.copyIssueUrl.desc	"When copy selected text to clipboard, include issue URL to the text">
+<!ENTITY changesLog.menu.expandAll					"Expand all">
+<!ENTITY changesLog.menu.expandAll.desc			"Expand all version">

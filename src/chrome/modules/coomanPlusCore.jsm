@@ -21,6 +21,17 @@ var	self = this,
 	window: null,
 	prevVersion: "",
 	PREF_BRANCH: "extensions.cookiesmanagerplus.",
+	storageFile: "cookiesManagerPlus.json",
+	storage: null,
+	storageString: null,
+	storageVersion: 1,
+	storageStructure: {
+		select: [],
+		readonly: [],
+		search: [],
+		persist: {},
+		v: 0,
+	},
 	prefs: null,
 	prefsDefault: null,
 	COOKIE_NORMAL: 1,
@@ -33,23 +44,52 @@ var	self = this,
 	appInfo: Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo),
 	sdr: Cc["@mozilla.org/security/sdr;1"].getService(Ci.nsISecretDecoderRing),
 //	sdr: Cc["@mozilla.org/login-manager/crypto/SDR;1"].getService(Ci.nsILoginManagerCrypto),
-	readonlyList: {},
-	readonlyFile: "cookiesManagerPlusReadonly.json",
+	mpToken: Cc['@mozilla.org/security/pk11tokendb;1'].getService(Ci.nsIPK11TokenDB).getInternalKeyToken(),
+	_readonlyList: null,
+	readonlyList: function readonlyList(data)
+	{
+		if (typeof(data) != "undefined")
+			this._readonlyList = data;
+
+		else if (this._readonlyList === null)
+		{
+			this._readonlyList = {};
+			this.readonlyLoad();
+		}
+
+		return this._readonlyList;
+	},
+	readonlyListEncrypted: null,
 	readonlyFileSaved: true,
 	readonlyFileScheduled: false,
-	autocomplete: [],
-	async: function async(callback, time, timer)
+	asyncMap: new Map(),
+	async: function async(callback, delay, timer, noreset)
 	{
-		if (timer)
-			timer.cancel();
-		else
+		if (!timer)
 			timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
-		timer.init({observe: function()
-		{
+		if (!noreset)
 			timer.cancel();
-			callback();
-		}}, time || 0, timer.TYPE_ONE_SHOT);
+
+		let self = this,
+				prev = self.asyncMap.has(timer),
+				obj = {
+					delay: delay,
+					callback: callback,
+					observe: function()
+					{
+						timer.cancel();
+						this.callback();
+						self.asyncMap.delete(timer);
+					}
+				}
+
+		self.asyncMap.set(timer, obj);
+		if (prev && noreset)
+			return timer;
+
+
+		timer.init(obj, delay || 0, timer.TYPE_ONE_SHOT);
 		return timer;
 	},//async()
 
@@ -106,7 +146,10 @@ var	self = this,
 
 		self.backup.timer = self.async(function()
 		{
-			self.pref("persist", JSON.stringify(self._backups));
+			self.storage.persist = self._backups;
+//			self.pref("persist", JSON.stringify(self._backups));
+//			self.storage.persist = self._backups;
+			self.storageWrite();
 		}, 0, self.backup.timer);
 	},
 
@@ -205,7 +248,7 @@ var	self = this,
 	},//notify()
 
 	onPrefChange: {
-		observe: function(aSubject, aTopic, aKey)
+		observe: function(aSubject, aTopic, aKey, init)
 		{
 			let self = coomanPlusCore;
 			if(aTopic != "nsPref:changed")
@@ -229,6 +272,10 @@ var	self = this,
 			{
 				self.notify("buttonaction");
 			}
+			if (aKey == "readonlyencrypt" && coomanPlusCore.addon)
+			{
+				self.readonlySave(true, true);
+			}
 		}
 	},//onPrefChange
 
@@ -237,7 +284,9 @@ var	self = this,
 		let save = this.readonlyCleanup();
 		if (save || !this.readonlyFileSaved)
 			this.readonlySave(false);
+		this.storageWrite(undefined, false);
 	},//shutdown()
+
 	observe: function observe(aTopic, aSubject, aData)
 	{
 		if (aSubject == "profile-change-net-teardown")
@@ -263,10 +312,11 @@ var	self = this,
 				else
 					cookies = [aTopic.QueryInterface(Ci.nsICookie2)];
 
+				let readonlyList = this.readonlyList();
 				while(aCookie = cookies[i++])
 				{
 					let hash = this.cookieHash(aCookie);
-					if (!this.readonlyList[hash])
+					if (!readonlyList[hash])
 					{
 log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == "/" ? "" : "/")  + aCookie.name);
 						continue;
@@ -283,11 +333,11 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 					},
 					deleted = aData == "deleted" || aData == "batch-deleted",
 					save = deleted;
-					for(let i in this.readonlyList[hash])
+					for(let i in readonlyList[hash])
 					{
-						if (newCookie[i] != this.readonlyList[hash][i])
+						if (newCookie[i] != readonlyList[hash][i])
 						{
-							newCookie[i] = this.readonlyList[hash][i];
+							newCookie[i] = readonlyList[hash][i];
 							save = true;
 						}
 					}
@@ -323,7 +373,7 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 
 	},//observe()
 
-	readonlyAdd: function readonlyAdd(aCookie)
+	readonlyAdd: function readonlyAdd(aCookie, nosave)
 	{
 log.debug();
 		this.readonlyFileSaved = false
@@ -331,34 +381,36 @@ log.debug();
 			return this.readonlyRemove(aCookie);
 
 		let hash = this.cookieHash(aCookie),
-				i = 0;
+				i = 0,
+				readonlyList = this.readonlyList();
 
 		aCookie.hash = hash;
-		if (!this.readonlyList[hash])
-			this.readonlyList[hash] = {}
+		if (!readonlyList[hash])
+			readonlyList[hash] = {}
 
 
 		for(let f in aCookie.readonly)
 		{
-			this.readonlyList[hash][f] = aCookie[f];
+			readonlyList[hash][f] = aCookie[f];
 			i++;
 		}
 		if (!i)
 			this.readonlyRemove(aCookie)
-		else
+		else if (!nosave)
 			this.readonlySave();
 
 	},//readonlyAdd()
 	
-	readonlyRemove: function readonlyRemove(aCookie)
+	readonlyRemove: function readonlyRemove(aCookie, nosave)
 	{
 		this.readonlyFileSaved = false
 		let hash = this.cookieHash(aCookie);
 
 		aCookie.hash = hash;
 		aCookie.readonly = false;
-		delete this.readonlyList[hash];
-		this.readonlySave()
+		delete this.readonlyList()[hash];
+		if (!nosave)
+			this.readonlySave()
 	},//readonlyRemove()
 	
 	readonlyCheck: function readonlyCheck(aCookie)
@@ -372,97 +424,133 @@ log.debug();
 		{
 			aCookie.hash = hash;
 		}catch(e){}
-		return this.readonlyList[hash] ? this.readonlyList[hash] : false;
+		let readonlyList = this.readonlyList();
+		return readonlyList[hash] ? readonlyList[hash] : false;
 	},//readonlyCheck()
 
-	readonlySave: function readonlySave(async)
+	sdrLast: 0,
+	_sdr: {
+		decryptString: function()
+		{
+			throw "Master password is set but not logged in";
+		},
+		encryptString: function()
+		{
+			throw "Master password is set but not logged in";
+		}
+	},
+	get getSdr ()
 	{
-		async = typeof(async) == "undefined" ? 30000 : async;
+		let now = (new Date()).getTime();
+		if (!this.mpToken.isLoggedIn() && this.sdrLast > now - 100)
+		{
+			this.sdrLast = now;
+			return this._sdr;
+		}
+		else
+			return this.sdr;
+	},
+
+	readonlyDecrypt: function readonlyDecrypt(text)
+	{
+		let r = null;
+
+		try
+		{
+			r = this.getSdr.decryptString(text);
+		}
+		catch(e)
+		{
+			this.sdrLast = (new Date()).getTime();
+			log.error(e)
+		}
+		return r;
+	},//readonlyDecrypt()
+
+	readonlyDecryptEncrypted: function readonlyDecryptEncrypted()
+	{
 log.debug();
-		function save()
+		let self = coomanPlusCore;
+		if (!self.readonlyListEncrypted)
+			return
+
+log.debug("decrypting");
+		let oldData = self.readonlyDecrypt(self.readonlyListEncrypted);
+		if (oldData === null)
+			return;
+
+		try
 		{
-			coomanPlusCore.readonlyFileScheduled = false;
-			let self = coomanPlusCore,
-					list = JSON.stringify(self.readonlyList),
-					data = list;
-
-
-			if (data == self.readonlySaveLast)
-				return;
-
-			if (self.pref("readonlyencrypt"))
+			oldData = JSON.parse(oldData);
+			self.readonlyListEncrypted = null;
+			let readonlyList = self.readonlyList();
+			for(let l in readonlyList)
 			{
-				try
+				if (l in oldData)
 				{
-//					data = JSON.stringify({e:self.sdr.encrypt(data)});
-					data = JSON.stringify({e:self.sdr.encryptString(data)});
+					for(let i in readonlyList[l])
+						oldData[l][i] = readonlyList[l][i];
 				}
-				catch(e){log.error(e)}
+				else
+					oldData[l] = readonlyList[l];
 			}
+			self.readonlyList(oldData);
+		}
+		catch(e){log.error(e)}
+	},//readonlyDecryptEncrypted()
 
-			let file = FileUtils.getFile("ProfD", [self.readonlyFile]),
-					ostream = FileUtils.openSafeFileOutputStream(file),
-					converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
+	readonlySave: function readonlySave(async, force)
+	{
+log.debug();
+		let self = coomanPlusCore;
+		self.readonlyDecryptEncrypted();
+		let data = self.readonlyList();
 
-			converter.charset = "UTF-8";
-			let istream = converter.convertToInputStream(data);
-		// The last argument (the callback) is optional.
-			NetUtil.asyncCopy(istream, ostream, function asyncCopy(status)
+		if (self.pref("readonlyencrypt"))
+		{
+			try
 			{
-				if (!Components.isSuccessCode(status))
-				{
-					self.readonlySaveLast = null;
-					log.error("error saving readonly file");
-					return;
-				}
-				self.readonlySaveLast = list;
-log.debug("end save readonly list file " + file.path);
-				coomanPlusCore.readonlyFileSaved = true;
-			});
+//					data = JSON.stringify({e:self.sdr.encrypt(data)});
+				data = {e:self.getSdr.encryptString(JSON.stringify(data))};
+			}
+			catch(e)
+			{
+				self.sdrLast = (new Date()).getTime();
+				log.error(e);
+			}
 		}
-		if (async === false)
+		if (self.readonlyListEncrypted)
 		{
-			if (this.readonlySave.timer)
-				this.readonlySave.timer.cancel();
-
-			save()
+			try
+			{
+				let str = JSON.stringify(data);
+				if (str == "{}")
+					data = {e:self.readonlyListEncrypted};
+			}catch(e){}
 		}
-		else if (!coomanPlusCore.readonlyFileScheduled)
-		{
-			coomanPlusCore.readonlyFileScheduled = true;
-			this.readonlySave.timer = this.async(save, async, this.readonlySave.timer);
-		}
-
+		self.storage.readonly = data;
+		self.storageWrite(undefined, async, force);
 	},//readonlySave()
 	
 	readonlyLoad: function readonlyLoad()
 	{
 log.debug();
-		let file = FileUtils.getFile("ProfD", [this.readonlyFile]),
-				fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream),
-				cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream),
-				data = "";
-		try
+		let data = this.storage.readonly;
+
+		if ("e" in data)
 		{
-			fstream.init(file, -1, 0, 0);
-			cstream.init(fstream, "UTF-8", 0, 0);
-			let str = {},
-					read = 0;
-			do
+			this.readonlyListEncrypted = data.e;
+			let text = this.readonlyDecrypt(data.e);
+			if (text === null)
 			{
-				read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
-				data += str.value;
-			} while (read != 0);
-			cstream.close(); // this closes fstream
-			let text = data;
-			data = JSON.parse(data);
-			if ("e" in data)
+				data = null;
+			}
+			else
 			{
 				try
 				{
-//					text = this.sdr.decrypt(data.e);
-					text = this.sdr.decryptString(data.e);
 					data = JSON.parse(text);
+					this.readonlyListEncrypted = null;
 				}
 				catch(e)
 				{
@@ -470,12 +558,11 @@ log.debug();
 					log.error(e);
 				}
 			}
-			this.readonlySaveLast = text;
+		}
 
-			if (data)
-				this.readonlyList = data;
+		if (data)
+			this.readonlyList(data);
 
-		}catch(e){log.error(e)};
 	},//readonlyLoad()
 
 	readonlyCleanup: function readonlyCleanup()
@@ -484,7 +571,8 @@ log.debug();
 				list = [],
 				i = 0,
 				hash,
-				save = false;
+				save = false,
+				readonlyList = this.readonlyList();
 
 		while (e.hasMoreElements())
 		{
@@ -494,16 +582,16 @@ log.debug();
 
 			list.push(this.cookieHash(aCookie));
 		}
-		for(hash in this.readonlyList)
+		for(hash in readonlyList)
 		{
 			if (list.indexOf(hash) == -1)
 			{
-				delete this.readonlyList[hash];
+				delete readonlyList[hash];
 				save = true;
 			}
 			else
 			{
-				let ro = this.readonlyList[hash],
+				let ro = readonlyList[hash],
 						i = 0;
 				for(let n in ro)
 				{
@@ -511,7 +599,7 @@ log.debug();
 				}
 				if (!i)
 				{
-					delete this.readonlyList[hash];
+					delete readonlyList[hash];
 					save = true;
 				}
 			}
@@ -533,6 +621,8 @@ log.debug();
 					host: aCookie.host,
 					name: aCookie.name,
 					path: aCookie.path,
+//breaks selection after import
+//					originAttributes: aCookie.originAttributes
 				}),
 				hash,
 				data;
@@ -551,7 +641,112 @@ log.debug();
 			hash = h;
 		}
 		return hash
-	},
+	},//cookieHash()
+
+	storageRead: function storageRead(forceRead)
+	{
+log.debug("begin");
+		if (this.storage !== null && !forceRead)
+			return
+
+		let data = "",
+				r = {},
+				file = FileUtils.getFile("ProfD", [this.storageFile]),
+				fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream),
+				cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);
+		try
+		{
+			fstream.init(file, -1, 0, 0);
+			cstream.init(fstream, "UTF-8", 0, 0);
+			let str = {},
+					read = 0;
+			do
+			{
+				read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+				data += str.value;
+			} while (read != 0);
+			cstream.close(); // this closes fstream
+		}catch(e){};
+		try
+		{
+			r = JSON.parse(data);
+		}
+		catch(e)
+		{
+			log.error(e);
+		}
+		this.storage = r;
+		this.storageString = data;
+	},//storageRead()
+
+	storageWrite: function storageWrite(data, async, forceWrite)
+	{
+		let self = coomanPlusCore,
+				dataString = "";
+
+		if (typeof(data) == "undefined")
+			data = self.storage;
+
+		if (typeof(async) == "undefined")
+			async = 60000;
+
+
+		try
+		{
+			if (JSON.stringify(data.restore) == "{}")
+				delete data.restore;
+		}catch(e){}
+		try
+		{
+			if (JSON.stringify(data.reset) == "{}")
+				delete data.reset;
+		}catch(e){}
+		try
+		{
+			dataString = JSON.stringify(data);
+		}catch(e){}
+
+		if (!forceWrite && dataString === self.storageString)
+		{
+			if (self.storageWrite.timer)
+				self.storageWrite.timer.cancel();
+
+			self.storage = data;
+			return;
+		}
+log.debug("storage file save begin");
+
+
+		function write()
+		{
+			if (self.storageWrite.timer)
+			{
+				self.storageWrite.timer.cancel();
+				delete self.storageWrite.timer;
+			}
+			let	file = FileUtils.getFile("ProfD", [self.storageFile]),
+					ostream = FileUtils.openSafeFileOutputStream(file),
+					converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
+
+			converter.charset = "UTF-8";
+			let istream = converter.convertToInputStream(dataString);
+			NetUtil.asyncCopy(istream, ostream, function asyncCopy(status) {
+				if (!Components.isSuccessCode(status))
+				{
+					log.error("error saving storage file");
+					return;
+				}
+				self.storage = data;
+				self.storageString = dataString;
+			});
+log.debug("storage file save finished", self.storageWrite);
+		}
+		if (async === false)
+			write()
+		else 
+			self.storageWrite.timer = coomanPlusCore.async(write, async, self.storageWrite.timer, true);
+	},//storageWrite()
+
 }
 coomanPlusCore.prefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch(coomanPlusCore.PREF_BRANCH);
 coomanPlusCore.prefsDefault = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getDefaultBranch(coomanPlusCore.PREF_BRANCH);
@@ -573,6 +768,9 @@ coomanPlusCore.HOMEPAGE = HOMEPAGE;
 coomanPlusCore.SUPPORTSITE = SUPPORTSITE;
 coomanPlusCore.ISSUESSITE = ISSUESSITE;
 coomanPlusCore.ADDONDOMAIN = ADDONDOMAIN;
+coomanPlusCore.storageRead();
+
+
 coomanPlusCore.prefs.QueryInterface(Ci.nsIPrefBranch).addObserver('', coomanPlusCore.onPrefChange, false);
 
 let l = coomanPlusCore.prefs.getChildList("");
@@ -582,12 +780,63 @@ for(let i of l)
 
 log.logLevel = coomanPlusCore.pref.prefs.debug || 1;
 coomanPlusCore.prevVersion = coomanPlusCore.pref("version");
+if (coomanPlusCore.pref("version") && Cc["@mozilla.org/xpcom/version-comparator;1"]
+		.getService(Ci.nsIVersionComparator).compare(coomanPlusCore.pref("version"), "1.13") < 0)
+{
+	(function()
+	{
+		if (coomanPlusCore.storage && coomanPlusCore.storage.constructor.name == "Array")
+		{
+			coomanPlusCore.storage = {
+				v: coomanPlusCore.storageVersion,
+				select: coomanPlusCore.storage
+			}
+		}
+		let file = FileUtils.getFile("ProfD", ["cookiesManagerPlusReadonly.json"]),
+				fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream),
+				cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream),
+				data = "";
+		try
+		{
+			fstream.init(file, -1, 0, 0);
+			cstream.init(fstream, "UTF-8", 0, 0);
+			let str = {},
+					read = 0;
+			do
+			{
+				read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+				data += str.value;
+			} while (read != 0);
+			cstream.close(); // this closes fstream
+			coomanPlusCore.storage.readonly = JSON.parse(data);
+		}catch(e){};
+		try
+		{
+			file.remove(false)
+		}catch(e){}
+
+		for(let i in coomanPlusCore.storageStructure)
+		{
+			if (!(i in coomanPlusCore.storage))
+				coomanPlusCore.storage[i] = coomanPlusCore.storageStructure[i];
+		}
+		coomanPlusCore.storage.v = coomanPlusCore.storageVersion;
+		try
+		{
+			coomanPlusCore.storage.persist = JSON.parse(coomanPlusCore.pref("persist"));
+			coomanPlusCore.prefs.clearUserPref("persist");
+		}catch(e){log.error(e)};
+		coomanPlusCore.storageWrite();
+	})()
+}//v1.13 update
+
+
 let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 
 observer.addObserver(coomanPlusCore, "cookie-changed", false);
 observer.addObserver(coomanPlusCore, "private-cookie-changed", false);
 observer.addObserver(coomanPlusCore, "profile-change-net-teardown", false);
-coomanPlusCore.readonlyLoad();
+//coomanPlusCore.readonlyLoad();
 log.debug.startTime = new Date();
 log.debug("coomanPlusCore.jsm loaded");
 AddonManager.getAddonByID(coomanPlusCore.GUID, function(addon)

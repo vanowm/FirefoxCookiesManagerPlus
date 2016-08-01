@@ -13,6 +13,7 @@ var changesLog = {
 	PREF_BRANCH: coomanPlusCore.PREF_BRANCH,
 	GUID: coomanPlusCore.GUID,
 	pref: null,
+	firstBox: null,
 	decode: function(t)
 	{
 		t = t.toString();
@@ -244,6 +245,29 @@ var changesLog = {
 		this.onResize();
 	},
 
+	_expandAll: function(e)
+	{
+log.debug();
+		let val = this.checkboxSet(e.target.id)
+		this.showExpandAll(true);
+	},
+
+	showExpandAll: function(init)
+	{
+log.debug();
+		let val = this.checkboxGet("changesLogExpandAll");
+		$("changesLog").setAttribute("hide", val^1);
+		let versions = document.getElementsByClassName("titlelog");
+		for(let i = 0; i < versions.length; i++)
+		{
+			let hbox = versions[i];
+			if (!hbox.getAttribute("latest"))
+				this.showHideVersion(hbox, init);
+		}
+
+		this.onResize();
+	},
+
 	copyIssueUrl: function(e)
 	{
 		this.checkboxSet(e.target.id);
@@ -281,7 +305,7 @@ var changesLog = {
 	onResize: function ()
 	{
 		let hbox = document.getElementsByAttribute("line", ""),
-				height = $("changesLogFirst");
+				height = changesLog.firstBox;
 		if (!height)
 			return;
 
@@ -297,12 +321,37 @@ var changesLog = {
 
 	onload: function()
 	{
-		AddonManager.getAddonByID(changesLog.GUID, function(addon)
+		if (!("arguments" in window) || !window.arguments)
+			document.documentElement._buttons.accept.hidden = true;
+		else
 		{
-			Services.scriptloader.loadSubScript(addon.getResourceURI("chrome/content/constants.js").spec, self);
-			changesLog.addon = addon;
-			changesLog.init();
-		});
+			document.documentElement.boxObject.lastChild.insertBefore($("changesLogSupport"), document.documentElement.boxObject.lastChild.firstChild);
+			$("changesLogTitle").parentNode.setAttribute("align", "center");
+			$("changesLogBox").setAttribute("window", true);
+		}
+		changesLog.showLegendType();
+		changesLog.showHighlight();
+		changesLog.showWrap();
+		changesLog.showAltbg();
+		changesLog.showExpandAll();
+		changesLog.checkboxGet("changesLogCopyIssueUrl");
+		if ("scrollTop" in coomanPlusCore.changesLog)
+		{
+			$("changesLogBox").scrollTo(coomanPlusCore.changesLog.scrollLeft, coomanPlusCore.changesLog.scrollTop);
+		}
+		window.addEventListener("unload", function()
+		{
+			coomanPlusCore.changesLog.scrollTop = $("changesLogBox").scrollTop;
+			coomanPlusCore.changesLog.scrollLeft = $("changesLogBox").scrollLeft;
+			changesLog.async(function()
+			{
+				try
+				{
+					delete coomanPlusCore.changesLog.scrollTop;
+					delete coomanPlusCore.changesLog.scrollLeft;
+				}catch(e){}
+			}, 1000)
+		}, false)
 	},
 
 	RegExpEscape: function(string)
@@ -330,21 +379,16 @@ var changesLog = {
 					break;
 				case Ci.nsIPrefBranch.PREF_STRING:
 					r[i] = this.pref.getComplexValue(i, Ci.nsISupportsString).data;
+/*
 					if (/^template/.test(i))
 						r[i] = r[i].replace(/\s{2,}/g, " ");
+*/
 					break;
 			}
 		}
-		if (type)
-			return r;
-		else
-		{
-			l = [];
-			for (let i in r)
-				l.push(i + ": " + r[i]);
+		r.windows = coomanPlusCore.storage.persist;
 
-			return l.join("\n");
-		}
+		return r;
 	},
 
 	fixUrl: function(url)
@@ -513,7 +557,7 @@ var changesLog = {
 						for(let i in extra)
 							body[i] = extra[i];
 
-						changesLog.copy(JSON.stringify(body));
+						changesLog.copy(JSON.stringify(body, null, 2));
 					}
 
 					if (Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator)
@@ -619,7 +663,9 @@ var changesLog = {
 			return hboxStats;
 		}
 
-		let oddEven = 1;
+		let oddEven = 1,
+				verBox = changesLogObj;
+
 		for(let i = 0; i < array.length; i++)
 		{
 			let t = /^(\s*)([+\-*!])/.exec(array[i]),
@@ -630,9 +676,8 @@ var changesLog = {
 					hbox = document.createElement("hbox"),
 					vbox = document.createElement("vbox"),
 					space = document.createElement("description"),
+					isTitle = false,
 					txt = 0;
-			if (i > 0)
-				changesLogObj.appendChild(document.createTextNode("\n"));
 
 			vbox.className = "text";
 			hbox.setAttribute("flex", 0);
@@ -691,9 +736,36 @@ var changesLog = {
 			}
 			else if (array[i].match(/^v[0-9]+/))
 			{
+				verBox = document.createElement("vbox");
+				let image = document.createElement("image"),
+						imageBox = document.createElement("vbox");
+				imageBox.setAttribute("pack", "center");
+				imageBox.appendChild(image);
+				hbox.addEventListener("click", function(e)
+				{
+					if (e.button || e.detail > 1)
+					{
+						if (imageBox._timer)
+							imageBox._timer.cancel();
+
+						e.stopPropagation();
+						e.preventDefault();
+						return false;
+					}
+					changesLog.showHideVersion(hbox, false)
+				}, false)
+//				hbox.setAttribute("persist", "hide");
+				hbox.appendChild(imageBox);
+				changesLogObj.appendChild(hbox);
+				changesLogObj.appendChild(verBox);
+				hbox.id = array[i].match(/^([^\s]+)/)[1];
+				vbox.removeAttribute("flex");
+				isTitle = true;
 				if (isLegend)
 				{
-					hbox.id = "changesLogFirst";
+					hbox.setAttribute("latest", true);
+					hbox.setAttribute("hide", 0);
+					changesLog.firstBox = hbox;
 					if (legendBox)
 						legendBox.className += " border";
 				}
@@ -920,28 +992,51 @@ e.preventDefault();
 			label.appendChild(document.createTextNode("\n"));
 			vbox.appendChild(label)
 			hbox.appendChild(vbox);
-			changesLogObj.appendChild(hbox);
+			if (!isTitle)
+				verBox.appendChild(hbox);
+
+//			if (i > 0)
+//				verBox.appendChild(document.createTextNode("\n"));
 		}
 		if (prevhboxTitle)
 			prevhboxTitle.insertBefore(showStats(stats), prevhboxTitle.lastChild);
 
 		changesLogObj.selectionStart = 0;
 		changesLogObj.selectionEnd = 0;
-		if (!("arguments" in window) || !window.arguments)
-			document.documentElement._buttons.accept.hidden = true;
-		else
-		{
-			document.documentElement.boxObject.lastChild.insertBefore($("changesLogSupport"), document.documentElement.boxObject.lastChild.firstChild);
-			$("changesLogTitle").parentNode.setAttribute("align", "center");
-			$("changesLogBox").setAttribute("window", true);
-		}
 
-		this.showLegendType();
-		this.showHighlight();
-		this.showWrap();
-		this.showAltbg();
-		this.checkboxGet("changesLogCopyIssueUrl");
 		window.addEventListener("resize", this.onResize, true);
-	} //init()
+	}, //init()
+
+	showHideVersion: function showHideVersion(hbox, type)
+	{
+		let hide = hbox.hasAttribute("hide")
+								? hbox.getAttribute("hide")
+								: hbox.id in coomanPlusCore.changesLog.versions
+									? coomanPlusCore.changesLog.versions[hbox.id].hide
+									: changesLog.checkboxGet("changesLogExpandAll") ^ 1;
+		if (type === false)
+			hide ^= 1;
+		else if (type === true)
+			hide = changesLog.checkboxGet("changesLogExpandAll") ^ 1;
+		else if (typeof(type) != "undefined")
+			hide = type;
+
+		if (!(hbox.id in coomanPlusCore.changesLog.versions))
+			coomanPlusCore.changesLog.versions[hbox.id] = {};
+
+		coomanPlusCore.changesLog.versions[hbox.id].hide = hide; 
+		hbox.setAttribute("hide", hide);
+	}
 };
-	
+AddonManager.getAddonByID(changesLog.GUID, function(addon)
+{
+	Services.scriptloader.loadSubScript(addon.getResourceURI("chrome/content/constants.js").spec, self);
+	changesLog.addon = addon;
+	if (!("changesLog" in coomanPlusCore))
+		coomanPlusCore.changesLog = {};
+
+	if (!("versions" in coomanPlusCore.changesLog))
+		coomanPlusCore.changesLog.versions = {};
+
+	changesLog.init();
+});

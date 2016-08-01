@@ -29,6 +29,8 @@
 <!ENTITY options.tab.date.accesskey			'D'>
 <!ENTITY options.tab.export							'Export'>
 <!ENTITY options.tab.export.accesskey		'E'>
+<!ENTITY options.tab.readonly						'Read-only'>
+<!ENTITY options.tab.readonly.accesskey	'R'>
 <!ENTITY option.export.clipboard.template 'Copy to clipboard template'>
 <!ENTITY option.export.tab.clipboard 		'Clipboard'>
 <!ENTITY option.export.tab.file 				'File'>
@@ -89,10 +91,13 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY backupSettingsSave									"Save Settings as">
 <!ENTITY restoreSettingsOpen								"Open Settings file">
 <!ENTITY restoreSettingsError								"Error restoring settings">
-<!ENTITY options.readonly										"Enable read-only cookies data">
-<!ENTITY options.readonly.info							"This will allow you set content, http only, secure and expire data of a cookie(s) to read-only. Websites will not be able override write protected data. Deleted or expired cookies will be removed from read-only database upon browser restart or if deleted within CM+">
+<!ENTITY options.readonly										"Read-only cookies data">
+<!ENTITY options.readonly.enable						"Enable read-only cookies data">
+<!ENTITY options.readonly.enable.info				"This will allow you set content, http only, secure and expire data of a cookie(s) to read-only. Websites will not be able override write protected data. Deleted or expired cookies will be removed from read-only database upon browser restart or if deleted from CM+ window">
 <!ENTITY options.readonlydelete							"Allow websites delete read-only cookies">
 <!ENTITY options.readonlydelete.info				"Allow websites delete cookies with read-only data? (note, it will not clear read-only flag on deleted cookies until browser is restarted!)">
+<!ENTITY options.readonlyencrypt						"Encrypt read-only data">
+<!ENTITY options.readonlyencrypt.info				"Read-only data will be stored encrypted. If master password is enabled, you'll be prompted to enter it upon browser startup or CM+ launch/close.">
 <!ENTITY settingsFile												"# settings">
 <!ENTITY options.buttonaction								"Auto fill search field with opened website">
 <!ENTITY options.buttonaction.info					"Change default behaviour of toolbar button. When enabled it will fill out search field with currently opened website domain.">
@@ -110,3 +115,12 @@ You&#39;ll need enter that password again in order to restore cookies from that 
 <!ENTITY options.debug1.desc								"Error messages">
 <!ENTITY options.debug2.desc								"Information messages">
 <!ENTITY options.debug4.desc								"Debug messages (this will flood the console, turn it off to improve performance)">
+
+
+<!ENTITY optionsRestore.title								"Restore Settings">
+<!ENTITY optionsRestore.setting							"Setting">
+<!ENTITY optionsRestore.value								"Value">
+<!ENTITY optionsRestore.pref								"Preferences">
+<!ENTITY optionsRestore.persist							"Window settings">
+<!ENTITY optionsRestore.main								"CM+ main window">
+<!ENTITY optionsRestore.edit								"CM+ edit window">

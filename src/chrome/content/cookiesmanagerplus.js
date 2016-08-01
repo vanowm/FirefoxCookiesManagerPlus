@@ -85,7 +85,6 @@ var coomanPlus = {
 	showedExpires: -1,
 
 	exec: [],
-	storageFile: "cookiesManagerPlus.json",
 
 	_cookiesTreeView: {
 		QueryInterface: null,
@@ -180,10 +179,10 @@ var coomanPlus = {
 		},
 		setCellValue: function setCellValue(row, col, val)
 		{
-			let s = true;
+//			let s = true;
 			if (this.selection.isSelected(row))
 			{
-				s = false;
+//				s = false;
 				this.selection.clearRange(row,row);
 				coomanPlus.cookieSelected();
 			}
@@ -359,10 +358,8 @@ while (windows.hasMoreElements()) {
 }
 
 */
-
-
-
-
+//log(coomanPlusCore.asyncData, 1)
+//coomanPlusCore.readonlyDecryptEncrypted();
 		this.inited = true;
 
 		this.isXP = window.navigator.oscpu.indexOf("Windows NT 5") != -1;
@@ -375,8 +372,6 @@ while (windows.hasMoreElements()) {
 		this.strings.secureYes = this.string("forSecureOnly");
 		this.strings.secureNo = this.string("forAnyConnection");
 		this._cookiesTree = $("cookiesTree");
-		this._cookiesTree.view = this._cookiesTreeView;
-		this._cookiesTree.view.rowCount; //some weird things happens in FF37+ without this line
 
 		this.listKeys();
 
@@ -417,9 +412,6 @@ while (windows.hasMoreElements()) {
 		$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 		this.title = document.title + " v" + coomanPlusCore.addon.version
 
-
-
-
 		let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 
 		observer.addObserver(this, "cookie-changed", false);
@@ -448,7 +440,7 @@ while (windows.hasMoreElements()) {
 		$("infoRowDown").label += " (" + k + " + " + $("localeKeys").getString("VK_DOWN") + ")";
 		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[0].label = $("infoRowUp").label;
 		$("coomanPlus_inforow_drag_menu").getElementsByTagName("menuitem")[1].label = $("infoRowDown").label;
-		$("sel").width = $("sel").boxObject.height + 2;
+//		$("sel").width = $("sel").boxObject.height + 2;
 		let treecolpicker = document.getAnonymousElementByAttribute(document.getAnonymousNodes($("treecols"))[1], "anonid", "popup");
 		treecolpicker.addEventListener("command", this.treeViewSelectColpicker, true)
 		treecolpicker.addEventListener("popupshowing", this.treeViewColpicker, true)
@@ -469,22 +461,42 @@ while (windows.hasMoreElements()) {
 		while(o = list[i++])
 		{
 			let buttons = o.getElementsByTagName("button");
-			buttons[0].setAttribute("tooltiptext", this.string("readonly1"));
-			buttons[1].setAttribute("tooltiptext", this.string("readonly2"));
+			buttons[0].setAttribute("tooltiptext", this.string("readonly1") + "\n\n" + this.string("readonlyInfo"));
+			buttons[1].setAttribute("tooltiptext", this.string("readonly2") + "\n\n" + this.string("readonlyInfo"));
 		}
 		let filterMenu = document.getAnonymousElementByAttribute($("lookupcriterium"), "anonid", "searchbutton-icon");
+		filterMenu.setAttribute("tooltiptext", $("filter").getAttribute("_tooltiptext"))
 		filterMenu.addEventListener("click", function(e)
 		{
 			$("filter").openPopup($("lookupcriterium"), "after_start", 0, 0);
 		},false)
-		coomanPlus.doLookup(undefined, true);
-//async for proper scroll restore
-		coomanPlusCore.async(function()
+		let _load = function _load()
 		{
-			coomanPlus.doLookup(undefined, true);
-//			this.loadCookies();
-//			coomanPlus.selectLastCookie(true);
-		});
+log.debug();
+			_load.loaded = true;
+			coomanPlusCore.readonlyDecryptEncrypted();
+			coomanPlus.loadCookies(undefined, undefined, undefined, undefined, undefined, undefined, true);
+			coomanPlus._cookiesTree.view = coomanPlus._cookiesTreeView;
+			coomanPlus._cookiesTree.view.rowCount; //some weird things happens in FF37+ without this line
+			coomanPlusCore.async(function()
+			{
+				coomanPlus.selectLastCookie(true);
+			});
+		}
+//when master password promt shown without async, window persist attributes would fail to apply
+		if (coomanPlusCore._readonlyList !== null
+				&& !coomanPlusCore.readonlyListEncrypted)
+		{
+			_load();
+		}
+		else
+		{
+//async for proper scroll position restore. Without it getLastVisibleRow() returns incorrect number
+			coomanPlusCore.async(function()
+			{
+				_load();
+			}, true);
+		}
 log.debug("end",1);
 	},//start()
 
@@ -583,6 +595,7 @@ log.debug();
 		catch(e){}
 		coomanPlus.autocompleteSave();
 		coomanPlus.selectionSave(undefined, true);
+		coomanPlusCore.readonlySave(false);
 		coomanPlus.inited = false;
 	},//unload()
 
@@ -666,7 +679,7 @@ log.debug();
 		}//onPrefChange_do()
 	},//onPrefChange()
 
-	loadCookies: function loadCookies(criterium, noresort, selected, updated, deleteExpired)
+	loadCookies: function loadCookies(criterium, noresort, selected, updated, deleteExpired, isImport, startup)
 	{
 log.debug(this.loadCookies.started);
 		if (this.loadCookies.started)
@@ -765,6 +778,7 @@ log.debug("unprotect");
 					aCookie;
 			while(aCookie = self._cookies[i++])
 			{
+//				aCookie.hash = coomanPlusCore.cookieHash(aCookie);
 				aCookie.readonly = coomanPlusCore.readonlyCheck(aCookie);
 			}
 			self._noselectevent = true;
@@ -773,7 +787,9 @@ log.debug("unprotect");
 			self._cookiesTree.treeBoxObject.view = self._cookiesTreeView;
 			self._cookiesTree.view.selection.currentIndex = self._currentIndex;
 			self._noselectevent = false;
-			self.selectLastCookie(noresort);
+			if (!startup)
+				self.selectLastCookie(noresort, isImport);
+
 			self.loadCookies.started = false;
 		}
 		if (self._cookiesTree.getAttribute("sortResource") == "readonly")
@@ -782,7 +798,7 @@ log.debug("unprotect");
 		}
 		else
 			_readonly();
-	},
+	},//loadCookies()
 
 	_updateCookieData: function _updateCookieData(aCookie, selections)
 	{
@@ -1396,13 +1412,12 @@ log.debug();
 
 	},
 
-	selectLastCookie: function selectLastCookie(noresort)
+	selectLastCookie: function selectLastCookie(noresort, isImport)
 	{
 log.debug();
 		let b1 = this._cookiesTree.view.selection.selectEventsSuppressed,
 				b2 = this._noselectevent;
 		this._currentIndex = this._cookiesTree.view.selection.currentIndex;
-
 		let scroll = this._cookiesTree.getAttribute("scrollPos");
 		if (this._cookies.length - this._cookiesTree.treeBoxObject.getPageLength() >= scroll)
 		{
@@ -1412,20 +1427,21 @@ log.debug();
 		if (this._selected.length == 0)
 		{
 			let cookies = this.selectionRead();
-			if (cookies && cookies instanceof Array)
+			if (cookies && cookies.constructor.name == "Array")
 			{
 				this._selected = cookies;
 				this._currentIndexObj = cookies[0];
-				this._selected[0] = {};
+				this._selected[0] = "";
 				indexSet = true;
 			}
 			else
 			{
-				this._selected = [{
+				this._selected = [coomanPlusCore.cookieHash({
 					host: this._cookiesTree.getAttribute("selectedHost"),
 					path: this._cookiesTree.getAttribute("selectedPath"),
 					name: this._cookiesTree.getAttribute("selectedName"),
-				}];
+					originAttributes: this._cookiesTree.getAttribute("originAttributes"),
+				})];
 			}
 		}
 		let s = 0;
@@ -1436,7 +1452,7 @@ log.debug();
 
 			for( let i = 0; i < this._cookies.length; i++ )
 			{
-				if (this._isSelected(this._cookies[i], this._selected, undefined, true))
+				if (this._isSelected(this._cookies[i], this._selected, undefined, !isImport))
 				{
 					try
 					{
@@ -1453,6 +1469,7 @@ log.debug();
 				}
 			}
 		}
+
 		if (!indexSet && !s)
 		{
 			this._cookiesTree.view.selection.clearSelection();
@@ -1467,8 +1484,8 @@ log.debug();
 		}
 
 		this.cookieSelected(noresort);
-		this._noselectevent = b2;
-		this._cookiesTree.view.selection.selectEventsSuppressed = b1;
+		coomanPlus._noselectevent = b2;
+		coomanPlus._cookiesTree.view.selection.selectEventsSuppressed = b1;
 	},//selectLastCookie()
 
 	ensureRowIsVisible: function ensureRowIsVisible(row, tree)
@@ -1486,28 +1503,21 @@ log.debug();
 		let isHistory = this.pref("searchhistory") != 0;
 		$('lookupcriterium').setAttribute("enablehistory", isHistory);
 
-		try
-		{
-			coomanPlusCore.autocomplete = JSON.parse($('lookupcriterium').getAttribute("autocompletesearchparam"));
-		}
-		catch(e)
-		{
-		}
 		let max = coomanPlusCore.pref("searchhistory");
-		if (max > 0 && coomanPlusCore.autocomplete.length > max)
+		if (max > 0 && coomanPlusCore.storage.search.length > max)
 		{
-			coomanPlusCore.autocomplete.splice(0, coomanPlusCore.autocomplete.length - max);
+			coomanPlusCore.storage.search.splice(0, coomanPlusCore.storage.search.length - max);
 		}
 	},//autocompleteLoad()
 
 	autocompleteSave: function autocompleteSave()
 	{
 		let max = coomanPlusCore.pref("searchhistory");
-		if (max > 0 && coomanPlusCore.autocomplete.length > max)
+		if (max > 0 && coomanPlusCore.storage.search.length > max)
 		{
-			coomanPlusCore.autocomplete.splice(0, coomanPlusCore.autocomplete.length - max);
+			coomanPlusCore.storage.search.splice(0, coomanPlusCore.storage.search.length - max);
 		}
-		$('lookupcriterium').setAttribute("autocompletesearchparam", JSON.stringify(coomanPlusCore.autocomplete));
+		coomanPlusCore.storageWrite();
 	},//autocompleteSave()
 
 	autofilter: function autofilter(e)
@@ -1547,11 +1557,11 @@ log.debug();
 				{
 					if (coomanPlusCore.pref("searchhistory") != 0 && filter)
 					{
-						let i = coomanPlusCore.autocomplete.indexOf(filter);
-							coomanPlusCore.autocomplete.push(filter);
+						let i = coomanPlusCore.storage.search.indexOf(filter);
+							coomanPlusCore.storage.search.push(filter);
 
 						if (i != -1)
-							coomanPlusCore.autocomplete.splice(i, 1);
+							coomanPlusCore.storage.search.splice(i, 1);
 					}
 
 					self.autocompleteSave();
@@ -1570,12 +1580,7 @@ log.debug();
 
 	cookieObjectSave: function cookieObjectSave(aCookie)
 	{
-		return {
-			host: aCookie.host,
-			path: aCookie.path,
-			name: aCookie.name,
-			originAttributes: aCookie.originAttributes
-		}
+		return coomanPlusCore.cookieHash(aCookie);
 	},
 
 	cookieSelected: function cookieSelected(noresort)
@@ -1587,7 +1592,7 @@ log.debug([noresort, this._noselectevent]);
 
 		let selections = this.getTreeSelections(this._cookiesTree);
 		this._currentIndex = this._cookiesTree.view.selection.currentIndex;
-		$("sel").setAttribute("checked", (selections.length == this._cookies.length))
+		$("sel").setAttribute("checked", (selections.length == this._cookies.length) ? 3 : selections.length ? 2 : 1)
 
 		document.title = this.title + "  [" + this.string("stats").replace("NN", this._cookies.length).replace("TT", this._cookiesAll.length).replace("SS", selections.length) + "]";
 		let index = this._currentIndex;
@@ -1830,9 +1835,9 @@ log.debug();
 			for( let i = 0; i < s.length; i++ )
 			{
 				let r = [-1];
-				if(this._isSelected(s[i], table, r))
+				if(this._isSelected({hash: s[i]}, table, r))
 				{
-					newSelected.push(table[r[0]]);
+					newSelected.push(coomanPlusCore.cookieHash(table[r[0]]));
 /*
 					try
 					{
@@ -1846,7 +1851,7 @@ log.debug();
 			if (!newSelected.length)
 			{
 				let nextSelection = (selections[0] < table.length) ? selections[0] : table.length-1;
-				newSelected.push(this.cookieObjectSave(table[nextSelection]))
+				newSelected.push(coomanPlusCore.cookieHash(table[nextSelection]))
 			}
 		}
 		this.selectionSave(newSelected)
@@ -2006,7 +2011,7 @@ log.debug();
 			this.loadCookies();
 //			this.selectLastCookie(true);
 		}
-	},
+	},//setFilter()
 
 	setChecked: function setChecked(id)
 	{
@@ -2339,6 +2344,9 @@ log.debug();
 		$("tree_menu_unprotect").collapsed = !c;
 		$("protect_menu").collapsed = !c;
 		$("isProtected")[c ? "removeAttribute" : "setAttribute"]("ignoreincolumnpicker", true);
+		c = this.pref("readonly")
+		$("readonly").collapsed  = !c;
+
 		this.infoRowsChanged = this.prefViewOrder != this.prefViewOrderDefault;
 		$("menu_info_reset").disabled = !this.infoRowsChanged;
 		coomanPlus.setWrap();
@@ -2571,8 +2579,11 @@ log.debug();
 		for (let i = 0; i < a.children.length; i++)
 			list[a.children[i].ordinal] = a.children[i];
 
-		for (let i = 1; i < list.length; i++)
+		for (let i = 0; i < list.length; i++)
 		{
+			if (!list[i])
+				continue;
+
 			switch(list[i].id.replace("value_", ""))
 			{
 				case "decode":
@@ -3186,7 +3197,7 @@ log.debug();
 				coomanPlus.cookieSelected();
 		}
 		this.infoRowsShow();
-	},
+	},//cookieInfoRowsOrderSave()
 
 	cookieInfoRowsReset: function cookieInfoRowsReset()
 	{
@@ -3654,10 +3665,40 @@ log.debug();
 				this._cookiesTree.setAttribute("selectedHost", "");
 				this._cookiesTree.setAttribute("selectedPath", "");
 				this._cookiesTree.setAttribute("selectedName", "");
-				this._cookiesTree.removeAttribute("selectedHost", "");
-				this._cookiesTree.removeAttribute("selectedPath", "");
-				this._cookiesTree.removeAttribute("selectedName", "");
+				this._cookiesTree.removeAttribute("selectedHost");
+				this._cookiesTree.removeAttribute("selectedPath");
+				this._cookiesTree.removeAttribute("selectedName");
 				this._cookiesTree.setAttribute("persist", persist);
+			}
+		}
+
+		if (execute("update1_13"))
+		{
+			let obj = $('lookupcriterium');
+			try
+			{
+				coomanPlusCore.storage.search = JSON.parse(obj.getAttribute("autocompletesearchparam"));
+			}catch(e){};
+			if (!coomanPlusCore.storage.search || coomanPlusCore.storage.search.constructor.name != "Array")
+				coomanPlusCore.storage.search = [];
+
+			let XULStore;
+			try
+			{
+				XULStore = Cc["@mozilla.org/xul/xulstore;1"].getService(Ci.nsIXULStore);
+			}catch(e){}
+			if (XULStore)
+			{
+				let url = window.location.href;
+				XULStore.removeValue(url, "lookupcriterium", "autocompletesearchparam");
+			}
+			else
+			{
+				let persist = obj.getAttribute("persist");
+				obj.setAttribute("persist", persist + " autocompletesearchparam");
+				obj.setAttribute("autocompletesearchparam", "");
+				obj.removeAttribute("autocompletesearchparam");
+				obj.setAttribute("persist", persist);
 			}
 		}
 
@@ -3683,29 +3724,17 @@ log.debug();
 		if (execute("filter"))
 			$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
 
-		if (execute("searchhistory"))
-		{
-			coomanPlusCore.autocomplete = [];
-			this.autocompleteSave();
-		}
 		this.loadCookies();
 		this.selectLastCookie(true);
 
 		if (execute("persist") || execute("row"))
 			window.sizeToContent();
 
-		let reset = {};
 		try
 		{
-			reset = this.prefs.getCharPref("reset");
-			reset = JSON.parse(reset);
-			delete reset.main;
+			delete coomanPlusCore.storage.reset.main;
 		}catch(e){}
-		reset = JSON.stringify(reset);
-		if (reset == "{}")
-			this.prefs.clearUserPref("reset");
-		else
-			this.prefs.setCharPref("reset", reset);
+		coomanPlusCore.storageWrite();
 	},//resetWindowSettings()
 
 	command: function command(com, data)
@@ -3720,8 +3749,7 @@ log.debug();
 				this.settingsBackup();
 				break;
 			case "restore":
-				data.QueryInterface(Ci.nsISupportsString).data;
-				this.settingsRestore(data);
+				this.settingsRestore();
 				break;
 			case "topmost":
 				let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
@@ -3743,37 +3771,23 @@ log.debug();
 		coomanPlusCore.backup(settings, "main")
 	},//settingsBackup()
 
-	settingsRestore: function settingsRestore(json)
+	settingsRestore: function settingsRestore()
 	{
 log.debug();
-		let data;
-		try
-		{
-			data = JSON.parse(json).main;
-		}catch(e){log.error(e)}
-		if (data)
-		{
+		let data = coomanPlusCore.storage.restore;
+		if (!data || !data.main)
+			return
 //ordinal for columns and rows doesn't work, expired splitter doesn't work after http moved
-			this.resetPersist(undefined, data);
-			this.infoRowsSort();
-			this.infoRowsShow();
-			this.setAutofit();
-			$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
-			this.loadCookies();
-			this.selectLastCookie(true);
-			window.sizeToContent();
-			try
-			{
-				restore = this.prefs.getCharPref("restore");
-				restore = JSON.parse(restore);
-				delete restore.main;
-			}catch(e){}
-			restore = JSON.stringify(restore);
-			if (restore == "{}")
-				this.prefs.clearUserPref("restore");
-			else
-				this.prefs.setCharPref("restore", restore);
-		}
+		this.resetPersist(undefined, data.main);
+		this.infoRowsShow();
+		this.infoRowsSort();
+		this.setAutofit();
+		$('lookupcriterium').value = $('lookupcriterium').getAttribute("filter");
+		this.loadCookies();
+		this.selectLastCookie(true);
+		window.sizeToContent();
+		delete data.main;
+		coomanPlusCore.storageWrite();
 	},//settingsRestore()
 	
 	readonlySet: function readonlySet(obj)
@@ -3794,8 +3808,9 @@ log.debug();
 			else
 				delete aCookie.readonly[id];
 
-			coomanPlusCore.readonlyAdd(aCookie);
+			coomanPlusCore.readonlyAdd(aCookie, true);
 		}
+		coomanPlusCore.readonlySave();
 		if (sel.length)
 			aCookie = this._cookies[sel[0]];
 		else
@@ -3824,42 +3839,13 @@ log.debug();
 	},//readonlySet()
 //	backupPersist: function backupPersist(){log.debug()},
 
-
 	selectionRead: function selectionRead()
 	{
 log.debug("begin");
-		let data = "",
-				r = [];
-		if (this.selectionSave.saved)
-			data = this.selectionSave.saved;
-		else
-		{
-			let file = FileUtils.getFile("ProfD", [this.storageFile]),
-					fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream),
-					cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);
-			try
-			{
-				fstream.init(file, -1, 0, 0);
-				cstream.init(fstream, "UTF-8", 0, 0);
-				let str = {},
-						read = 0;
-				do
-				{
-					read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
-					data += str.value;
-				} while (read != 0);
-				cstream.close(); // this closes fstream
-			}catch(e){};
-		}
-		this.selectionRead.last = data;
-		try
-		{
-			r = JSON.parse(data);
-			let max = coomanPlus.pref("restoreselection");
-			r = r.slice(0, (max == -1 ? r.length : max + 1))
-		}
-		catch(e){}
-log.debug("end", 1);
+		let r = coomanPlusCore.storage.select,
+				max = coomanPlus.pref("restoreselection");
+
+		r = r.slice(0, (max == -1 ? r.length : max + 1));
 		return r;
 	},//selectionRead()
 
@@ -3885,7 +3871,8 @@ log.debug("building list");
 			for(let s of selections)
 			{
 				let item = self._cookies[s];
-				if (!item || item.deleted == 2 || self._cookieEquals(list[0], item, true))
+				if (!item || item.deleted == 2 || self._cookieEquals({hash: list[0]}, item, true))
+//				if (!item || item.deleted == 2)
 					continue;
 
 				list.push(this.cookieObjectSave(item));
@@ -3903,6 +3890,7 @@ log.debug("end build", 1);
 	*/
 		let listMax = list.slice(0, (max == -1 ? list.length : max + 1 )),
 				found = false;
+//make sure selected index make it to the final list
 /*
 		//is index selected?
 		for(let i = 1; i < list.length; i++)
@@ -3910,7 +3898,6 @@ log.debug("end build", 1);
 			if (found = self._cookieEquals(list[0], list[i], true))
 				break;
 		}
-
 		if (found)
 		{
 			//is index still in stripped down selection?
@@ -3923,55 +3910,10 @@ log.debug("end build", 1);
 			//make sure index made into the stripped down selection
 			if (!found)
 				listMax[listMax.length-1] = listMax[0];
-
 		}
 */
-
-/*		if (list.length > max)
-			list.splice(max);
-*/
-		let dataMax = JSON.stringify(listMax),
-				data = JSON.stringify(list);
-
-		if (data == self.selectionRead.last)
-		{
-			if (self.selectionSave.timer)
-				self.selectionSave.timer.cancel();
-
-			return;
-		}
-log.debug("start save selection to file");
-
-
-		function execute()
-		{
-			let	file = FileUtils.getFile("ProfD", [self.storageFile]),
-					ostream = FileUtils.openSafeFileOutputStream(file),
-					converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
-
-			converter.charset = "UTF-8";
-			let istream = converter.convertToInputStream(dataMax);
-		// The last argument (the callback) is optional.
-			NetUtil.asyncCopy(istream, ostream, function asyncCopy(status) {
-				if (!Components.isSuccessCode(status))
-				{
-					log.error("error saving selections file");
-					return;
-				}
-				self.selectionRead.last = dataMax;
-			});
-log.debug("end save selection to file", self.selectionSave);
-		}
-		self.selectionSave.saved = data;
-		if (noasync)
-		{
-			if (self.selectionSave.timer)
-				self.selectionSave.timer.cancel();
-
-			execute()
-		}
-		else
-			self.selectionSave.timer = coomanPlusCore.async(execute, 60000, self.selectionSave.timer);
+		coomanPlusCore.storage.select = listMax;
+		coomanPlusCore.storageWrite(undefined, noasync ? false : undefined);
 	},//selectionSave()
 
 };

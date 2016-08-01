@@ -63,6 +63,7 @@
 								<checkbox id="changesLogLegendType" label="&changesLog.menu.legendType;" value="1" persist="value" oncommand="changesLog.legendType(event);"/>
 								<checkbox id="changesLogLegend" label="&changesLog.menu.legend;" value="1" persist="value" oncommand="changesLog.legend(event);"/>
 								<checkbox id="changesLogCopyIssueUrl" label="&changesLog.menu.copyIssueUrl;" tooltiptext="&changesLog.menu.copyIssueUrl.desc;" value="0" persist="value" oncommand="changesLog.copyIssueUrl(event);"/>
+								<checkbox id="changesLogExpandAll" label="&changesLog.menu.expandAll;" tooltiptext="&changesLog.menu.expandAll.desc;" value="0" persist="value" oncommand="changesLog._expandAll(event);"/>
 								<button id="changeLogAddonOptions" label="&changesLog.options.addon;" oncommand="changesLog.openOptions(event)"/>
 							</vbox>
 						</panel>

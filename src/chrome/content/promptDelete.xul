@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet type="text/css" href="data:text/css,
+checkbox
+{
+  -moz-binding: url('chrome://cookiesmanagerplus/skin/checkbox.xml#checkbox-fixed');
+}
+" ?>
 
 <!DOCTYPE coomanPlusDTD SYSTEM "chrome://cookiesmanagerplus/locale/coomanPlusMain.dtd">
 <dialog	id="cookiesManagerPlusDelete"
@@ -50,8 +56,8 @@
 				</row>
 			</rows>
 		</grid>
-		<hbox>
-			<checkbox id="block" accessibleType="1003"/>
+		<hbox style="overflow: hidden;">
+			<checkbox id="block" accessibleType="1003" crop="center" style="width: 35em;"/>
 		</hbox>
 		<hbox>
 			<checkbox id="dontshow" accessibleType="1003"/>

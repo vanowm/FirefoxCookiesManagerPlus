@@ -66,6 +66,9 @@ coomanPlus.string = function(s)
 coomanPlus._cookieEquals = function _cookieEquals(aCookieA, aCookieB, checkAttrib)
 {
 	let r = true;
+	if (aCookieA.hash && aCookieB.hash)
+		return aCookieA.hash == aCookieB.hash;
+
 	if (checkAttrib)
 	{
 		if (!aCookieA.originAttributes || !aCookieB.originAttributes)
@@ -488,6 +491,14 @@ value (string): 81=KWMraPnbY8AwIHiZAFBsQ6oejRhthMtA2PlBZX_ZKj8xJE5PdPlQ5xIpoAbN5
 
 coomanPlus._isSelected = function _isSelected(aCookie, list, r, checkAttrib)
 {
+	if (list.length && list[0].constructor.name != "String")
+	{
+		let l = [];
+		for(let i = 0; i < list.length; i++)
+			l.push(coomanPlusCore.cookieHash(list[i]));
+
+		list = l;
+	}
 	try
 	{
 		list = !list || typeof(list) == "undefined" ? this._selected : list;
@@ -495,7 +506,7 @@ coomanPlus._isSelected = function _isSelected(aCookie, list, r, checkAttrib)
 		
 		for(let i = 0; i < list.length; i++)
 		{
-			if (this._cookieEquals(list[i], aCookie, checkAttrib))
+			if (this._cookieEquals({hash: list[i]}, aCookie, checkAttrib))
 			{
 				r[0] = i;
 				return true;
@@ -1027,39 +1038,6 @@ log.debug();
 
 coomanPlus.nsIScriptableUnicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
 coomanPlus.nsICryptoHash = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
-coomanPlus.cookieHash = function cookieHash(obj, force, type)
-{
-//type: 0/undefined = base64, 1 = hex, 2 = binary;
-	if (obj.hash && !force)
-		return obj.hash;
-	
-	let	converter = this.nsIScriptableUnicodeConverter,
-			ch = this.nsICryptoHash,
-			str = JSON.stringify({
-				host: obj.host,
-				name: obj.name,
-				path: obj.path,
-//				type: typeof(obj.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : obj.type,
-//				value: typeof(obj.type) == "undefined" || obj.type == coomanPlusCore.COOKIE_NORMAL ? "" : obj.value
-			}),
-			hash,
-			data;
-
-	converter.charset = "UTF-8";
-	data = converter.convertToByteArray(str, {});
-	ch.init(ch.MD5);
-	ch.update(data, data.length);
-	hash = ch.finish(!type);
-	if (type == 1)
-	{
-		let h = "";
-		for (let i in hash)
-			h += ("0" + hash.charCodeAt(i).toString(16)).slice(-2);
-
-		hash = h;
-	}
-	return hash
-}//cookieHash()
 
 coomanPlus.backupPersist = function backupPersist(obj, backup)
 {
@@ -1120,7 +1098,6 @@ coomanPlus.resetPersist = function resetPersist(obj, backup)
 log.debug();
 	if (!backup)
 		backup = coomanPlus.backupPersist.data;
-
 	let XULStore,
 			skip = ["", "screenX", "screenY"];
 	try
@@ -1142,8 +1119,11 @@ log.debug();
 				if (skip.indexOf(attr) != -1)
 					continue;
 
+				if (!backup || typeof(backup[id]) != "object" || !(attr in backup[id]))
+				{
 //log(id + ": " + attr + " = " + XULStore.getValue(url, id, attr), 1);
-				XULStore.removeValue(url, id, attr);
+					XULStore.removeValue(url, id, attr);
+				}
 			}
 		}
 	}
@@ -1203,16 +1183,11 @@ log.debug();
 
 coomanPlus.checkReset = function checkReset(id)
 {
+	if (coomanPlusCore.storage.reset && coomanPlusCore.storage.reset[id])
+	{
 log.debug();
-	let reset = "";
-	try
-	{
-		reset = JSON.parse(this.prefs.getCharPref("reset"));
-	}catch(e){}
-	if (reset && reset[id])
-	{
 		let param = {};
-		param.wrappedJSObject = reset[id];
+		param.wrappedJSObject = coomanPlusCore.storage.reset[id];
 		this.command("reset", param);
 	}
 }
@@ -1220,16 +1195,9 @@ log.debug();
 coomanPlus.checkRestore = function checkRestore(id)
 {
 log.debug();
-	let restore = "";
-	try
+	if (coomanPlusCore.storage.restore && coomanPlusCore.storage.restore[id])
 	{
-		restore = JSON.parse(this.prefs.getCharPref("restore"));
-	}catch(e){}
-	if (restore && restore[id])
-	{
-		let nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-		nsISupportsString.data = JSON.stringify(restore);
-		this.command("restore", nsISupportsString);
+		this.command("restore");
 	}
 }
 

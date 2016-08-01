@@ -57,3 +57,5 @@
 <!ENTITY	decode		 										"URL Decode">
 <!ENTITY	base64encode									"Base64 encode">
 <!ENTITY	base64decode									"Base64 decode">
+<!ENTITY	error.path										"Path is invalid">
+<!ENTITY	error.domain									"Domain is invalid">

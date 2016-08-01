@@ -99,6 +99,7 @@ var coomanPlus = {
 				isHttpOnly: false,
 				type: coomanPlusCore.COOKIE_NORMAL
 		});
+		this._curCookie.hash = coomanPlusCore.cookieHash(this._curCookie, undefined, true);
 		$("ifl_name").readonly = this._multi;
 		$("ifl_host").readonly = this._multi;
 		$("ifl_path").readonly = this._multi;
@@ -358,7 +359,13 @@ log.debug("finished");
 
 	enableDisableChildren: function enableDisableChildren(obj)
 	{
-		coomanPlus.setAttribute(obj.parentNode.nextSibling, "disabled", !obj.checked, obj.checked);
+		let parent;
+		if (["c_name","c_path","c_host"].indexOf(obj.id) == -1)
+		 parent = obj.parentNode.nextSibling
+		else
+			parent = obj.parentNode.parentNode.nextSibling;
+
+		coomanPlus.setAttribute(parent, "disabled", !obj.checked, obj.checked);
 	},
 
 	secure: function secure()
@@ -499,31 +506,38 @@ log.debug();
 
 	test_url: function test_url(host, path)
 	{
-		var temp;
+		let r = false,
+				msg = {
+					host: false,
+					path: false
+				},
+				ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
 		//check url
 		try
 		{
-			var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-			temp = "http://" + host + "/";
-			var newuri = ioService.newURI(temp, null, null);
-			try
-			{
-				newuri = '';
-				temp = '';
-				temp = "http://" + host + "/" + path
-				newuri = ioService.newURI(temp, null, null);
-			}
-			catch(e)
-			{
-				return 'not a valid path: ' + path;
-			}
-			return 0;
+			ioService.newURI("http://" + host + "/", null, null);
 		}
 		catch(e)
 		{
-			return 'not a valid host: ' + host;
+			msg.host = [this.string("error_domain") + ": " + host, e];
+			r = true;
 		}
+		try
+		{
+			ioService.newURI("http://test" + path, null, null);
+			if (path === "")
+			{
+				msg.path = [this.string("error_path") + ": " + path, null];
+				r = true;
+			}
+		}
+		catch(e)
+		{
+			msg.path = [this.string("error_path") + ": " + path, e];
+			r = true;
+		}
+		return [r, msg];
 	},
 
 	createNewCookie: function createNewCookie(check)
@@ -547,28 +561,42 @@ log.debug();
 		}
 		catch(e){}
 */
-		if (check)
+		let isValidURI = this.test_url(host, path),
+				r = 0;
+		for(let i in isValidURI[1])
 		{
-			let isValidURI = this.test_url(host, path);
-
-			if ( isValidURI != 0 )
+			let val = isValidURI[1][i] && $("c_" + i).checked;
+			$("i_" + i).style.visibility = val ? "visible" : "hidden";
+			r |= val ? 1 : 0
+		}
+		r |= !name.length && $("c_name").checked ? 1 : 0;
+		$("i_name").style.visibility = !name.length && $("c_name").checked ? "visible" : "hidden";
+		if (isValidURI[0])
+		{
+			if (check)
 			{
-				log.error(isValidURI);
-				return false;
+				for(let i in isValidURI[1])
+				{
+					log.error(isValidURI[1][i][0]);
+				}
 			}
-
-			if ( !(name.length > 0) )
-			{
+			if (r)
+				return false;
+		}
+		if (name.length < 1)
+		{
+			if (check)
 				log.error('please specify name');
+	
+			if (r)
 				return false;
-			}
+		}
 /*
 			if ( !(value.length > 0) ) {
 				alert('Error: \n' + 'please specify value');
 				return false;
 			}
 */
-		}
 		this._newCookie = new this.cookieObject({
 												name: name,
 												value: value,
@@ -577,10 +605,11 @@ log.debug();
 												isSecure: $("ifl_isSecure").value == coomanPlus.string("forSecureOnly"),
 												expires: this.getExpireSelection(),
 												policy: this._curCookie.policy,
-												isHttpOnly: isHttpOnly
+												isHttpOnly: isHttpOnly,
 											});
 //		this._newCookie.name = name;
 //		this._newCookie.value = value;
+		this._newCookie.hash = coomanPlusCore.cookieHash(this._newCookie, undefined, true);
 		return true;
 
 	},//createNewCookie()
@@ -596,6 +625,7 @@ log.debug();
 					r[i] = b[i];
 		}
 
+		r.hash = coomanPlusCore.cookieHash(r, undefined, true);
 		return r;
 	},
 
@@ -609,6 +639,7 @@ log.debug();
 
 		let exists = coomanPlusCore._cm2.cookieExists(this._newCookie),
 				cookieEqual = this._cookieEquals(this._curCookie, this._newCookie);
+
 		if (!cookieEqual && exists)
 		{
 			if (!window.confirm(this.string("overwrite")))
@@ -649,13 +680,13 @@ log.debug();
 				coomanPlus.cookieAdd(aCookie);
 				this._params.window.coomanPlus._noObserve = false;
 			}
-			selected.push(aCookie);
+			selected.push(coomanPlusCore.cookieHash(aCookie, undefined, true));
 		}
 		if (this._params.window.coomanPlus.inited)
 		{
 			this._params.window.coomanPlus._selected = selected;
-			this._params.window.coomanPlus.loadCookies(this._parent.getElementById('lookupcriterium').getAttribute("filter"));
-			this._params.window.coomanPlus.cookieSelected();
+			this._params.window.coomanPlus.loadCookies();
+//			this._params.window.coomanPlus.cookieSelected();
 		}
 		if (typeof(coomanPlus._params.callback) == "function")
 			try
@@ -687,7 +718,7 @@ log.debug();
 			}
 		}
 */
-		this.createNewCookie(false);
+		this.saveEnabled = this.createNewCookie(false);
 		let ok = false;
 		try
 		{
@@ -696,8 +727,8 @@ log.debug();
 		}
 		catch(e){}
 		let e = (!this.saveEnabled
-							&& (!ok
-									|| this.trim($('ifl_name').value) === ""
+							|| (!ok
+									|| ($('c_name').checked && !this.trim($('ifl_name').value).length)
 									||	!this.trim($('ifl_host').value) === ""
 									||	(!$('c_name').checked
 												&& !$('c_host').checked
@@ -708,7 +739,6 @@ log.debug();
 											)
 								)
 						);
-
 		$("editCookie").disabled = e;
 		if (this._addFlag || this._multi)
 			return;
@@ -726,7 +756,7 @@ log.debug();
 			$("editCookieNew").disabled = true;
 	//    $("editCookie").style.fontWeight = "bold";
 		}
-	},
+	},//showNew()
 
 	saveCookiesCheck: function saveCookiesCheck(e)
 	{
@@ -756,6 +786,7 @@ log.debug();
 	showDefaultSelect: function showDefaultSelect(e)
 	{
 		this._curCookie = new this.cookieObject(this._params.cookies[e.target.value]);
+		this._curCookie.hash = coomanPlusCore.cookieHash(this._curCookie, undefined, true);
 //		this._curCookie.name = this._curCookie.nameRaw;
 //		this._curCookie.value = this._curCookie.valueRaw;
 		this.setFieldProps();
@@ -793,8 +824,8 @@ log.debug();
 
 	valueKeypress: function valueKeypress(e)
 	{
-		coomanPlus.saveCookiesCheck(e)
-		if(!e.ctrlKey
+		if(!coomanPlus.saveCookiesCheck(e)
+				|| (!e.ctrlKey
 				&& !e.shiftKey
 				&& !e.altKey
 				&& !this.open
@@ -805,7 +836,7 @@ log.debug();
 						|| e.keyCode == KeyEvent.DOM_VK_HOME
 						|| e.keyCode == KeyEvent.DOM_VK_END
 						|| e.keyCode == KeyEvent.DOM_VK_BACK_SPACE
-						|| e.keyCode == KeyEvent.DOM_VK_SPACE))
+						|| e.keyCode == KeyEvent.DOM_VK_SPACE)))
 		{
 			e.target.open = true;
 			e.preventDefault();
@@ -923,18 +954,11 @@ log.debug();
 		}
 	
 		window.sizeToContent();
-		let reset = {};
 		try
 		{
-			reset = this.prefs.getCharPref("reset");
-			reset = JSON.parse(reset);
-			delete reset.edit;
+			delete coomanPlusCore.storage.reset.edit;
 		}catch(e){}
-		reset = JSON.stringify(reset);
-		if (reset == "{}")
-			this.prefs.clearUserPref("reset");
-		else
-			this.prefs.setCharPref("reset", reset);
+		coomanPlusCore.storageWrite();
 	},//resetWindowSettings()
 
 	command: function command(com, data)
@@ -949,8 +973,7 @@ log.debug();
 				this.settingsBackup();
 				break;
 			case "restore":
-				data.QueryInterface(Components.interfaces.nsISupportsString).data;
-				this.settingsRestore(data);
+				this.settingsRestore();
 				break;
 			case "topmost":
 				let xulWin = window.QueryInterface(Ci.nsIInterfaceRequestor)
@@ -973,37 +996,24 @@ log.debug();
 
 	},//settingsBackup()
 
-	settingsRestore: function settingsRestore(json)
+	settingsRestore: function settingsRestore()
 	{
 log.debug();
-		let data;
-		try
-		{
-			data = JSON.parse(json).edit;
-		}catch(e){log.error(e)}
-		if (data)
-		{
-			this.resetPersist(undefined, data);
-			this.setSaveCheckboxes();
-			if (data.cookiesManagerPlusWindowEdit)
-			{
-				window.resizeTo(data.cookiesManagerPlusWindowEdit.width, data.cookiesManagerPlusWindowEdit.height);
-			}
-			else
-				window.sizeToContent();
+		let data = coomanPlusCore.storage.restore;
+		if (!data || !data.edit)
+			return
 
-			try
-			{
-				restore = this.prefs.getCharPref("restore");
-				restore = JSON.parse(restore);
-				delete restore.edit;
-			}catch(e){}
-			restore = JSON.stringify(restore);
-			if (restore == "{}")
-				this.prefs.clearUserPref("restore");
-			else
-				this.prefs.setCharPref("restore", restore);
+		this.resetPersist(undefined, data.edit);
+		this.setSaveCheckboxes();
+		if (data.cookiesManagerPlusWindowEdit)
+		{
+			window.resizeTo(data.cookiesManagerPlusWindowEdit.width, data.cookiesManagerPlusWindowEdit.height);
 		}
+		else
+			window.sizeToContent();
+
+		delete data.edit;
+		coomanPlusCore.storageWrite();
 	},//settingsRestore()
 };
 

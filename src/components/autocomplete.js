@@ -100,10 +100,10 @@ ProviderAutoCompleteResult.prototype = {
   removeValueAt: function(index, removeFromDb) {
 
     let item = this._results.splice(index, 1),
-				i = coomanPlusCore.autocomplete.indexOf(item[0]);
+				i = coomanPlusCore.storage.search.indexOf(item[0]);
 
 		if (i != -1)
-			coomanPlusCore.autocomplete.splice(i, 1);
+			coomanPlusCore.storage.search.splice(i, 1);
   },
 
   getLabelAt: function(index) { return this._results[index]; },
@@ -139,7 +139,7 @@ ProviderAutoCompleteSearch.prototype = {
     		isNew = true;
     searchString = searchString.replace(/^\s+|\s+$/g, "");
 		
-		for(let i of coomanPlusCore.autocomplete)
+		for(let i of coomanPlusCore.storage.search)
 		{
 			if (!searchString || i.indexOf(searchString) != -1)
 				results.push(i);

@@ -91,3 +91,41 @@ checkbox
 {
 	border-color: transparent;
 }
+
+
+treecol:not([type="checkbox"])
+{
+	min-width: 3em;
+}
+treecol[type="checkbox"] > label
+{
+	display: none;
+}
+treecol[type="checkbox"] > image,
+treechildren::-moz-tree-checkbox {
+	list-style-image: url("images/icons.png");
+	-moz-image-region: rect(0, 78px, 14px, 64px);
+}
+
+treecol[type="checkbox"][checked="2"] > image,
+treechildren::-moz-tree-checkbox(checked2) {
+	-moz-image-region: rect(0, 91px, 14px, 77px);
+}
+
+treecol[type="checkbox"][checked="3"] > image,
+treechildren::-moz-tree-checkbox(checked3) {
+	-moz-image-region: rect(0, 327px, 14px, 313px);
+}
+treecol#name
+{
+	width: 15em;
+}
+treecol#value
+{
+	width: 10em;
+}
+#coomanPlusWindowOptionsRestores
+{
+	min-width: 30em;
+	min-height: 40em;
+}

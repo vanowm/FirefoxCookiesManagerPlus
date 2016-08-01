@@ -123,6 +123,8 @@
 	<script type="application/javascript" src="update.js"/>
 	<script type="application/javascript">
 		coomanPlus.strings = {
+			label:						"&cookiesmanagerplus.label;",
+			label_key:				"&cookiesmanagerplus.accesskey;",
 			site:							"&cookiesmanagerplus.site;",
 			updated:					"&cookiesmanagerplus.updated;",
 			changesLog:				"&cookiesmanagerplus.changesLog;",

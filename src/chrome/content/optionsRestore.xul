@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://cookiesmanagerplus/skin/options.css" type="text/css"?>
+
+<!DOCTYPE window [
+	<!ENTITY % optionsDTD SYSTEM "chrome://cookiesmanagerplus/locale/coomanPlusOptions.dtd"> %optionsDTD;
+	<!ENTITY % systemDTD SYSTEM "chrome://cookiesmanagerplus/locale/sysOverlay.dtd"> %systemDTD;
+]>
+
+
+<dialog	id="coomanPlusWindowOptionsRestore"
+				title="&optionsRestore.title;"
+				xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+				onload="coomanPlus.load()"
+				onunload="coomanPlus.unload()"
+				ondialogaccept="coomanPlus.action(1)"
+				ondialogcancel="coomanPlus.action(0)"
+				buttons="accept,cancel"
+				persists="screenX screenY width height"
+				flex="1"
+>
+	<vbox id="main" flex="1" style="overflow: auto;">
+		<tree id="tree" flex="1" editable="true" hidecolumnpicker="true" treelines="true">
+			<treecols>
+				<treecol id="sel" type="checkbox" editable="true" ignoreincolumnpicker="true" fixed="true"/>
+				<splitter	class="tree-splitter" resizeafter="grow"/>
+				<treecol id="name" primary="true" label="&optionsRestore.setting;"/>
+				<splitter	class="tree-splitter" resizeafter="grow"/>
+				<treecol id="value" label="&optionsRestore.value;" editable="true"/>
+				<splitter	class="tree-splitter" resizeafter="grow"/>
+			</treecols>
+			<treechildren/>
+		</tree>
+	</vbox>
+	<script type="application/javascript" src="common.js"/>
+	<script type="application/javascript" src="optionsRestore.js"/>
+	<script type="application/javascript" src="libOut.js"/>
+	<script	type="application/javascript" src="treeUtils.js" />
+	<script	type="application/javascript">
+		coomanPlus.strings = {
+			optionsRestore_pref: "&optionsRestore.pref;",
+			optionsRestore_persist: "&optionsRestore.persist;",
+			optionsRestore_main: "&optionsRestore.main;",
+			optionsRestore_edit: "&optionsRestore.edit;",
+		
+		}
+	</script>
+	
+</dialog>

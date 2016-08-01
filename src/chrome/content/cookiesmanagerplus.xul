@@ -193,6 +193,7 @@
 						/>
 						<menuitem	id="menu_backupvisible"
 											label="&backup.visible;"
+											tooltiptext="&backup.visible.info;"
 											accesskey="&backup.visible.accesskey;"
 											oncommand="coomanPlus.backupVisible()"
 											accessibleType="100E"
@@ -212,6 +213,7 @@
 						/>
 						<menuitem	id="menu_restorevisible"
 											label="&restore.visible;"
+											tooltiptext="&restore.visible.info;"
 											accesskey="&restore.visible.accesskey;"
 											oncommand="coomanPlus.restoreVisible()"
 											accessibleType="100E"
@@ -315,6 +317,7 @@
 							<menuitem	id="menuBackupVisible"
 												oncommand="coomanPlus.backupVisible();"
 												label="&backup.visible;"
+												tooltiptext="&backup.visible.info;"
 												accesskey="&backup.visible.accesskey;"
 												accessibleType="100E"
 							/>
@@ -333,6 +336,7 @@
 							/>
 							<menuitem	id="menuRestoreVisible"
 												label="&restore.visible;"
+												tooltiptext="&restore.visible.info;"
 												accesskey="&restore.visible.accesskey;"
 												oncommand="coomanPlus.restoreVisible()"
 												accessibleType="100E"
@@ -646,7 +650,7 @@
 									flex="1"
 									onkeyup="if (event.keyCode == 13) {coomanPlus.doLookup(event);}"
 									oncommand="coomanPlus.autofilter()"
-									persist="filter autocompletesearchparam"
+									persist="filter"
 									filter=""
 									type="autocomplete"
 									autocompletesearch="cmp-autocomplete"
@@ -666,7 +670,7 @@
 				>
 -->
 <popupset>
-					<menupopup	id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F">
+					<menupopup	id="filter" oncommand="coomanPlus.changeFilter(event);" accessibleType="100F" _tooltiptext="&menu.filter.label;">
 						<menuitem	label=" "
 											description="&menu.filter.label;"
 											class="menuheader menuitem-iconic filtermenu"
@@ -777,7 +781,7 @@ hidden="true"
 						accessibleType="101D"
 			>
 				<treecols	id="treecols" pickertooltiptext="&tree.picker;" accessibleType="101E">
-					<splitter	class="tree-splitter" resizeafter="grow" />
+<!--					<splitter	class="tree-splitter" resizeafter="grow" />-->
 					<treecol	id="sel"
 										flex="0"
 										type="checkbox"
@@ -798,10 +802,10 @@ hidden="true"
 										ignoreincolumnpicker="true"
 										width="280"
 										_width="280"
-										ordinal="1"
+										ordinal="2"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="2" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="3" />
 					<treecol	id="name"
 										label="&cookie.name.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
@@ -809,40 +813,40 @@ hidden="true"
 										ignoreincolumnpicker="true"
 										width="250"
 										_width="250"
-										ordinal="3"
+										ordinal="4"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="4" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="5" />
 					<treecol	id="value"
 										label="&cookie.value.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="5"
+										ordinal="6"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="6" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="7" />
 					<treecol	id="path"
 										label="&cookie.path.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="7"
+										ordinal="8"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="8" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="9" />
 					<treecol	id="expires"
 										label="&cookie.expire.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="9"
+										ordinal="10"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="10" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="11" />
 					<treecol	id="creationTimeString"
 										display="&cookie.creationTime.label;"
 										label="&cookie.creationTime.label;"
@@ -850,10 +854,10 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="11"
+										ordinal="12"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="12" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="13" />
 					<treecol	id="lastAccessedString"
 										display="&cookie.lastAccessed.label;"
 										label="&cookie.lastAccessed.label;"
@@ -861,10 +865,10 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="13"
+										ordinal="14"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="14" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="15" />
 					<treecol	id="isHttpOnly"
 										display="&cookie.isHttpOnly.label;"
 										label="&cookie.isHttpOnly.label;"
@@ -872,20 +876,20 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="15"
+										ordinal="16"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="16" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="17" />
 					<treecol	id="policyString"
 										label="&cookie.policy.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="17"
+										ordinal="18"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="18" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="19" />
 					<treecol	id="statusString"
 										display="&cookie.status.label;"
 										label="&cookie.status.label;"
@@ -893,60 +897,60 @@ hidden="true"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="19"
+										ordinal="20"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="20" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="21" />
 					<treecol	id="isProtected"
 										label="&protect.isProtected;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="21"
+										ordinal="22"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="22" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="23" />
 					<treecol	id="isSecure"
 										label="&cookie.secure.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="23"
+										ordinal="24"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="24" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="25" />
 					<treecol	id="readonly"
 										label="&cookie.readonly.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="25"
+										ordinal="26"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="26" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="27" />
 					<treecol	id="size"
 										label="&cookie.size.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="27"
+										ordinal="28"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="28" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="29" />
 					<treecol	id="originAttributes"
 										label="&cookie.originAttributes.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"
 										hidden="true"
 										_hidden="true"
-										ordinal="29"
+										ordinal="30"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="30" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="31" />
 					<treecol	id="type"
 										label="&cookie.type.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
@@ -954,10 +958,10 @@ hidden="true"
 										type="image"
 										hidden="true"
 										_hidden="true"
-										ordinal="31"
+										ordinal="32"
 										persist="width hidden ordinal"
 					/>
-					<splitter	class="tree-splitter" resizeafter="grow" ordinal="32" />
+					<splitter	class="tree-splitter" resizeafter="grow" ordinal="33" />
 				</treecols>
 				<treechildren	id="cookiesTreeChildren"
 											context="coomanPlus_tree_menu"
@@ -1031,38 +1035,33 @@ hidden="true"
 									</hbox>
 									<label	value="&props.value.label;" disabled="true" control="ifl_value" />
 								</hbox>
-								<hbox	id="value_actions" persist="collapsed">
-									<button	id="value_wrap"
-													label="WRAP"
-													class="wrap"
-													oncommand="coomanPlus.infoRowContextExec({target:{value:'wrap'}})"
-													tooltiptext="&infoRow.wrap;"
-													ordinal="1"
-									/>
-									<button	id="value_decode"
-													label="URL"
-													class="url"
-													oncommand="coomanPlus.infoRowContextExec({target:{value:'decode'}})"
-													tooltiptext="&infoRow.urlDecode;"
-													ordinal="2"
-													persist="ordinal"
-									/>
-									<button	id="value_expand"
-													label="JSON"
-													class="json"
-													oncommand="coomanPlus.infoRowContextExec({target:{value:'expand'}})"
-													tooltiptext="&infoRow.expand;"
-													ordinal="3"
-													persist="ordinal"
-									/>
-									<button	id="value_base64decode"
-													label="B64"
-													class="b64"
-													oncommand="coomanPlus.infoRowContextExec({target:{value:'base64decode'}})"
-													tooltiptext="&infoRow.base64decode;"
-													ordinal="4"
-													persist="ordinal"
-									/>
+								<hbox pack="center">
+									<hbox	id="value_actions" persist="collapsed">
+										<button	id="value_decode"
+														label="URL"
+														class="url"
+														oncommand="coomanPlus.infoRowContextExec({target:{value:'decode'}})"
+														tooltiptext="&infoRow.urlDecode;&#10;&#10;&infoRow.action.tooltip;&#10;&infoRow.action.tooltip2;"
+														ordinal="0"
+														persist="ordinal"
+										/>
+										<button	id="value_expand"
+														label="JSON"
+														class="json"
+														oncommand="coomanPlus.infoRowContextExec({target:{value:'expand'}})"
+														tooltiptext="&infoRow.expand;&#10;&#10;&infoRow.action.tooltip;&#10;&infoRow.action.tooltip2;"
+														ordinal="1"
+														persist="ordinal"
+										/>
+										<button	id="value_base64decode"
+														label="B64"
+														class="b64"
+														oncommand="coomanPlus.infoRowContextExec({target:{value:'base64decode'}})"
+														tooltiptext="&infoRow.base64decode;&#10;&#10;&infoRow.action.tooltip;&#10;&infoRow.action.tooltip2;"
+														ordinal="2"
+														persist="ordinal"
+										/>
+									</hbox>
 								</hbox>
 							</vbox>
 							<vbox	class="inforowdata" pack="start">
@@ -1590,7 +1589,7 @@ hidden="true"
 			<resizer	dir="bottomend"/>
 		</hbox>
 	</vbox>
-  <script	type="application/javascript" src="chrome://global/content/strres.js" />
+	<script	type="application/javascript" src="chrome://global/content/strres.js" />
 	<script	type="application/javascript" src="common.js" />
 	<script	type="application/javascript" src="cookiesmanagerplus.js" />
 	<script	type="application/javascript" src="update.js" />
@@ -1648,6 +1647,7 @@ hidden="true"
 			cookieType2:											"&cookie.Type2;",
 			readonly1:												"&readonly.disabled;",
 			readonly2:												"&readonly.enabled;",
+			readonlyInfo:											"&readonly.info;",
 		};
 	</script>
 </window>

@@ -5,7 +5,7 @@ coomanPlus.prefTemplateClipboard = {value: "", extra: false}
 coomanPlus.prefTemplateFile = {value: "", extra: false};
 coomanPlus.backupTemplate = {value: "{HOST}	{ISDOMAIN_RAW}	{PATH}	{ISSECURE_RAW}	{EXPIRES_RAW}	{NAME}	{CONTENT}", extra: false};
 coomanPlus.restoreTemplate = [["host", "string"],["isDomain", "bool"],["path", "string"],["isSecure", "bool"],["expires", "int"],["name", "string"],["value", "string"],["isProtected", "bool"]];
-coomanPlus.header = "# HTTP Cookie File created by Cookies Manager+ v{VERSION} on {DATE}{HEADER}\r\n\r\n";
+coomanPlus.header = "# HTTP Cookie File Created by Cookies Manager+ v{VERSION} on {DATE}{HEADER}\r\n\r\n";
 coomanPlus.restoreStatusCanceled = 0;
 coomanPlus.restoreStatusDecrypted = 1;
 coomanPlus.restoreStatusEncrypted = 2;
@@ -115,7 +115,9 @@ coomanPlus.exportTemplate = function(aCookie, t)
 				CONTENT:			this.exportEscape(aCookie.value),
 				CONTENT_RAW:	aCookie.value,
 				HOST:					this.exportEscape(aCookie.host),
+				HOST_RAW:			aCookie.host,
 				PATH:					this.exportEscape(aCookie.path),
+				PATH_RAW:			aCookie.path,
 				ISSECURE:			aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
 				ISSECURE_RAW:	aCookie.isSecure,
 				EXPIRES:			this.getExpiresString(aCookie.expires),
@@ -333,7 +335,7 @@ coomanPlus.backupAddPassword = function(confirm)
 	{
 		return {status: 6, msg: this.string("password_notset")};
 	}
-	l = /^(# HTTP Cookie File created by Cookies Manager.*)$/m.exec(file.fileData);
+	l = /^(#( HTTP Cookie File )?Created by Cookies Manager.*)$/m.exec(file.fileData);
 	let h;
 	if (l)
 		h = l[1] + "\r\n\r\n";
@@ -475,12 +477,21 @@ log.debug();
 
 				return;
 			}
-			self._selected = list;
+			for(let i = 0; i < list.length; i++)
+			{
+				list[i] = self.cookieObjectSave(list[i]);
+			}
 			self._noObserve = true;
-			self.loadCookies();
-			self.selectLastCookie(true);
-			self._noObserve = false;
+//			self._cookiesTree.view.selection.selectEventsSuppressed = true;
+//			self._noselectevent = true;
+			self._selected = list;
+//			self.selectionSave();
+			self.loadCookies(undefined, undefined, undefined, undefined, undefined, true);
+//			self.selectLastCookie(true);
 			coomanPlus.alert(coomanPlus.string("restore_success").replace("#", list.length));
+			self._noObserve = false;
+			self._cookiesTree.view.selection.selectEventsSuppressed = false;
+			self._noselectevent = false;
 		}
 	}
 }//restoreGetFiles()

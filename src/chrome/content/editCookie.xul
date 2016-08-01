@@ -49,8 +49,13 @@
 				</row>
 
 				<row align="center">
-					<hbox align="center" pack="end">
-						<checkbox id="c_name" right="true" label="&props.name.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_name" tabindex="200" accessibleType="1003" />
+					<hbox align="center">
+						<hbox flex="1">
+							<image id="i_name"/>
+						</hbox>
+						<hbox align="center" pack="end">
+							<checkbox id="c_name" right="true" label="&props.name.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_name" tabindex="200" accessibleType="1003" />
+						</hbox>
 					</hbox>
 					<textbox id="ifl_name" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="100" accessibleType="101B"/>
 				</row>
@@ -113,15 +118,25 @@
 					</hbox>
 				</row>
 				<row align="center">
-					<hbox align="center" pack="end">
-						<checkbox id="c_host" right="true" label="&cookiedomain.label;:" checked="true" persist="checked" control="ifl_host" tabindex="700" accessibleType="1003" />
+					<hbox align="center">
+						<hbox flex="1">
+							<image id="i_host"/>
+						</hbox>
+						<hbox align="center" pack="end">
+							<checkbox id="c_host" right="true" label="&cookie.domain.label;:" checked="true" persist="checked" control="ifl_host" tabindex="700" accessibleType="1003" />
+						</hbox>
 					</hbox>
 					<textbox id="ifl_host" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="600" accessibleType="101B"/>
 				</row>
 
 				<row align="center">
-					<hbox align="center" pack="end">
-						<checkbox id="c_path" right="true" label="&props.path.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_path" tabindex="900" accessibleType="1003" />
+					<hbox align="center">
+						<hbox flex="1">
+							<image id="i_path"/>
+						</hbox>
+						<hbox align="center" pack="end">
+							<checkbox id="c_path" right="true" label="&props.path.label;" onkeypress="coomanPlus.saveCookiesCheck(event)" checked="true" persist="checked" control="ifl_path" tabindex="900" accessibleType="1003" />
+						</hbox>
 					</hbox>
 					<textbox id="ifl_path" oninput="coomanPlus.showNew()" onkeypress="coomanPlus.saveCookiesCheck(event)" tabindex="800" accessibleType="101B"/>
 				</row>
@@ -369,6 +384,8 @@
 			isHttpOnly1:	"&props.isHttpOnly.yes;",
 			cookie:				"&cookie;",
 			cookies:			"&cookies;",
+			error_path:		"&error.path;",
+			error_domain:	"&error.domain;",
 		};
 	</script>
 </window>

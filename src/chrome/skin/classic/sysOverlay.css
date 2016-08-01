@@ -44,3 +44,9 @@ toolbar[iconsize="small"] #coomanPlus_button
 	list-style-image: url("chrome://cookiesmanagerplus/skin/images/icons.png");
 	-moz-image-region: rect(0 48px 16px 32px);
 }
+.popup-notification-icon[popupid="coomanPlus-update"] {
+  list-style-image: url("chrome://cookiesmanagerplus/skin/images/coomanPlus64.png");
+	width: 64px !important;
+	height: 64px !important;
+}
+

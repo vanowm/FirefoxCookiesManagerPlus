@@ -1,7 +1,7 @@
 (function()
 {
 
-//let log = coomanPlusCore.log;
+let log = coomanPlusCore.log;
 coomanPlus.CHANGESLOG_NONE = 0;
 coomanPlus.CHANGESLOG_FULL = 4;
 coomanPlus.CHANGESLOG_NOTIFICATION = 1;
@@ -221,7 +221,18 @@ coomanPlus.showChangesLog = function(type, demo)
 						coomanPlus.showChangesLog()
 					}
 				},
-				[{  /* secondary action */
+				[
+				{  /* secondary action */
+					label: coomanPlus.string("label"),
+					accessKey: coomanPlus.string("label_key"),
+					callback: function()
+					{
+						coomanPlusCore._notify.remove();
+						coomanPlusCore.openCMP();
+					},
+					dismiss: true
+				},
+				{  /* secondary action */
 					label: coomanPlus.string("menu_options"),
 					accessKey: coomanPlus.string("menu_options_key"),
 					callback: function()
@@ -230,7 +241,8 @@ coomanPlus.showChangesLog = function(type, demo)
 						coomanPlus.options();
 					},
 					dismiss: true
-				}],
+				},
+				],
 				{
 					persistWhileVisible: true,
 					learnMoreURL: coomanPlusCore.HOMEPAGE,
@@ -425,13 +437,19 @@ coomanPlus.update = function update()
 			}
 			if (compare(v, "1.9") >= 0 && compare(v, "1.10") < 0)
 			{
-				coomanPlusCore.prefs.setCharPref("reset", JSON.stringify({main:["colsordinal"]}));
+				coomanPlusCore.storage.reset = {main:["colsordinal"]};
 			}
 			if (compare(v, "1.12") < 0)
 			{
-				coomanPlusCore.prefs.setCharPref("reset", JSON.stringify({main:["update1_12"]}));
+				coomanPlusCore.storage.reset = {main:["update1_12"]};
 				if (coomanPlusCore.pref("restoreselection") > 100)
 					coomanPlusCore.pref("restoreselection", 100);
+			}
+			if (compare(v, "1.13") < 0)
+			{
+				coomanPlusCore.storage.reset = {main:["update1_13"]};
+				coomanPlusCore.prefs.clearUserPref("reset");
+				coomanPlusCore.prefs.clearUserPref("restore");
 			}
 		}
 		catch(e)

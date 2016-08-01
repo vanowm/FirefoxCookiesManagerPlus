@@ -444,7 +444,9 @@ log.debug();
 		this.dateListSize();
 		this.changesLogMenu();
 		this.debugMenu();
-		this.prefs.setCharPref("reset", JSON.stringify({main:[], edit:[]}));
+		delete coomanPlusCore.storage.restore;
+		coomanPlusCore.storage.reset = {main:[], edit:[]};
+		coomanPlusCore.storageWrite();
 		Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
 			.notifyObservers(null, "cmp-command", "reset");
 	},
@@ -460,29 +462,28 @@ log.debug();
 			case "backup":
 					Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
 						.notifyObservers(null, "cmp-command", "backup");
-					let prefs = "";
+					let prefs = null;
 					coomanPlusCore.async(function()
 					{
-						try
-						{
-							prefs = JSON.stringify(coomanPlus.getSettings());
-						}catch(e){};
+						prefs = coomanPlus.getSettings();
 					}, 500);
 					let fp = this.saveFileSelect(this.getFilename(null, "cmp-settings-#.cmps"), "cmps", "", this.string("backupSettingsSave"), {title: this.string("settingsFile").replace("#", coomanPlusCore.addon.name), filter: "*.cmps;*.cmpj"});
 					if (!fp)
 						break;
 
+					prefs.searches = coomanPlusCore.storage.search;
+					try
+					{
+						prefs = JSON.stringify(prefs);
+					}catch(e){};
 					this.saveFile(fp, prefs)
 				break;
 			case "restore":
 					this.settingsRestore();
 				break;
 			case "searchhistoryclear":
-				this.prefs.setCharPref("reset", JSON.stringify({main:["searchhistory"]}));
-				let obj = {};
-				obj.wrappedJSObject = ["searchhistory"];
-				Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
-					.notifyObservers(obj, "cmp-command", "reset");
+				coomanPlusCore.storage.search = [];
+				coomanPlusCore.storageWrite();
 				break;
 		}
 	},//command()
@@ -490,7 +491,7 @@ log.debug();
 	getSettings: function getSettings()
 	{
 		let list = this.pref.prefs,
-				e = ["version", "reset"],
+				e = ["version", "reset", "restore"],
 				prefs = {};
 		for(let i in list)
 		{
@@ -499,6 +500,7 @@ log.debug();
 
 			prefs[i] = this.pref(i, undefined, true);
 		}
+		prefs.persist = coomanPlusCore.storage.persist;
 		return prefs
 	},//getSettings()
 
@@ -534,36 +536,51 @@ log.debug();
 			this.alert(this.string("restoreSettingsError"));
 			return false;
 		}
+		let params = {
+			data: data,
+			button: 0,
+		}
+		this._openDialog("optionsRestore.xul", "_blank", "chrome,resizable,centerscreen,dialog" + (this.isMac ? "" : "=no") + ",modal", params);
+
+		if (!params.button)
+			return;
+
 		for(let i in data)
 		{
 			if (i == "restore" || i == "reset")
 				continue;
 
-			if (i == "persist")
+			switch(i)
 			{
-				let nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-				nsISupportsString.data = data[i];
-				//can't use this.pref() because "restore" key doesn't exist;
-				this.prefs.setComplexValue("restore", Ci.nsISupportsString, nsISupportsString);
-
-			}
-			else
-			{
-				try
-				{
-					this.pref(i, data[i]);
-				}catch(e){};
+				case "persist":
+					if (typeof(data[i]) == "string")
+					{
+						try
+						{
+							coomanPlusCore.storage.restore = JSON.parse(data[i]);
+						}catch(e){}
+					}
+					else
+						coomanPlusCore.storage.restore = data[i];
+					break;
+				case "search":
+					coomanPlusCore.storage.search = data[i];
+					break;
+				default:
+					try
+					{
+						this.pref(i, data[i]);
+					}catch(e){};
 			}
 		}
 		if (data.persist)
 		{
-			let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService),
-					nsISupportsString = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-			nsISupportsString.data = data.persist;
-			observerService.notifyObservers(nsISupportsString, "cmp-command", "restore");
+			let observerService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
+			observerService.notifyObservers(null, "cmp-command", "restore");
 		}
 
-		this.prefs.clearUserPref("reset");
+		delete coomanPlusCore.storage.reset;
+		coomanPlusCore.storageWrite();
 		this.dateListSize();
 		this.changesLogMenu();
 		this.debugMenu();
@@ -587,7 +604,7 @@ log.debug();
 		}, 100);
 	},//topmost()
 	backupPersist: function backupPersist(){log.debug()},
-}
+}//coomanPlus
 
 function srGetStrBundle()
 {
@@ -610,6 +627,32 @@ if ("standalone" in args)
 	coomanPlus.standalone = args.standalone;
 }
 log.debug("standalone " + coomanPlus.standalone);
+let XULStore,
+		persist = {};
+try
+{
+	XULStore = Cc["@mozilla.org/xul/xulstore;1"].getService(Ci.nsIXULStore);
+
+}catch(e){}
+
+if (XULStore && window.location)
+{
+	let url = window.location.href,
+			enumerator = XULStore.getIDsEnumerator(url);
+
+	while(enumerator.hasMore())
+	{
+		let id = enumerator.getNext(),
+				attrEnum = XULStore.getAttributeEnumerator(url, id);
+
+		persist[id] = {};
+		while(attrEnum.hasMore())
+		{
+			let attr = attrEnum.getNext();
+			persist[id][attr] = XULStore.getValue(url, id, attr);
+		}
+	}
+}
 if (coomanPlus.standalone)
 {
 	coomanPlusCore.async(function()
@@ -627,5 +670,16 @@ else
 	coomanPlus.exec.push(function()
 	{
 		coomanPlus.backupPersist($("coomanPlusWindowOptions"));
+		for(let id in persist)
+		{
+			if (!typeof(persist[id]) == "object")
+				continue;
+
+			for(let attr in persist[id])
+			{
+				if (attr in $(id))
+					$(id)[attr] = persist[id][attr];
+			}
+		}
 	});
 }

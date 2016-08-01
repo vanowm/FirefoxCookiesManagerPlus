@@ -5,13 +5,27 @@
 	 xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	 xmlns:xbl="http://www.mozilla.org/xbl">
 
+  <binding id="checkbox-fixed" role="xul:checkbox"
+    extends="chrome://global/content/bindings/checkbox.xml#checkbox-baseline">
+    <resources>
+      <stylesheet src="chrome://global/skin/checkbox.css"/>
+    </resources>
+    <content>
+      <xul:image class="checkbox-check" xbl:inherits="checked,disabled"/>
+      <xul:hbox class="checkbox-label-box" flex="1">
+        <xul:image class="checkbox-icon" xbl:inherits="src"/>
+        <xul:label class="checkbox-label" xbl:inherits="value=label,accesskey,crop" flex="1"/>
+      </xul:hbox>
+    </content>
+  </binding>
+
 	<binding id="checkbox-right" extends="chrome://global/content/bindings/checkbox.xml#checkbox">
 		<resources>
 			<stylesheet src="chrome://cookiesmanagerplus/skin/checkbox.css"/>
 		</resources>
 		<content>
 			<xul:hbox class="checkbox-label-box" flex="1">
-				<xul:label class="checkbox-label" xbl:inherits="xbl:text=label,accesskey,crop" flex="1"/>
+				<xul:label class="checkbox-label" xbl:inherits="value=label,accesskey,crop" flex="1"/>
 				<xul:image class="checkbox-icon" xbl:inherits="src"/>
 			</xul:hbox>
 			<xul:image class="checkbox-check" xbl:inherits="checked,disabled"/>

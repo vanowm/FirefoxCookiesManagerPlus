@@ -411,3 +411,11 @@ textbox[readonly="true"]
 		}
 	to {color: red; }
 }
+
+#i_name,
+#i_host,
+#i_path
+{
+	list-style-image: url("images/icons.png");
+	-moz-image-region: rect(0, 343px, 16px, 327px);
+}

@@ -7,6 +7,33 @@ Legend:
 * = Changed
 - = Removed
 
+v1.13 (2016-07-31)
+	+ option for read-only encryption
+	+ ask for master password on CM+ launch/close if read-only encryption is enabled and user is not logged in
+	+ choose what settings to restore from selected backup file
+	+ error indicators in edit window that show which field prevents cookie from saving
+	+ additional information in tooltip of content action buttons
+	+ {HOST_RAW} and {PATH_RAW} export template tags
+	* renamed "Backup/Restore visible" to "Backup/Restore shown" (issue #103, any other suggestions are welcome)
+	* comment header in backup cookie file to be compatible with python cookie import library (pull #102)
+	* save unsaved read-only data to disk immediately upon CM+ window close
+	* moved read-only settings into it's own tab
+	* window settings are stored in storage file instead of preferences (reduces bloat of pref.js for overall browser performance)
+	* CM+ now uses only one database file to store it's data (read-only, window settings, search history, etc)
+	* greatly improved performance at CM+ launch with large number of stored selections
+	* greatly improved performance when changing read-only status of large number of cookies at once
+	* collapsed by default changes of old versions in changes log(controlled via options menu at changes log page)
+	! wrap action button (it still accessible from context menu)
+	! pre-select restored cookies (issue #104)
+	! encrypted read-only data is lost if user canceled master password on start-up (issue #106)
+	! read-only column visible when read-only feature is disabled
+	! reset settings clears search history
+	! restore settings doesn't sort info rows until CM+ restarted
+	! no icon shown in notification2 update pop-up
+	! long cookie domain would not fit properly in delete confirmation dialog
+	! options window doesn't remember last opened tabs (FF34+)
+
+
 v1.12 (2016-07-15)
 	+ right click on RegExp filter menu item opens webpage with basic explanation what RegExp is
 	+ site's icon at "Search: example.com" submenu of tools menu / toolbar button

@@ -31,7 +31,7 @@
 
 <!ENTITY		menu.filter.hostType																		"Domain match">
 <!ENTITY		menu.filter.normal																			"Normal">
-<!ENTITY		menu.filter.normal.info																	"Searching for domain.com will include subdomains">
+<!ENTITY		menu.filter.normal.info																	"Searching for domain.com will include sub-domains">
 <!ENTITY		menu.filter.relaxed																			"Relaxed">
 <!ENTITY		menu.filter.relaxed.info																"Searching for sub2.sub1.domain.com will match .domain.com as well as .sub1.domain.com (starts with dot)">
 <!ENTITY		menu.filter.exact																				"Exact">
@@ -52,8 +52,9 @@
 <!ENTITY		backup.button.accesskey																	"B">
 <!ENTITY		backup.selected																					"Backup Selected">
 <!ENTITY		backup.selected.accesskey																"S">
-<!ENTITY		backup.visible																					"Backup Visible">
-<!ENTITY		backup.visible.accesskey																"V">
+<!ENTITY		backup.visible																					"Backup Shown">
+<!ENTITY		backup.visible.info																			"Backup currently shown in the list">
+<!ENTITY		backup.visible.accesskey																"H">
 <!ENTITY		backup.all																							"Backup All">
 <!ENTITY		backup.all.accesskey																		"B">
 <!ENTITY		backup.corrupted																				"File is corrupted">
@@ -62,8 +63,9 @@
 <!ENTITY		restore.all.accesskey																		"R">
 <!ENTITY		restore.selected																				"Restore Selected">
 <!ENTITY		restore.selected.accesskey															"E">
-<!ENTITY		restore.visible																					"Restore Visible">
-<!ENTITY		restore.visible.accesskey																"I">
+<!ENTITY		restore.visible																					"Restore Shown">
+<!ENTITY		restore.visible.info																		"Restore for currently shown in the list only">
+<!ENTITY		restore.visible.accesskey																"N">
 <!ENTITY		restore.file.open																				"Open file">
 <!ENTITY		restore.success																					"Successfully restored # cookie(s)">
 <!ENTITY		restore.none																						"No cookies restored">
@@ -96,7 +98,7 @@
 <!ENTITY		cookie.isSecure.label																		"Send for">
 <!ENTITY		cookie.creationTime.label																"Created">
 <!ENTITY		cookie.lastAccessed.label																"Accessed">
-<!ENTITY		cookie.isHttpOnly.label																	"Http Only">
+<!ENTITY		cookie.isHttpOnly.label																	"HTTP Only">
 <!ENTITY		cookie.policy.label																			"Policy">
 <!ENTITY		cookie.status.label																			"Status">
 <!ENTITY		cookie.secure.label																			"Secure">
@@ -111,7 +113,7 @@
 <!ENTITY		props.policy.label																			"Policy:">
 <!ENTITY		props.status.label																			"Status:">
 <!ENTITY		props.lastAccessed.label																"Last Accessed:">
-<!ENTITY		props.isHttpOnly.label																	"Http Only:">
+<!ENTITY		props.isHttpOnly.label																	"HTTP Only:">
 <!ENTITY		props.creationTime.label																"Created:">
 <!ENTITY		props.type.label																				"Type:">
 <!ENTITY		props.size.label																				"Size:">
@@ -143,7 +145,8 @@
 <!ENTITY		infoRow.base64decode																		"Base64 decode">
 <!ENTITY		infoRow.actions																					"Show action buttons">
 <!ENTITY		infoRow.actions.info																		"Action buttons allow change order in which actions applied to the content">
-
+<!ENTITY		infoRow.action.tooltip																	"Click to activate/deactivate">
+<!ENTITY		infoRow.action.tooltip2																	"Drag'n drop to change sequence of the execution">
 <!ENTITY		protect.protect																					"Protect">
 <!ENTITY		protect.protect.accesskey																"P">
 <!ENTITY		protect.unprotect																				"Unprotect">
@@ -222,4 +225,5 @@
 <!ENTITY		fields.note																							"Enabling this field might decrease performance.">
 <!ENTITY		readonly.enabled																				"Read only">
 <!ENTITY		readonly.disabled																				"Normal Read/Write">
-<!ENTITY		filter.search																						"Search">
+<!ENTITY		readonly.info																						"Click to toggle">
+
