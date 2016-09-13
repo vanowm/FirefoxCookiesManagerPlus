@@ -96,14 +96,6 @@ var changesLog = {
 		return timer;
 	},//async()
 
-	clone: function(o)
-	{
-		let n = {};
-		for(let i in o)
-			n[i] = o[i];
-		return n;
-	},//clone()
-
 	context: function(e)
 	{
 		let sel = window.getSelection();
@@ -115,9 +107,9 @@ var changesLog = {
 				let txt = sel.toString();
 				if (this.checkboxGet("changesLogCopyIssueUrl") && (ISSUESSITE || SOURCESITE))
 				{
-					txt = txt.replace(/([ ,])(#([0-9a-z]{1,40}))/g, function(a, b, c, d)
+					txt = txt.replace(/(^|[\s,.;:\(])(#([0-9a-z]{1,40}))/g, function(a, b, c, d)
 					{
-						if (d.length > 3 && b.match(/[a-z]/))
+						if (d.length > 3 && d.match(/[a-z]/))
 							return a + " (" + SOURCESITE + d + ")";
 
 						return a + " (" + ISSUESSITE + d + ")";
@@ -743,7 +735,10 @@ log.debug();
 				imageBox.appendChild(image);
 				hbox.addEventListener("click", function(e)
 				{
-					if (e.button || e.detail > 1)
+					if (e.button && e.target != image)
+						return false;
+
+					if ((e.button && e.target == image) || e.detail > 1 || e.target == hbox)
 					{
 						if (imageBox._timer)
 							imageBox._timer.cancel();

@@ -17,7 +17,7 @@
 				ondialogaccept="coomanPlus.action(1)"
 				ondialogcancel="coomanPlus.action(0)"
 				buttons="accept,cancel"
-				persists="screenX screenY width height"
+				persist="screenX screenY width height"
 				flex="1"
 >
 	<vbox id="main" flex="1" style="overflow: auto;">

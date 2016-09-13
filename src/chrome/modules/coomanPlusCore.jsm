@@ -537,7 +537,7 @@ log.debug();
 log.debug();
 		let data = this.storage.readonly;
 
-		if ("e" in data)
+		if (data && "e" in data)
 		{
 			this.readonlyListEncrypted = data.e;
 			let text = this.readonlyDecrypt(data.e);
@@ -830,6 +830,13 @@ if (coomanPlusCore.pref("version") && Cc["@mozilla.org/xpcom/version-comparator;
 	})()
 }//v1.13 update
 
+for(let i in coomanPlusCore.storageStructure)
+{
+	if (!(i in coomanPlusCore.storage))
+		coomanPlusCore.storage[i] = coomanPlusCore.storageStructure[i];
+}
+if (!coomanPlusCore.storage.v)
+	coomanPlusCore.storage.v = coomanPlusCore.storageVersion;
 
 let observer = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 

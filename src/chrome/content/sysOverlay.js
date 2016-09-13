@@ -76,6 +76,17 @@ log.debug("end load sysoverlay", 1);
 
 	openCookieEditor: function openCookieEditor(type)
 	{
+		if (!type || type == 2)
+		{
+			let host;
+			try
+			{
+				host = gBrowser.currentURI.host;
+			}
+			catch(er){};
+			if (!host || ["http","https"].indexOf(gBrowser.currentURI.scheme) == -1)
+				type = 1;
+		}
 		let args = {};
 		if (type == 2 || (!type && this.pref("buttonaction")))
 			args = {gBrowser: gBrowser};

@@ -7,6 +7,12 @@ Legend:
 * = Changed
 - = Removed
 
+v1.13.1 (2016-09-12)
+	! cookies not shown when first installed or updated from v1.9.1 or older (issue #119)
+	! auto refresh doesn't update info rows when cookies updated (issue #118)
+	! options restore window would open too small (issue #110)
+	! when enabled "Auto fill search field with opened website" and clicked on toolbar button it would attempt use domain as search filter even for non-http websites (about:xxxx, chrome://xxxx, etc)
+
 v1.13 (2016-07-31)
 	+ option for read-only encryption
 	+ ask for master password on CM+ launch/close if read-only encryption is enabled and user is not logged in
@@ -22,7 +28,7 @@ v1.13 (2016-07-31)
 	* CM+ now uses only one database file to store it's data (read-only, window settings, search history, etc)
 	* greatly improved performance at CM+ launch with large number of stored selections
 	* greatly improved performance when changing read-only status of large number of cookies at once
-	* collapsed by default changes of old versions in changes log(controlled via options menu at changes log page)
+	* collapsed by default changes of old versions in changes log (controlled via options menu at changes log page)
 	! wrap action button (it still accessible from context menu)
 	! pre-select restored cookies (issue #104)
 	! encrypted read-only data is lost if user canceled master password on start-up (issue #106)
@@ -31,8 +37,7 @@ v1.13 (2016-07-31)
 	! restore settings doesn't sort info rows until CM+ restarted
 	! no icon shown in notification2 update pop-up
 	! long cookie domain would not fit properly in delete confirmation dialog
-	! options window doesn't remember last opened tabs (FF34+)
-
+	! options window doesn't remember last opened tabs (FF34+) (issue #83)
 
 v1.12 (2016-07-15)
 	+ right click on RegExp filter menu item opens webpage with basic explanation what RegExp is

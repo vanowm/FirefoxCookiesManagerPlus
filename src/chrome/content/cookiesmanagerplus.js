@@ -1285,17 +1285,19 @@ log.debug();
 		}, 1000, this.observe.timer);
 	},
 
-	_handleCookieChanged: function _handleCookieChanged(aCookie)
+	_handleCookieChanged: function _handleCookieChanged(_aCookie)
 	{
-log.debug(aCookie.name);
+log.debug(_aCookie.name);
 		let self = this;
 		coomanPlusCore.async(function()
 		{
+			let aCookie = new self.cookieObject(_aCookie.QueryInterface(Ci.nsICookie2), false, (new Date()).getTime());
+			aCookie.hash = coomanPlusCore.cookieHash(aCookie);
 			for(let i = 0; i < self._cookies.length; i++)
 			{
 				if (self._cookieEquals(self._cookies[i], aCookie, true))
 				{
-					self._cookies[i] = new self.cookieObject(aCookie, false, (new Date()).getTime());
+					self._cookies[i] = aCookie;
 					if (self._isSelected(aCookie, self._selected, undefined, true))
 					{
 						self._updateCookieData(aCookie);
@@ -1305,7 +1307,7 @@ log.debug(aCookie.name);
 	//		log(self._cookiesTree.treeBoxObject.getFirstVisibleRow() + " | "  +  self._cookiesTree.treeBoxObject.getLastVisibleRow());
 			self._cookiesTree.treeBoxObject.invalidateRange(self._cookiesTree.treeBoxObject.getFirstVisibleRow(), self._cookiesTree.treeBoxObject.getLastVisibleRow());
 	//		self._cookiesTree.treeBoxObject.invalidate();
-		}, 1000);
+		}, 100);
 	}, //_handleCookieChanged()
 
 	secure: function secure(type)
