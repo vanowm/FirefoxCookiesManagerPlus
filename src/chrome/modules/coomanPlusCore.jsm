@@ -27,7 +27,7 @@ var	self = this,
 	storageVersion: 1,
 	storageStructure: {
 		select: [],
-		readonly: [],
+		readonly: {},
 		search: [],
 		persist: {},
 		v: 0,
@@ -829,6 +829,12 @@ if (coomanPlusCore.pref("version") && Cc["@mozilla.org/xpcom/version-comparator;
 		coomanPlusCore.storageWrite();
 	})()
 }//v1.13 update
+else if (coomanPlusCore.pref("version") && Cc["@mozilla.org/xpcom/version-comparator;1"]
+		.getService(Ci.nsIVersionComparator).compare(coomanPlusCore.pref("version"), "1.13.2") < 0)
+{
+	if (coomanPlusCore.readonlyList() instanceof Array)
+		coomanPlusCore.readonlyList({});
+}//v1.13.2 update
 
 for(let i in coomanPlusCore.storageStructure)
 {

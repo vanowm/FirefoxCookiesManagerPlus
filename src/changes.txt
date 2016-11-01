@@ -7,6 +7,9 @@ Legend:
 * = Changed
 - = Removed
 
+v1.13.2 (2016-11-01)
+	! read-only list doesn't save (issue #123)
+
 v1.13.1 (2016-09-12)
 	! cookies not shown when first installed or updated from v1.9.1 or older (issue #119)
 	! auto refresh doesn't update info rows when cookies updated (issue #118)

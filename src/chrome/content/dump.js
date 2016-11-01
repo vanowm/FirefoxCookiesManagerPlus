@@ -100,7 +100,7 @@ if (typeof(__dumpName__) == "undefined")
 			if (callerIndex != -1)
 			{
 				let file_array = [];
-				for each(let i in caller_line)
+				for (let i of caller_line)
 				{
 					let cl = i,
 							line = cl.match(/(:[0-9]+(:[0-9]+)?)/);

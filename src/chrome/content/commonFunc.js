@@ -14,8 +14,8 @@ coomanPlus.numberClean = function(s)
 
 coomanPlus.clone = function(o)
 {
-	var n = {};
-	for(var i in o)
+	let n = {};
+	for(let i in o)
 		n[i] = o[i];
 	return n;
 }
