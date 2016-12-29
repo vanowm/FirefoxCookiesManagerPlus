@@ -7,6 +7,10 @@ Legend:
 * = Changed
 - = Removed
 
+v1.13.3 (2016-12-28)
+	! export issues on FF53
+	! xml error due to missing &filter.label; on FF53 nightly
+
 v1.13.2 (2016-11-01)
 	! read-only list doesn't save (issue #123)
 

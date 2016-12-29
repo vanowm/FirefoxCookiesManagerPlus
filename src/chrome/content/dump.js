@@ -100,15 +100,17 @@ if (typeof(__dumpName__) == "undefined")
 			if (callerIndex != -1)
 			{
 				let file_array = [];
-				for (let i of caller_line)
+				for (let i = 0; i < caller_line.length; i++)
 				{
-					let cl = i,
+					let cl = caller_line[i],
 							line = cl.match(/(:[0-9]+(:[0-9]+)?)/);
 					if (line)
 						line = line[1];
 
 					let url = cl.replace(/(:[0-9]+(:[0-9]+)?)/, "");
 					url = getLocalPath(url);
+					if (!url)
+						url = "unknown";
 
 					caller_file_full = url.replace(/^[\/\\]/, "");
 					caller_file = url.replace(_func.dir, "").replace(/^[\/\\]/, "") + line;
@@ -320,8 +322,8 @@ if (typeof(__dumpName__) == "undefined")
 			Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
 				.logStringMessage(title + caller_line + ": " + output);
 
-		for (let o of objectId.cacheObj)
-			delete o.___obj_id;
+		for (let o = 0; o < objectId.cacheObj.length; o++)
+			delete objectId.cacheObj[o].___obj_id;
 
 		if (!dumpFile)
 		{
@@ -385,22 +387,24 @@ if (typeof(__dumpName__) == "undefined")
 		catch(e){}
 
 		let caller = _func.debug.caller,
+				args,
 				_caller = "N/A",
 				_arguments = "";
 		if (caller)
 		{
+			args = caller.arguments;
 			if (caller.name)
 				_caller = caller.name;
 
 			let n = 0,
 					i;
-			for(let i = 0; i < caller.arguments.length; i++)
+			for(let i = 0; i < args.length; i++)
 			{
-				let quote = typeof caller.arguments[i] == "string" ? '"' : "",
+				let quote = typeof args[i] == "string" ? '"' : "",
 						arg;
 				try
 				{
-					arg = caller.arguments[i].toString();
+					arg = args[i].toString();
 				}
 				catch(e)
 				{
@@ -488,9 +492,9 @@ if (typeof(__dumpName__) == "undefined")
 		if (stackList[0] == -1)
 			return stack;
 
-		for (let s of stackList)
+		for (let s = 0; s < stackList.length; s++)
 		{
-			let line = stack[s];
+			let line = stack[stackList[s]];
 			if (typeof(line) == "undefined")
 				if (!r.length)
 					line = stack[2];
@@ -500,12 +504,13 @@ if (typeof(__dumpName__) == "undefined")
 			if (typeof(line) == "undefined")
 				continue;
 
-			for (let i of list)
+			for (let i = 0; i < list.length; i++)
 			{
-				index = line.lastIndexOf(i);
+				let item = list[i];
+				index = line.lastIndexOf(item);
 				if (index != -1)
 				{
-					index += i.length;
+					index += item.length;
 					break;
 				}
 			}

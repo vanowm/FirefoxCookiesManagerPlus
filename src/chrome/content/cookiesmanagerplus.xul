@@ -644,7 +644,7 @@
 									accessibleType="101B"
 				/>
 -->
-				<label	control="lookupcriterium">&filter.label;</label>
+				<label	control="lookupcriterium">&filter.search;:</label>
 				<textbox	id="lookupcriterium"
 									default="true"
 									flex="1"

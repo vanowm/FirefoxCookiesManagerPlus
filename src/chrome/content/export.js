@@ -81,7 +81,9 @@ coomanPlus.exportFile = function()
 	if (!s.length)
 		return;
 
-	let bundle = srGetStrBundle("chrome://pippki/locale/pippki.properties"),
+	let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
+										.getService(Ci.nsIStringBundleService)
+										.createBundle("chrome://pippki/locale/pippki.properties"),
 			filename;
 	if (s.length > 1)
 		filename = this.getFilename("", "cookies_#.txt");
@@ -744,7 +746,9 @@ coomanPlus.saveFileSelect = function(filename, ext, dir, title, filter)
 coomanPlus.saveFile = function(fp, content)
 {
 //save file block taken from chrome://pippki/content/pippki.js
-	let bundle = srGetStrBundle("chrome://pippki/locale/pippki.properties"),
+	let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
+										.getService(Ci.nsIStringBundleService)
+										.createBundle("chrome://pippki/locale/pippki.properties"),
 			localFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile),
 			msg,
 			written = 0;

@@ -768,6 +768,7 @@ coomanPlusCore.HOMEPAGE = HOMEPAGE;
 coomanPlusCore.SUPPORTSITE = SUPPORTSITE;
 coomanPlusCore.ISSUESSITE = ISSUESSITE;
 coomanPlusCore.ADDONDOMAIN = ADDONDOMAIN;
+coomanPlusCore.SUPPORTSITEQUERY = SUPPORTSITEQUERY;
 coomanPlusCore.storageRead();
 
 
