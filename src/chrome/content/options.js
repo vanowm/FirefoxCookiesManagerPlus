@@ -268,6 +268,8 @@ log.debug();
 	debugClick: function debugClick(e)
 	{
 		coomanPlus.debugMenu(coomanPlus.debugParse());
+		if (coomanPlus.instantApply)
+			coomanPlus.debugSave();
 	},
 
 	debugMenu: function debugMenu(v)
@@ -677,6 +679,9 @@ else
 
 			for(let attr in persist[id])
 			{
+				if (!$(id))
+					continue;
+
 				if (attr in $(id))
 					$(id)[attr] = persist[id][attr];
 			}

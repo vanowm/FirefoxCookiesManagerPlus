@@ -38,25 +38,32 @@ coomanPlus.exportGetData = function(t, s, a, u, j)
 	return data.join(j);
 }
 
-coomanPlus.exportEscape = function(text)
+coomanPlus.exportEscape = function(text, urlencode)
 {
-	try
+	if (typeof(urlencode) == "undefined" || urlencode)
 	{
-		text = encodeURIComponent(text);
+		try
+		{
+			text = encodeURIComponent(text);
+		}
+		catch(e){}
 	}
-	catch(e){}
+
 	return	text.replace(/\n/g, "_CMP_N__CMP__")
 							.replace(/\r/g, "_CMP_R__CMP__")
 							.replace(/\t/g, "_CMP_T__CMP__")
 	
 }
-coomanPlus.exportUnescape = function(text)
+coomanPlus.exportUnescape = function(text, urlencode)
 {
-	try
+	if (typeof(urlencode) == "undefined" || urlencode)
 	{
-		text = decodeURIComponent(text);
+		try
+		{
+			text = decodeURIComponent(text);
+		}
+		catch(e){}
 	}
-	catch(e){}
 	return	text.replace(/_CMP_N__CMP__/g, "\n")
 							.replace(/_CMP_R__CMP__/g, "\r")
 							.replace(/_CMP_T__CMP__/g, "\t")
@@ -69,6 +76,9 @@ coomanPlus.exportClipboard = function()
 			str = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString),
 			trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable),
 			clip = Cc["@mozilla.org/widget/clipboard;1"].getService(Ci.nsIClipboard);
+	if (!data)
+		return false;
+
 	str.data = data;
 	trans.addDataFlavor("text/unicode");
 	trans.setTransferData("text/unicode", str, data.length * 2);
@@ -109,27 +119,34 @@ coomanPlus.exportTemplate = function(aCookie, t)
 {
 	let r = t.value,
 			tags = "",
+			originAttributes = typeof(aCookie.originAttributes) != "undefined"
+													? aCookie.originAttributes
+													: aCookie._aCookie && typeof(aCookie._aCookie.originAttributes) != "undefined"
+														? aCookie._aCookie.originAttributes 
+														: {},
+
 			data = {
-				NAME:					this.exportEscape(aCookie.name),
-				NAME_RAW:			aCookie.name,
-//				CONTENT:			this.exportEscape(aCookie.valueRaw),
-//				CONTENT_RAW:	aCookie.valueRaw,
-				CONTENT:			this.exportEscape(aCookie.value),
-				CONTENT_RAW:	aCookie.value,
-				HOST:					this.exportEscape(aCookie.host),
-				HOST_RAW:			aCookie.host,
-				PATH:					this.exportEscape(aCookie.path),
-				PATH_RAW:			aCookie.path,
-				ISSECURE:			aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
-				ISSECURE_RAW:	aCookie.isSecure,
-				EXPIRES:			this.getExpiresString(aCookie.expires),
-				EXPIRES_RAW:	aCookie.expires,
-				POLICY:				this.string("policy" + aCookie.policy),
-				POLICY_RAW:		aCookie.policy,
-				ISDOMAIN:			this.string("yesno"+ (aCookie.isDomain ? 1 : 0)),
-				ISDOMAIN_RAW:	aCookie.isDomain,
-				TYPE:					this.string("cookieType" + (typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type)),
-				TYPE_RAW:			aCookie.type,
+				NAME:									this.exportEscape(aCookie.name),
+				NAME_RAW:							aCookie.name,
+//				CONTENT:							this.exportEscape(aCookie.valueRaw),
+//				CONTENT_RAW:					aCookie.valueRaw,
+				CONTENT:							this.exportEscape(aCookie.value),
+				CONTENT_RAW:					aCookie.value,
+				HOST:									this.exportEscape(aCookie.host),
+				HOST_RAW:							aCookie.host,
+				PATH:									this.exportEscape(aCookie.path, false),
+				PATH_RAW:							aCookie.path,
+				ISSECURE:							aCookie.isSecure ? this.string("secureYes") : this.string("secureNo"),
+				ISSECURE_RAW:					aCookie.isSecure,
+				EXPIRES:							this.getExpiresString(aCookie.expires),
+				EXPIRES_RAW:					aCookie.expires,
+				POLICY:								this.string("policy" + aCookie.policy),
+				POLICY_RAW:						aCookie.policy,
+				ISDOMAIN:							this.string("yesno"+ (aCookie.isDomain ? 1 : 0)),
+				ISDOMAIN_RAW:					aCookie.isDomain,
+				TYPE:									this.string("cookieType" + (typeof(aCookie.type) == "undefined" ? coomanPlusCore.COOKIE_NORMAL : aCookie.type)),
+				TYPE_RAW:							aCookie.type,
+				ORIGINATTRIBUTES:			JSON.stringify(originAttributes),
 
 				//exceptions
 				CAPABILITY:		aCookie.capability,

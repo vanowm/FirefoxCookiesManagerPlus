@@ -50,6 +50,10 @@
 						modifiers="alt"
 						oncommand="document.getElementById('cookiesTree').focus();"
 			/>
+			<key	key="C"
+						modifiers="accel"
+						oncommand="if(document.activeElement === coomanPlus._cookiesTree) coomanPlus.exportClipboard();"
+			/>
 		</keyset>
 
 

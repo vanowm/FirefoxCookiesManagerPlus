@@ -681,7 +681,86 @@ if (typeof(__dumpName__) == "undefined")
 	}//saveFile()
 
 
+	function openConsole()
+	{
+		AddonManager.getAllAddons(function(addons)
+		{
+			let win = null;
+			function toOpenWindowByType(inType, uri, features)
+			{
+					let win = Services.wm.getMostRecentWindow(inType),
+							ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
+				try
+				{
+					if (win)
+						return win;
+					else if (features)
+						win = ww.openWindow(null, uri, inType, features, null);
+					else
+						win = ww.openWindow(null, uri, inType, "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", null);
+				}
+				catch(e){log.error(e)}
+
+				return win;
+			}
+			addons.forEach(function(addon)
+			{
+				if (!addon.isActive || addon.id != "{1280606b-2510-4fe0-97ef-9b5a22eafe80}")
+					return;
+
+				try
+				{
+					win = toOpenWindowByType("global:console", "chrome://console2/content/console2.xul");
+				}
+				catch(e)
+				{
+		//			log.error(e)
+				}
+			})
+			if (win)
+				return;
+
+			try
+			{
+				Object.defineProperty(self, "HUDService", {
+					get: function HUDService_getter() {
+						let devtools = Cu.import("resource://devtools/shared/Loader.jsm", {}).devtools;
+						return devtools.require("devtools/client/webconsole/hudservice");
+					},
+					configurable: true,
+					enumerable: true
+				});
+			}
+			catch(e){};
+			try
+			{
+				win = HUDService.getBrowserConsole();
+	//				HUDService.openBrowserConsoleOrFocus();
+				if (!win)
+					win = HUDService.toggleBrowserConsole();
+			}
+			catch(e)
+			{
+	//			log.error(e)
+			}
+
+			if (win)
+				return;
+
+			try
+			{
+				win = toOpenWindowByType("global:console", "chrome://global/content/console.xul")
+			}
+			catch(e)
+			{
+	//			log.error(e)
+			}
+		});
+	}//openConsole()
+
 	const	{classes: Cc, interfaces: Ci, utils: Cu} = Components;
+	Cu.import("resource://gre/modules/AddonManager.jsm");
+	
 	let ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService),
 			cr = Cc['@mozilla.org/chrome/chrome-registry;1'].getService(Ci.nsIChromeRegistry),
 			ph = Cc["@mozilla.org/network/protocol;1?name=file"].createInstance(Ci.nsIFileProtocolHandler),
@@ -695,7 +774,8 @@ if (typeof(__dumpName__) == "undefined")
 	_func.folder = _func.dir.match(/([^\/]+)\/?$/)[1];
 	_func.dir = _func.dir.replace(/[^\/]+\/?$/, "");
 	_func.fileInit = fileInit;
-	_func.logLevel = 7
+	_func.logLevel = 7;
+	_func.openConsole = openConsole;
 })(__dumpName__); //name of the function
 
 //this[__dumpName__].fileInit("C:/debug/" + this[__dumpName__].folder + "/" + "debug");

@@ -266,7 +266,11 @@ var	self = this,
 
 			self.pref.prefs[aKey] = v;
 			if (aKey == "debug")
+			{
 				log.logLevel = self.pref("debug") || 1;
+				if (log.logLevel & 4)
+					log.openConsole();
+			}
 
 			if (aKey == "buttonaction")
 			{
@@ -329,7 +333,8 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 						value: aCookie.value,
 						isSecure: aCookie.isSecure,
 						isHttpOnly: aCookie.isHttpOnly,
-						expires: aCookie.expires
+						expires: aCookie.expires,
+						originAttributes: typeof(aCookie.originAttributes) != "undefined" ? aCookie.originAttributes : {}
 					},
 					deleted = aData == "deleted" || aData == "batch-deleted",
 					save = deleted;
@@ -337,6 +342,8 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 					{
 						if (newCookie[i] != readonlyList[hash][i])
 						{
+log(newCookie[i], 1);
+log(readonlyList[hash][i] ,1);
 							newCookie[i] = readonlyList[hash][i];
 							save = true;
 						}
@@ -353,7 +360,11 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 log.debug("Attempt to change readonly cookie " + newCookie.host + newCookie.path + (newCookie.path[newCookie.path.length-1] == "/" ? "" : "/")  + newCookie.name + ", restoring readonly data");
 
 						if (newCookie.expires * 1000 < (new Date()).getTime())
-							newCookie.expires = (new Date()).getTime() / 1000 + 1;  //we can't add already expired cookies, adding 1 sec
+						{
+							newCookie.expires = Math.floor((new Date()).getTime() / 1000 + 1);  //we can't add already expired cookies, adding 1 sec
+							if ("expires" in readonlyList[hash])
+								readonlyList[hash].expires = newCookie.expires;
+						}
 
 						this._cm2.add(newCookie.host,
 													newCookie.path,
@@ -362,7 +373,9 @@ log.debug("Attempt to change readonly cookie " + newCookie.host + newCookie.path
 													newCookie.isSecure,
 													newCookie.isHttpOnly,
 													(newCookie.expires) ? false : true,
-													newCookie.expires);
+													newCookie.expires,
+													newCookie.originAttributes
+						);
 					}
 					else
 log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == "/" ? "" : "/")  + aCookie.name);

@@ -599,7 +599,7 @@ log.debug();
 		let str = scriptableStream.read(input.available());
 		scriptableStream.close();
 		input.close();
-		str = utf8Converter.convertURISpecToUTF8 (str, "UTF-8");
+		str = utf8Converter.convertURISpecToUTF8(str, "UTF-8");
 		str = str.replace(/\t/g, "  ");
 		title = str.substr(0, str.indexOf("\n"));
 		str = str.replace(title, "").replace(/^\s+/g, "");

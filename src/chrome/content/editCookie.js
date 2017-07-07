@@ -637,8 +637,12 @@ log.debug();
 		if (!this.createNewCookie())
 			return false;
 
-		let exists = coomanPlusCore._cm2.cookieExists(this._newCookie),
+		let exists = false,
 				cookieEqual = this._cookieEquals(this._curCookie, this._newCookie);
+		try
+		{
+			exists = coomanPlusCore._cm2.cookieExists(this._newCookie);
+		}catch(e){}
 
 		if (!cookieEqual && exists)
 		{
@@ -739,6 +743,40 @@ log.debug();
 											)
 								)
 						);
+/*
+log([e,
+			!this.saveEnabled,
+			(!ok
+						|| ($('c_name').checked && !this.trim($('ifl_name').value).length)
+						||	!this.trim($('ifl_host').value) === ""
+						||	(!$('c_name').checked
+									&& !$('c_host').checked
+									&& !$('c_path').checked
+									&& !$('c_value').checked
+									&& !$('c_expires').checked
+									&& !$('c_isSecure').checked
+								)
+			),
+			!ok,
+			($('c_name').checked && !this.trim($('ifl_name').value).length),
+			!this.trim($('ifl_host').value) === "",
+			(!$('c_name').checked
+					&& !$('c_host').checked
+					&& !$('c_path').checked
+					&& !$('c_value').checked
+					&& !$('c_expires').checked
+					&& !$('c_isSecure').checked
+			),
+			!$('c_name').checked,
+			!$('c_host').checked,
+			!$('c_path').checked,
+			!$('c_value').checked,
+			!$('c_expires').checked,
+			!$('c_isSecure').checked,
+			
+
+]);
+*/
 		$("editCookie").disabled = e;
 		if (this._addFlag || this._multi)
 			return;
