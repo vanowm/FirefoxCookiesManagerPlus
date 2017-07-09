@@ -945,7 +945,7 @@ hidden="true"
 										persist="width hidden ordinal"
 					/>
 					<splitter	class="tree-splitter" resizeafter="grow" ordinal="29" />
-					<treecol	id="originAttributes"
+					<treecol	id="originAttributesString"
 										label="&cookie.originAttributes.label;"
 										onclick="if(!event.button)coomanPlus.cookieColumnSort(this.id);"
 										context="coomanPlus_tree_menu"

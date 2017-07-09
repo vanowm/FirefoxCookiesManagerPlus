@@ -164,7 +164,7 @@ var coomanPlus = {
 				case "readonly":
 				 return coomanPlus.string("yesno"+(coomanPlus._cookies[row].readonly ? 1 : 0))
 
-				case "originAttributes":
+				case "originAttributesString":
 				 return coomanPlus._cookies[row].originAttributesText;
 			}
 			return coomanPlus._cookies[row][column.id];

@@ -7,6 +7,9 @@ Legend:
 * = Changed
 - = Removed
 
+v1.14.2 (2017-07-09)
+	! sort by originAttributes (issue #134)
+
 v1.14.1 (2017-07-09)
  v1.13.4 supposed to be as v1.14
 	* when delete + block cookie, it now adds both http:// and https:// addresses to the exceptions list (issue #133)

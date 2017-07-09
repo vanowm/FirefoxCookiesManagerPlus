@@ -61,6 +61,10 @@ log.debug("sort begin");
 	// do the sort or re-sort
 	let h = coomanPlus.prefSimpleHost > 0 && column == "rawHost" ? (coomanPlus.prefSimpleHost == 1 ? "simpleHost" : "rootHost") : column,
 			f = column == "expiresString" ? "expires" : h.replace(/String$/, "");
+
+	if (f == "originAttributes")
+		f = "originAttributesText";
+
 //log.debug([f, h]);
 	function compareFunc(a, b)
 	{
@@ -81,7 +85,7 @@ log.debug("sort begin");
 
 		if (!r)
 		{
-			let alt = [(column == "rawHost" ?  (coomanPlus.prefSimpleHost > 0 ? "rawHost" : "name") : "name"), "name", "path", "value"];
+			let alt = [(column == "rawHost" ?  (coomanPlus.prefSimpleHost > 0 ? "rawHost" : "name") : "name"), "name", "path", "value", "originAttributesText"];
 			for(let i = 0; i < alt.length; i++)
 			{
 				r = a[alt[i]].toLowerCase().localeCompare(b[alt[i]].toLowerCase());
