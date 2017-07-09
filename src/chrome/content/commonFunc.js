@@ -344,125 +344,25 @@ log({host: aCookie.host,
 					? aCookie._aCookie.originAttributes 
 				: {}}, 3);
 */
-/*
-host (string): .google.com
-name (string): NID
-path (string): /
-originAttributes (object): [object Object]
-{
-    addonId (string): 
-    appId (number): 0
-    inIsolatedMozBrowser (boolean): false
-    privateBrowsingId (number): 0
-    signedPkg (string): 
-    userContextId (number): 0
-}
+				if (aCookie.block)
+				{
+					let perm = Cc["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager),
+							ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService),
+							scheme = ["http", "https"],
+							host = aCookie.host.replace(/^\./, '');
 
-host (string): .google.com
-name (string): NID
-path (string): /
-originAttributes (object): [object Object]
-{
-    addonId (string): 
-    appId (number): 4294967294
-    inIsolatedMozBrowser (boolean): false
-    privateBrowsingId (number): 0
-    signedPkg (string): 
-    userContextId (number): 0
-}
-
-
-*/
-/*
-(object):[xpconnect wrapped (nsISupports, nsICookie, nsICookie2)]
-POLICY_EXPLICIT_CONSENT (number): 4
-POLICY_IMPLICIT_CONSENT (number): 3
-POLICY_NONE (number): 1
-POLICY_NO_CONSENT (number): 2
-POLICY_NO_II (number): 5
-POLICY_UNKNOWN (number): 0
-QueryInterface (function): function QueryInterface() {
-    [native code]
-}
-
-
-STATUS_ACCEPTED (number): 1
-STATUS_DOWNGRADED (number): 2
-STATUS_FLAGGED (number): 3
-STATUS_REJECTED (number): 4
-STATUS_UNKNOWN (number): 0
-creationTime (number): 1467642953633000
-expires (number): 1483455885
-expiry (number): 1483455885
-host (string): .google.com
-isDomain (boolean): true
-isHttpOnly (boolean): true
-isSecure (boolean): false
-isSession (boolean): false
-lastAccessed (number): 1467644905358000
-name (string): NID
-originAttributes (object): [object Object]
-{
-    addonId (string): 
-    appId (number): 0
-    inIsolatedMozBrowser (boolean): false
-    privateBrowsingId (number): 0
-    signedPkg (string): 
-    userContextId (number): 0
-}//originAttributes (object)
-path (string): /
-policy (number): 0
-rawHost (string): google.com
-status (number): 0
-value (string): 81=KvvedEJKrsWfnBUVJxSBQXg_G46MhRK0GRUhDYFAjjb4Zcrf1DuxJCnwRbYk_1Mfq-KWMfRN9abhYqVNC9rwX7_I8g1eks0kkiWvuLyjbr5IsIUwEikTiEKhQNDiuhzeAS8POvDelj8eXTTO9XFDDRfPfJ6D7zyey69H-6WJdgbm-Gx4QPbcGQGvRbA-RpNdWKkQMDindlTG0sJ_NatnpAMjan9jZ8_pZUeJFRUO3NTfnPkd
-
-
-
-(object):[xpconnect wrapped (nsISupports, nsICookie, nsICookie2)]
-POLICY_EXPLICIT_CONSENT (number): 4
-POLICY_IMPLICIT_CONSENT (number): 3
-POLICY_NONE (number): 1
-POLICY_NO_CONSENT (number): 2
-POLICY_NO_II (number): 5
-POLICY_UNKNOWN (number): 0
-QueryInterface (function): function QueryInterface() {
-    [native code]
-}
-
-
-STATUS_ACCEPTED (number): 1
-STATUS_DOWNGRADED (number): 2
-STATUS_FLAGGED (number): 3
-STATUS_REJECTED (number): 4
-STATUS_UNKNOWN (number): 0
-creationTime (number): 1467644518724000
-expires (number): 1483455718
-expiry (number): 1483455718
-host (string): .google.com
-isDomain (boolean): true
-isHttpOnly (boolean): true
-isSecure (boolean): false
-isSession (boolean): false
-lastAccessed (number): 1467644518724000
-name (string): NID
-originAttributes (object): [object Object]
-{
-    addonId (string): 
-    appId (number): 4294967294
-    inIsolatedMozBrowser (boolean): false
-    privateBrowsingId (number): 0
-    signedPkg (string): 
-    userContextId (number): 0
-}//originAttributes (object)
-path (string): /
-policy (number): 0
-rawHost (string): google.com
-status (number): 0
-value (string): 81=KWMraPnbY8AwIHiZAFBsQ6oejRhthMtA2PlBZX_ZKj8xJE5PdPlQ5xIpoAbN5VYwUYnar2XRN-PrHfCNqlRrsLo0gPOP7ieOrp3QTC56CotwLKBoxr8MiHrw-ncxzChz
-
-
-*/
-
+					for(let i = 0; i < scheme.length; i++)
+					{
+						try
+						{
+							perm.add(ioService.newURI(scheme[i] + "://" + host, null, null), "cookie", Ci.nsIPermissionManager.DENY_ACTION);
+						}
+						catch(e)
+						{
+							log.error(e);
+						}
+					}
+				}
 				result = coomanPlusCore._cm.remove(	aCookie.host,
 																						aCookie.name,
 																						aCookie.path,

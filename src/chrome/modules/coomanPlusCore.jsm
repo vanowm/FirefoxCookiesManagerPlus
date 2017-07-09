@@ -342,8 +342,6 @@ log.debug(aCookie.host + aCookie.path + (aCookie.path[aCookie.path.length-1] == 
 					{
 						if (newCookie[i] != readonlyList[hash][i])
 						{
-log(newCookie[i], 1);
-log(readonlyList[hash][i] ,1);
 							newCookie[i] = readonlyList[hash][i];
 							save = true;
 						}

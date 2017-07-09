@@ -7,6 +7,10 @@ Legend:
 * = Changed
 - = Removed
 
+v1.14.1 (2017-07-09)
+ v1.13.4 supposed to be as v1.14
+	* when delete + block cookie, it now adds both http:// and https:// addresses to the exceptions list (issue #133)
+
 v1.13.4 (2017-07-07)
 	+ ability export originAttributes (issues #122)
 	+ pressing CTRL+C (COMMAND+C) when cookies list in focus will copy selected cookies to clipboard
