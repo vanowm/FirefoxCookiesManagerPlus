@@ -97,6 +97,13 @@ var coomanPlus = {
 				expires: 0,
 				policy: 0,
 				isHttpOnly: false,
+				originAttributes: {
+					appId: 0,
+					firstPartyDomain: "",
+					inIsolatedMozBrowser: false,
+					privateBrowsingId: 0,
+					userContexId: 0
+				},
 				type: coomanPlusCore.COOKIE_NORMAL
 		});
 		this._curCookie.hash = coomanPlusCore.cookieHash(this._curCookie, undefined, true);
@@ -131,9 +138,9 @@ var coomanPlus = {
 		}
 		document.title += " - " + coomanPlusCore.addon.name;
 		this.setSaveCheckboxes();
-		$("c_name").disabled = this._multi;
-		$("c_host").disabled = this._multi;
-		$("c_path").disabled = this._multi;
+		$("c_name").disabled = this._multi || this._addFlag;
+		$("c_host").disabled = this._multi || this._addFlag;
+		$("c_path").disabled = this._multi || this._addFlag;
 /*
 		this.addEventListener($("ifl_expires_date"), "change", this.fixDate, true);
 		this.addEventListener($("ifl_expires_time"), "change", this.fixTime, true);
@@ -516,7 +523,10 @@ log.debug();
 		//check url
 		try
 		{
-			ioService.newURI("http://" + host + "/", null, null);
+			if (!host.length)
+				throw Components.results.NS_ERROR_MALFORMED_URI;
+
+			ioService.newURI("http://" + host, null, null);
 		}
 		catch(e)
 		{
@@ -525,12 +535,10 @@ log.debug();
 		}
 		try
 		{
+			if (!path.length)
+				throw Components.results.NS_ERROR_MALFORMED_URI;
+
 			ioService.newURI("http://test" + path, null, null);
-			if (path === "")
-			{
-				msg.path = [this.string("error_path") + ": " + path, null];
-				r = true;
-			}
 		}
 		catch(e)
 		{
@@ -606,6 +614,7 @@ log.debug();
 												expires: this.getExpireSelection(),
 												policy: this._curCookie.policy,
 												isHttpOnly: isHttpOnly,
+												originAttributes: this._curCookie.originAttributes,
 											});
 //		this._newCookie.name = name;
 //		this._newCookie.value = value;
@@ -641,7 +650,7 @@ log.debug();
 				cookieEqual = this._cookieEquals(this._curCookie, this._newCookie);
 		try
 		{
-			exists = coomanPlusCore._cm2.cookieExists(this._newCookie);
+			exists = coomanPlusCore._cm2.cookieExists(this._newCookie, this._newCookie.originAttributes);
 		}catch(e){}
 
 		if (!cookieEqual && exists)
@@ -726,14 +735,15 @@ log.debug();
 		let ok = false;
 		try
 		{
-			coomanPlusCore._cm2.cookieExists(this._newCookie);
+			coomanPlusCore._cm2.cookieExists(this._newCookie, this._newCookie.originAttributes);
 			ok = true;
 		}
 		catch(e){}
 		let e = (!this.saveEnabled
-							|| (!ok
-									|| ($('c_name').checked && !this.trim($('ifl_name').value).length)
-									||	!this.trim($('ifl_host').value) === ""
+							||	(!ok
+									||	($('c_name').checked && !this.trim($('ifl_name').value).length)
+									||	($('c_host').checked && !this.trim($('ifl_host').value).length)
+									||	($('c_path').checked && !this.trim($('ifl_path').value).length)
 									||	(!$('c_name').checked
 												&& !$('c_host').checked
 												&& !$('c_path').checked
@@ -743,6 +753,7 @@ log.debug();
 											)
 								)
 						);
+
 /*
 log([e,
 			!this.saveEnabled,

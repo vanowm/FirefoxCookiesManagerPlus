@@ -90,10 +90,10 @@ coomanPlus._cookieGetExtraInfo = function(aCookie)
 	if (aCookie.extra)
 		return aCookie;
 
-	var list = coomanPlusCore._cm2.getCookiesFromHost(aCookie.host);
+	let list = coomanPlusCore._cm2.getCookiesFromHost(aCookie.host);
 	while (list.hasMoreElements())
 	{
-		var c = list.getNext();
+		let c = list.getNext();
 		if (!c || !(c instanceof Ci.nsICookie))
 			break;
 		if (this._cookieEquals(aCookie, c))
@@ -140,7 +140,8 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 	this.isDomain			= aCookie.isDomain;
 	this.host					= aCookie.host;
 	this.rawHost			= aCookie.rawHost ? aCookie.rawHost : coomanPlus.getRawHost(aCookie.host);
-	this.simpleHost		= this.rawHost.charAt(0) == "." ? this.rawHost.substring(1, this.rawHost.length) : this.rawHost.match(/^www\./) ? this.rawHost.replace(/^www\./, "") : this.rawHost;
+//	this.simpleHost		= this.rawHost.charAt(0) == "." ? this.rawHost.substring(1, this.rawHost.length) : this.rawHost.match(/^www\./) ? this.rawHost.replace(/^www\./, "") : this.rawHost;
+	this.simpleHost		= this.rawHost.charAt(0) == "." ? this.rawHost.substring(1, this.rawHost.length) : this.rawHost.replace(/^www\./, "");
 	this.rootHost			= this.rawHost.replace(/^.*\.([^.]+\.[^.]+)$/, "$1");
 	this.path					= aCookie.path;
 	this.isSecure			= aCookie.isSecure;
@@ -172,8 +173,8 @@ coomanPlus.cookieObject = function(aCookie, sel, updated)
 //	this.valueSizeText= coomanPlus.getByteSizeText(this.valueSize);
 	this.size 				= coomanPlus.getByteSize(this.name + "=" + this.value);
 	this.sizeText			= coomanPlus.getByteSizeText(this.size);
-	this.originAttributes = aCookie.originAttributes;
-	this.originAttributesText = JSON.stringify(aCookie.originAttributes);
+	this.originAttributes = aCookie.originAttributes === undefined ? {} : aCookie.originAttributes;
+	this.originAttributesText =  JSON.stringify(this.originAttributes);
 }
 
 coomanPlus.resizeWindow = function(f)
@@ -350,7 +351,6 @@ log({host: aCookie.host,
 							ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService),
 							scheme = ["http", "https"],
 							host = aCookie.host.replace(/^\./, '');
-
 					for(let i = 0; i < scheme.length; i++)
 					{
 						try
@@ -1144,3 +1144,28 @@ if (coomanPlus.exec)
 		com();
 	}
 }
+/*
+
+coomanPlusCore.async(function()
+{
+let perm = Cc["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager),
+		enumerator = perm.enumerator,
+		permList = [],
+		permDomains = [],
+		i = 0;
+
+log(Cc["@mozilla.org/permissionmanager;1"].getService(Ci.nsIPermissionManager), 1);
+
+while (enumerator.hasMoreElements())
+{
+	let n = enumerator.getNext();
+	if (n.type == "cookie" && n.capability == perm.DENY_ACTION)
+	{
+log(n, 2);
+		permList.push(n);
+		permDomains.push(n.principal.URI.host);
+	}
+}
+log(permDomains,1);
+});
+*/
